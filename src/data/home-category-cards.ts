@@ -13,7 +13,7 @@ export const HOME_CATEGORY_CARDS: HomeCategoryCardConfig[] = [
   {
     slug: 'plataformas-elevatorias',
     description:
-      'Tesouras, lanças articuladas e telescópicas para manutenção, montagem e obras em altura com entrega na região metropolitana de BH.',
+      'Aluguel de plataforma elevatória: tesouras, articuladas e telescópicas para obra em altura com entrega na região metropolitana de BH.',
     imageFit: 'contain',
   },
   {

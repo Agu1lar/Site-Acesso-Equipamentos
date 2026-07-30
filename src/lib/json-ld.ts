@@ -280,9 +280,29 @@ export function buildCategoryPageJsonLd(options: {
     '@id': `${pageUrl}#breadcrumb`,
   };
 
+  const graph: Record<string, unknown>[] = [collectionPage, breadcrumb, itemList];
+
+  if (options.seo.faqs && options.seo.faqs.length > 0) {
+    graph.push({
+      '@type': 'FAQPage',
+      '@id': `${pageUrl}#faq`,
+      url: pageUrl,
+      inLanguage: 'pt-BR',
+      isPartOf: { '@id': `${baseUrl}/#website` },
+      mainEntity: options.seo.faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.answer,
+        },
+      })),
+    });
+  }
+
   return {
     '@context': SCHEMA_CONTEXT,
-    '@graph': [collectionPage, breadcrumb, itemList],
+    '@graph': graph,
   };
 }
 

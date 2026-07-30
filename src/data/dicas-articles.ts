@@ -43,7 +43,7 @@ export const DICAS_ARTICLES: DicaArticle[] = [
       },
     ],
     relatedLinks: [
-      { label: 'Plataformas elevatórias no catálogo', href: '/categorias/plataformas-elevatorias' },
+      { label: 'Aluguel de plataforma elevatória', href: '/categorias/plataformas-elevatorias' },
       { label: 'Treinamento em plataformas elevatórias', href: '/treinamento-plataformas-aereas' },
     ],
   },
@@ -131,7 +131,7 @@ export const DICAS_ARTICLES: DicaArticle[] = [
     ],
     relatedLinks: [
       { label: 'Andaimes', href: '/categorias/andaimes' },
-      { label: 'Plataformas elevatórias', href: '/categorias/plataformas-elevatorias' },
+      { label: 'Aluguel de plataforma elevatória', href: '/categorias/plataformas-elevatorias' },
     ],
   },
 ];

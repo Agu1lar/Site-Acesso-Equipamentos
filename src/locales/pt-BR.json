@@ -39,7 +39,7 @@
   },
   "Index": {
     "meta_title": "Locação de equipamentos para obra em BH | Acesso Equipamentos",
-    "meta_description": "Aluguel de plataformas elevatórias (plataforma aérea), guindaste industrial, andaimes e ferramentas em Belo Horizonte, Contagem, Betim, Nova Lima e região metropolitana. Frota revisada e orçamento rápido.",
+    "meta_description": "Aluguel de plataforma elevatória, guindaste industrial, andaimes e ferramentas em Belo Horizonte, Contagem, Betim, Nova Lima e região metropolitana. Frota revisada e orçamento rápido.",
     "hero_title": "Locação de equipamentos para construção, indústria e mineração com segurança e agilidade",
     "hero_subtitle": "Plataformas elevatórias, guindaste industrial, manipuladores telescópicos, andaimes, ferramentas elétricas e à combustão.",
     "training_title": "Treinamento em plataformas elevatórias",
@@ -117,7 +117,8 @@
     "breadcrumb_home": "Início",
     "breadcrumb_equipment": "Equipamentos",
     "hero_tagline": "Frota revisada · entrega na obra · orçamento rápido",
-    "seo_read_more": "Saiba mais sobre locação de {category}",
+    "seo_read_more": "Saiba mais sobre aluguel de {category}",
+    "seo_faq_title": "Perguntas frequentes",
     "catalog_title": "Equipamentos — {category}",
     "results_count": "{count, plural, =1 {# item no catálogo} other {# itens no catálogo}}",
     "empty": "Esta linha é atendida sob consulta. Fale com nosso comercial.",
@@ -143,7 +144,7 @@
   },
   "Equipamentos": {
     "meta_title": "Catálogo de equipamentos para locação em BH | Acesso Equipamentos",
-    "meta_description": "Mais de 100 equipamentos para construção civil: plataformas elevatórias (plataforma aérea), guindaste industrial, manipuladores telescópicos, andaimes e ferramentas elétricas e à combustão. Orçamento sob consulta.",
+    "meta_description": "Mais de 100 equipamentos para construção civil: aluguel de plataforma elevatória, guindaste industrial, manipuladores telescópicos, andaimes e ferramentas. Orçamento sob consulta em BH.",
     "title": "Equipamentos para locação",
     "filter_all": "Todos",
     "results_count": "{count, plural, =1 {# equipamento no catálogo} other {# equipamentos no catálogo}}",

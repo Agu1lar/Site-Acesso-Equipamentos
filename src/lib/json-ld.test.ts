@@ -168,6 +168,23 @@ describe('build category page json-ld', () => {
       'Ferramentas elétricas',
     ]);
   });
+
+  it('includes FAQPage when category SEO defines faqs', () => {
+    const seo = getCategorySeo('plataformas-elevatorias');
+    const json = buildCategoryPageJsonLd({
+      slug: 'plataformas-elevatorias',
+      seo,
+      equipment: [equipment],
+    });
+    const graph = json['@graph'] as Record<string, unknown>[];
+    const faqPage = graph.find((node) => node['@type'] === 'FAQPage') as {
+      mainEntity?: { name?: string }[];
+    };
+
+    expect(seo.faqs?.length).toBeGreaterThan(0);
+    expect(faqPage?.mainEntity?.length).toBe(seo.faqs?.length);
+    expect(faqPage?.mainEntity?.[0]?.name).toContain('aluguel de plataforma elevatória');
+  });
 });
 
 describe('build equipment catalog json-ld', () => {

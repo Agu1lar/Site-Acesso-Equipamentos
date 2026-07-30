@@ -174,6 +174,8 @@ export default async function CategoryPage(props: CategoryPageProps) {
         </section>
 
         <CategorySeoSection
+          faqTitle={seo.faqs?.length ? (seo.faqTitle ?? t('seo_faq_title')) : undefined}
+          faqs={seo.faqs}
           paragraphs={seo.paragraphs}
           readMoreLabel={t('seo_read_more', { category: categoryLabel })}
         />

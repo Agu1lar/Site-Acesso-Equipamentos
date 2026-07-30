@@ -149,7 +149,7 @@ export default async function TreinamentoPlataformasPage(props: PageProps) {
             className="font-semibold text-primary hover:underline"
             href="/categorias/plataformas-elevatorias"
           >
-            locação de plataformas elevatórias
+            aluguel de plataforma elevatória
           </Link>{' '}
           — tesouras, articuladas e outros modelos para obras em BH e região metropolitana.
         </p>

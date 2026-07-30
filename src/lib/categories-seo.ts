@@ -1,27 +1,58 @@
 import type { EquipmentCategory } from '@/types/equipment';
 import { EQUIPMENT_CATEGORY_ORDER } from '@/types/equipment';
 
+export type CategorySeoFaq = {
+  question: string;
+  answer: string;
+};
+
 export type CategorySeoContent = {
   slug: EquipmentCategory;
   h1: string;
   metaTitle: string;
   metaDescription: string;
   paragraphs: string[];
+  faqs?: CategorySeoFaq[];
+  /** Optional H2 above FAQ; falls back to i18n `seo_faq_title`. */
+  faqTitle?: string;
 };
 
 /** Textos originais para SEO local por linha de negócio. */
 const CATEGORIES_SEO: Record<EquipmentCategory, CategorySeoContent> = {
   'plataformas-elevatorias': {
     slug: 'plataformas-elevatorias',
-    h1: 'Locação de plataformas elevatórias em Belo Horizonte',
-    metaTitle: 'Locação de plataformas elevatórias (plataforma aérea) em BH | Acesso Equipamentos',
+    h1: 'Aluguel de plataforma elevatória em Belo Horizonte',
+    metaTitle: 'Aluguel de plataforma elevatória em BH | Acesso Equipamentos',
     metaDescription:
-      'Aluguel de plataformas elevatórias (plataforma aérea): tesouras, lanças articuladas e telescópicas. BH, MG e Brasil. Frota revisada e orçamento rápido.',
+      'Aluguel de plataforma elevatória em BH: tesoura, articulada e telescópica. Frota revisada, entrega na obra e orçamento rápido em Belo Horizonte e região.',
     paragraphs: [
-      'A locação de plataformas elevatórias — termo também usado na busca como plataforma aérea ou aluguel de plataforma aérea — é essencial em obras que exigem trabalho em altura com segurança e produtividade — desde manutenção de fachadas e instalações elétricas até montagem de estruturas metálicas e serviços em galpões industriais. Em Belo Horizonte e em todo o território nacional, a Acesso Equipamentos oferece plataformas elevatórias para empresas, construtoras e empreiteiras que precisam de agilidade sem comprometer a conformidade com as normas de segurança.',
-      'Nossa frota inclui plataformas tipo tesoura, lança articulada e lança telescópica, além de mastros verticais, adequadas a diferentes alturas de trabalho e capacidades de carga. Use os filtros do catálogo para ver tesouras, articuladas ou telescópicas. Cada equipamento é indicado conforme o tipo de terreno, o espaço disponível na obra e a necessidade de deslocamento — fatores que nossa equipe comercial avalia ao montar sua proposta. Os valores são informados sob consulta, de acordo com o período de locação e a logística de entrega e retirada.',
-      'Trabalhar em altura exige planejamento: análise do solo, delimitação da área, capacitação de operadores e uso de EPIs compatíveis com a atividade. A Acesso Equipamentos orienta o cliente sobre documentação e requisitos usuais para locação de plataformas elevatórias, alinhados às boas práticas do setor e à legislação vigente. Fundada em 2013, a empresa conta com profissionais com mais de vinte anos de experiência no mercado de locação para construção civil.',
-      'Oferecemos ainda treinamento em operação segura de plataformas elevatórias, com conteúdo alinhado à NR-18 e ao trabalho em altura. Consulte o catálogo abaixo, a página de treinamento, solicite orçamento pelo formulário ou fale diretamente com nossa equipe comercial.',
+      'O aluguel de plataforma elevatória (também chamada de plataforma aérea) é a solução mais usada em obras que precisam de trabalho em altura com produtividade e segurança — fachadas, instalações elétricas, estruturas metálicas, galpões e manutenção industrial. Em Belo Horizonte e na região metropolitana, a Acesso Equipamentos loca plataformas elevatórias para construtoras, empreiteiras e equipes de manutenção que querem equipamento revisado sem imobilizar capital na compra.',
+      'No catálogo você encontra plataforma tesoura, lança articulada, lança telescópica e mastro vertical, em diferentes alturas de trabalho e capacidades. Use os filtros por tipo e altura para comparar modelos. Na cotação, informamos valores sob consulta conforme período (diária, semanal ou mensal), logística de entrega e retirada e condições do terreno — o comercial indica o equipamento adequado ao vão, ao piso e ao alcance necessário.',
+      'Antes de fechar o aluguel de plataforma elevatória, vale definir altura de trabalho, tipo de piso, necessidade de deslocamento na obra e se haverá operador capacitado. Trabalhar em altura exige planejamento: análise do solo, isolamento da área, EPIs e conformidade com as normas aplicáveis. A Acesso Equipamentos, fundada em 2013, orienta sobre documentação usual de locação e boas práticas do setor.',
+      'Além da locação, oferecemos treinamento em operação segura de plataformas elevatórias, alinhado à NR-18 e ao trabalho em altura. Veja os modelos abaixo, consulte a página de treinamento ou peça orçamento pelo formulário e WhatsApp comercial.',
+    ],
+    faqTitle: 'Perguntas frequentes sobre aluguel de plataforma elevatória',
+    faqs: [
+      {
+        question: 'Quanto custa o aluguel de plataforma elevatória?',
+        answer:
+          'Os valores são sob consulta. O preço do aluguel de plataforma elevatória depende do modelo (tesoura, articulada ou telescópica), da altura, do período de locação e da logística de entrega em Belo Horizonte ou na região. Envie o tipo de serviço e o prazo pelo formulário ou WhatsApp para receber a proposta.',
+      },
+      {
+        question: 'Qual a diferença entre plataforma tesoura e articulada?',
+        answer:
+          'A plataforma tesoura sobe na vertical e é ideal para trabalhos em linha reta com boa capacidade de carga. A articulada (lança) contorna obstáculos e alcança pontos laterais, útil em fachadas e áreas com interferências. Na dúvida, nossa equipe indica o modelo no orçamento.',
+      },
+      {
+        question: 'Vocês fazem aluguel de plataforma elevatória em Belo Horizonte?',
+        answer:
+          'Sim. Atendemos Belo Horizonte, Contagem, Betim, Nova Lima e demais cidades da região metropolitana, com entrega e retirada na obra conforme disponibilidade da frota. Informe o endereço da obra na solicitação de orçamento.',
+      },
+      {
+        question: 'Preciso de operador para locar a plataforma elevatória?',
+        answer:
+          'A operação deve ser feita por profissional capacitado, com atenção às normas de trabalho em altura. Orientamos sobre requisitos usuais na locação; a responsabilidade pelo uso seguro na obra permanece com o contratante, salvo disposição contratual específica. Também oferecemos treinamento em plataformas aéreas.',
+      },
     ],
   },
   'guindaste-industrial': {
