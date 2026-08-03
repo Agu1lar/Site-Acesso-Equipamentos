@@ -133,7 +133,28 @@ export function denyGoogleAnalyticsConsent() {
   consentGranted = false;
 }
 
+/**
+ * Allows Google Ads click-conversion beacons without enabling GA4/PostHog analytics.
+ * Used for WhatsApp button conversions (click count only, no form PII).
+ */
+export function grantGoogleAdsClickMeasurement() {
+  if (!getGoogleAdsId() && !getGoogleAdsWhatsAppConversionSendTo()) {
+    return;
+  }
+
+  gtag('consent', 'update', {
+    ad_storage: 'granted',
+    ad_user_data: 'granted',
+    ad_personalization: 'denied',
+  });
+}
+
 export type GaEventParams = Record<string, string | number | undefined>;
+
+export type GoogleAdsConversionOptions = {
+  /** When false, fires Ads conversion without full analytics cookie accept. Default true. */
+  requireAnalyticsConsent?: boolean;
+};
 
 /**
  * Sends an event to GA4 (only after consent is granted).
@@ -160,10 +181,23 @@ export function captureGaEvent(eventName: string, params?: GaEventParams) {
 /**
  * Fires a Google Ads conversion when a send_to label is configured.
  */
-export function captureGoogleAdsConversion(sendTo: string | null | undefined, params?: GaEventParams) {
-  syncGoogleAnalyticsConsentFromStorage();
+export function captureGoogleAdsConversion(
+  sendTo: string | null | undefined,
+  params?: GaEventParams,
+  options?: GoogleAdsConversionOptions,
+) {
+  const requireAnalyticsConsent = options?.requireAnalyticsConsent !== false;
 
-  if (!consentGranted || !sendTo?.trim()) {
+  if (requireAnalyticsConsent) {
+    syncGoogleAnalyticsConsentFromStorage();
+    if (!consentGranted) {
+      return;
+    }
+  } else {
+    grantGoogleAdsClickMeasurement();
+  }
+
+  if (!sendTo?.trim()) {
     return;
   }
 
@@ -187,12 +221,19 @@ export function captureGoogleAdsLeadConversion(params?: GaEventParams) {
   captureGoogleAdsConversion(getGoogleAdsLeadConversionSendTo(), params);
 }
 
+/**
+ * WhatsApp button conversion: click beacon only (no analytics cookie required).
+ */
 export function captureGoogleAdsWhatsAppConversion(params?: GaEventParams) {
-  captureGoogleAdsConversion(getGoogleAdsWhatsAppConversionSendTo(), {
-    value: 1.0,
-    currency: 'BRL',
-    ...params,
-  });
+  captureGoogleAdsConversion(
+    getGoogleAdsWhatsAppConversionSendTo(),
+    {
+      value: 1.0,
+      currency: 'BRL',
+      ...params,
+    },
+    { requireAnalyticsConsent: false },
+  );
 }
 
 /**

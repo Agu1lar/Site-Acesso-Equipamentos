@@ -72,4 +72,36 @@ describe('google analytics consent sync', () => {
     expect(GA_CONVERSION_EVENTS.generateLead).toBe('generate_lead');
     expect(GA_CONVERSION_EVENTS.whatsappClick).toBe('whatsapp_click');
   });
+
+  it('fires WhatsApp Ads conversion without analytics cookie consent', async () => {
+    const dataLayer: unknown[] = [];
+    vi.stubGlobal('window', {
+      localStorage: {
+        getItem: () => null,
+        setItem: () => undefined,
+        removeItem: () => undefined,
+        clear: () => undefined,
+      },
+      dataLayer,
+      gtag: (...args: unknown[]) => {
+        dataLayer.push(args);
+      },
+    });
+
+    const { captureGoogleAdsWhatsAppConversion, isGoogleAnalyticsConsentGranted } =
+      await import('@/lib/google-analytics');
+
+    expect(isGoogleAnalyticsConsentGranted()).toBe(false);
+    captureGoogleAdsWhatsAppConversion({ origin: 'site-home' });
+
+    const conversion = dataLayer.find(
+      (entry) =>
+        Array.isArray(entry) && entry[0] === 'event' && entry[1] === 'conversion',
+    ) as unknown[] | undefined;
+
+    expect(conversion?.[2]).toMatchObject({
+      send_to: 'AW-11323862073/RLI1CNa09tQcELnY0Zcq',
+      transport_type: 'beacon',
+    });
+  });
 });

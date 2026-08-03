@@ -71,11 +71,18 @@ export function buildWhatsAppClickAnalyticsPayload(options: {
 
 /**
  * Counts WhatsApp button clicks in Neon always (no cookie required).
- * GA4 / Google Ads / PostHog only run after analytics consent.
+ * Fires the Google Ads WhatsApp conversion on every click (click beacon only).
+ * GA4 / PostHog still require analytics cookie consent.
  */
 export function trackWhatsAppClick(input: WhatsAppClickInput) {
   syncGoogleAnalyticsConsentFromStorage();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
+
+  // Ads conversion tracks the click itself — not tied to analytics cookies / PII.
+  captureGoogleAdsWhatsAppConversion({
+    origin: input.origin,
+    equipment_slug: input.equipmentSlug,
+  });
 
   if (analyticsConsent) {
     captureWhatsAppClick(input);
@@ -84,11 +91,6 @@ export function trackWhatsAppClick(input: WhatsAppClickInput) {
       origin: input.origin,
       equipment_slug: input.equipmentSlug,
       equipment_name: input.equipmentName,
-    });
-
-    captureGoogleAdsWhatsAppConversion({
-      origin: input.origin,
-      equipment_slug: input.equipmentSlug,
     });
   }
 
