@@ -225,6 +225,13 @@
       "when": 1782200000000,
       "tag": "0035_equipment_slug_tubo_bracadeira",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1782300000000,
+      "tag": "0036_analytics_events_consent",
+      "breakpoints": true
     }
   ]
 }

@@ -35,30 +35,49 @@ export type RecordAnalyticsEventInput = {
 export async function recordAnalyticsEvent(input: RecordAnalyticsEventInput) {
   const attribution = input.attribution;
 
-  const [row] = await db
-    .insert(analyticsEventsSchema)
-    .values({
-      eventType: input.eventType,
-      origin: input.origin ?? null,
-      equipmentSlug: input.equipmentSlug ?? null,
-      equipmentName: input.equipmentName ?? null,
-      pathname: input.pathname ?? null,
-      device: input.device ?? null,
-      analyticsConsent: input.analyticsConsent ?? null,
-      utmSource: attribution?.utmSource ?? null,
-      utmMedium: attribution?.utmMedium ?? null,
-      utmCampaign: attribution?.utmCampaign ?? null,
-      utmContent: attribution?.utmContent ?? null,
-      utmTerm: attribution?.utmTerm ?? null,
-      gclid: attribution?.gclid ?? null,
-      gbraid: attribution?.gbraid ?? null,
-      wbraid: attribution?.wbraid ?? null,
-      referrer: attribution?.referrer ?? null,
-      landingPage: attribution?.landingPage ?? null,
-      geoCity: input.visitorGeo?.geoCity ?? null,
-      geoRegion: input.visitorGeo?.geoRegion ?? null,
-    })
-    .returning({ id: analyticsEventsSchema.id });
+  const baseValues = {
+    eventType: input.eventType,
+    origin: input.origin ?? null,
+    equipmentSlug: input.equipmentSlug ?? null,
+    equipmentName: input.equipmentName ?? null,
+    pathname: input.pathname ?? null,
+    device: input.device ?? null,
+    utmSource: attribution?.utmSource ?? null,
+    utmMedium: attribution?.utmMedium ?? null,
+    utmCampaign: attribution?.utmCampaign ?? null,
+    utmContent: attribution?.utmContent ?? null,
+    utmTerm: attribution?.utmTerm ?? null,
+    gclid: attribution?.gclid ?? null,
+    gbraid: attribution?.gbraid ?? null,
+    wbraid: attribution?.wbraid ?? null,
+    referrer: attribution?.referrer ?? null,
+    landingPage: attribution?.landingPage ?? null,
+    geoCity: input.visitorGeo?.geoCity ?? null,
+    geoRegion: input.visitorGeo?.geoRegion ?? null,
+  };
 
-  return row;
+  try {
+    const [row] = await db
+      .insert(analyticsEventsSchema)
+      .values({
+        ...baseValues,
+        analyticsConsent: input.analyticsConsent ?? null,
+      })
+      .returning({ id: analyticsEventsSchema.id });
+
+    return row;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    // Survive deploys where the consent column migration has not applied yet.
+    if (!/analytics_consent/i.test(message)) {
+      throw error;
+    }
+
+    const [row] = await db
+      .insert(analyticsEventsSchema)
+      .values(baseValues)
+      .returning({ id: analyticsEventsSchema.id });
+
+    return row;
+  }
 }
