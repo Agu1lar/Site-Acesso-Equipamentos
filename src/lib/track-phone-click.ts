@@ -1,7 +1,12 @@
 import { readStoredAttribution } from '@/lib/attribution';
 import { readStoredVisitorGeo } from '@/lib/visitor-geo';
 import { capturePhoneClick } from '@/lib/posthog-events';
-import { GA_CONVERSION_EVENTS, captureGaEvent } from '@/lib/google-analytics';
+import {
+  GA_CONVERSION_EVENTS,
+  captureGaEvent,
+  isGoogleAnalyticsConsentGranted,
+  syncGoogleAnalyticsConsentFromStorage,
+} from '@/lib/google-analytics';
 
 type TrackPhoneClickInput = {
   origin: string;
@@ -19,6 +24,9 @@ function detectDevice() {
  * Sends phone_click to PostHog, GA4 and persists the event in Neon.
  */
 export function trackPhoneClick(input: TrackPhoneClickInput) {
+  syncGoogleAnalyticsConsentFromStorage();
+  const analyticsConsent = isGoogleAnalyticsConsentGranted();
+
   capturePhoneClick(input);
 
   captureGaEvent(GA_CONVERSION_EVENTS.phoneClick, {
@@ -37,6 +45,7 @@ export function trackPhoneClick(input: TrackPhoneClickInput) {
     origin: input.origin,
     pathname,
     device: detectDevice(),
+    analyticsConsent,
     attribution: attribution ?? undefined,
     visitorGeo: visitorGeo ?? undefined,
   });

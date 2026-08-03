@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useLayoutEffect, useState } from 'react';
 import { AnalyticsConsentContext } from '@/components/analytics/AnalyticsConsentContext';
 import { AnalyticsErrorBoundary } from '@/components/analytics/AnalyticsErrorBoundary';
 import { CookieConsentBanner } from '@/components/analytics/CookieConsentBanner';
@@ -17,6 +17,7 @@ import {
   denyGoogleAnalyticsConsent,
   grantGoogleAnalyticsConsent,
   isGoogleAnalyticsConfigured,
+  syncGoogleAnalyticsConsentFromStorage,
 } from '@/lib/google-analytics';
 import { initPostHog } from '@/lib/posthog-client';
 import { recordAnalyticsConsent } from '@/lib/record-analytics-consent';
@@ -41,14 +42,19 @@ function persistConsent(value: CookieConsentValue) {
  * Gates PostHog behind analytics cookie consent and shows the consent banner.
  */
 export function AnalyticsConsentProvider(props: AnalyticsConsentProviderProps) {
-  const [status, setStatus] = useState<CookieConsentStatus>('pending');
+  const [status, setStatus] = useState<CookieConsentStatus>(() =>
+    typeof window === 'undefined' ? 'pending' : readStoredConsent(),
+  );
   const [hydrated, setHydrated] = useState(false);
 
-  useEffect(() => {
-    setStatus(readStoredConsent());
+  useLayoutEffect(() => {
+    const stored = readStoredConsent();
+    setStatus(stored);
     setHydrated(true);
-    if (readStoredConsent() === 'analytics' && isGoogleAnalyticsConfigured()) {
+    if (stored === 'analytics' && isGoogleAnalyticsConfigured()) {
       grantGoogleAnalyticsConsent();
+    } else {
+      syncGoogleAnalyticsConsentFromStorage();
     }
   }, []);
 

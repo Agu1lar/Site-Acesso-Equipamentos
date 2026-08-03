@@ -41,6 +41,7 @@ export type AnalyticsDashboardLabels = {
   whatsapp_hero_title: string;
   whatsapp_hero_period: string;
   whatsapp_hero_clicks_label: string;
+  whatsapp_hero_consent_label: string;
   whatsapp_hero_empty_hint: string;
   whatsapp_hero_rate: string;
   whatsapp_hero_previous_period: string;
@@ -206,6 +207,9 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
             clicks={d.whatsappClicks}
             clicksLabel={t.whatsapp_hero_clicks_label}
             clicksPrevious={d.whatsappClicksPrevious}
+            clicksWithConsentLabel={t.whatsapp_hero_consent_label
+              .replace('{withConsent}', String(d.whatsappClicksWithConsent))
+              .replace('{total}', String(d.whatsappClicks))}
             delta={whatsappDelta}
             deltaLabel={deltaLabel}
             emptyHint={t.whatsapp_hero_empty_hint}

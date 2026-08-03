@@ -40,6 +40,8 @@ export type OperationalDashboard = {
   totalActiveSeconds: number;
   totalActiveSecondsPrevious: number;
   whatsappClicks: number;
+  /** WhatsApp clicks with analytics cookies accepted (eligible for Google Ads). */
+  whatsappClicksWithConsent: number;
   quoteSubmits: number;
   cookieConsentLeads: number;
   whatsappClicksPrevious: number;

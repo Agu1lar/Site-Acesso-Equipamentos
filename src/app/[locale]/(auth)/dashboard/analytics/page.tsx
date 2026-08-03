@@ -90,6 +90,10 @@ async function buildDashboardLabels(
     whatsapp_hero_title: t('whatsapp_hero_title'),
     whatsapp_hero_period: t('whatsapp_hero_period'),
     whatsapp_hero_clicks_label: t('whatsapp_hero_clicks_label', { count: dashboard.whatsappClicks }),
+    whatsapp_hero_consent_label: t('whatsapp_hero_consent_label', {
+      withConsent: dashboard.whatsappClicksWithConsent,
+      total: dashboard.whatsappClicks,
+    }),
     whatsapp_hero_empty_hint: t('whatsapp_hero_empty_hint'),
     whatsapp_hero_rate: t('whatsapp_hero_rate'),
     whatsapp_hero_previous_period: t('whatsapp_hero_previous_period', {

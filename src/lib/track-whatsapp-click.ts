@@ -1,6 +1,12 @@
 import { readStoredAttribution } from '@/lib/attribution';
 import { readStoredVisitorGeo } from '@/lib/visitor-geo';
-import { GA_CONVERSION_EVENTS, captureGaEvent, captureGoogleAdsWhatsAppConversion } from '@/lib/google-analytics';
+import {
+  GA_CONVERSION_EVENTS,
+  captureGaEvent,
+  captureGoogleAdsWhatsAppConversion,
+  isGoogleAnalyticsConsentGranted,
+  syncGoogleAnalyticsConsentFromStorage,
+} from '@/lib/google-analytics';
 import { captureWhatsAppClick, type WhatsAppClickInput } from '@/lib/posthog-events';
 
 /**
@@ -18,6 +24,10 @@ function detectDevice() {
  * Sends whatsapp_click to PostHog, GA4, Google Ads (optional) and Neon.
  */
 export function trackWhatsAppClick(input: WhatsAppClickInput) {
+  // Restore consent before Ads/GA4 so returning visitors are not dropped pre-hydration.
+  syncGoogleAnalyticsConsentFromStorage();
+  const analyticsConsent = isGoogleAnalyticsConsentGranted();
+
   captureWhatsAppClick(input);
 
   captureGaEvent(GA_CONVERSION_EVENTS.whatsappClick, {
@@ -46,6 +56,7 @@ export function trackWhatsAppClick(input: WhatsAppClickInput) {
       equipmentName: input.equipmentName,
       pathname,
       device: detectDevice(),
+      analyticsConsent,
       attribution: attribution ?? undefined,
       visitorGeo: visitorGeo ?? undefined,
     });

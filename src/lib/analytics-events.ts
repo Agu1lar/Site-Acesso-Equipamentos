@@ -23,6 +23,8 @@ export type RecordAnalyticsEventInput = {
   equipmentName?: string;
   pathname?: string;
   device?: string;
+  /** Whether analytics cookies were accepted when the event fired. */
+  analyticsConsent?: boolean;
   attribution?: AttributionInput;
   visitorGeo?: VisitorGeoInput;
 };
@@ -42,6 +44,7 @@ export async function recordAnalyticsEvent(input: RecordAnalyticsEventInput) {
       equipmentName: input.equipmentName ?? null,
       pathname: input.pathname ?? null,
       device: input.device ?? null,
+      analyticsConsent: input.analyticsConsent ?? null,
       utmSource: attribution?.utmSource ?? null,
       utmMedium: attribution?.utmMedium ?? null,
       utmCampaign: attribution?.utmCampaign ?? null,

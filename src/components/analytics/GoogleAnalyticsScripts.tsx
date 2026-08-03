@@ -37,6 +37,16 @@ export function GoogleAnalyticsScripts() {
             ad_personalization: 'denied',
             wait_for_update: 500
           });
+          try {
+            if (window.localStorage.getItem('acesso_cookie_consent') === 'analytics') {
+              gtag('consent', 'update', {
+                analytics_storage: 'granted',
+                ad_storage: 'granted',
+                ad_user_data: 'granted',
+                ad_personalization: 'denied'
+              });
+            }
+          } catch (e) {}
           gtag('js', new Date());
           ${configLines}
         `}

@@ -5,6 +5,8 @@
  * Optional conversion labels (full send_to): NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LEAD / _WHATSAPP
  */
 
+import { COOKIE_CONSENT_STORAGE_KEY, parseConsentValue } from '@/lib/cookie-consent';
+
 export const GA_CONVERSION_EVENTS = {
   whatsappClick: 'whatsapp_click',
   phoneClick: 'phone_click',
@@ -35,6 +37,39 @@ export function isGoogleAnalyticsConfigured() {
 }
 
 export function isGoogleAnalyticsConsentGranted() {
+  return consentGranted;
+}
+
+/**
+ * Reads stored cookie choice without waiting for React hydration.
+ * Used so Ads conversions are not dropped on returning visitors.
+ */
+export function hasStoredAnalyticsConsent() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  try {
+    return parseConsentValue(window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY)) === 'analytics';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Restores in-memory + gtag consent from localStorage when the user already accepted.
+ * @returns true when analytics/Ads consent is granted after the call
+ */
+export function syncGoogleAnalyticsConsentFromStorage() {
+  if (consentGranted) {
+    return true;
+  }
+
+  if (!hasStoredAnalyticsConsent()) {
+    return false;
+  }
+
+  grantGoogleAnalyticsConsent();
   return consentGranted;
 }
 
@@ -104,6 +139,8 @@ export type GaEventParams = Record<string, string | number | undefined>;
  * Sends an event to GA4 (only after consent is granted).
  */
 export function captureGaEvent(eventName: string, params?: GaEventParams) {
+  syncGoogleAnalyticsConsentFromStorage();
+
   if (!consentGranted || !getGaMeasurementId()) {
     return;
   }
@@ -124,6 +161,8 @@ export function captureGaEvent(eventName: string, params?: GaEventParams) {
  * Fires a Google Ads conversion when a send_to label is configured.
  */
 export function captureGoogleAdsConversion(sendTo: string | null | undefined, params?: GaEventParams) {
+  syncGoogleAnalyticsConsentFromStorage();
+
   if (!consentGranted || !sendTo?.trim()) {
     return;
   }
@@ -149,13 +188,19 @@ export function captureGoogleAdsLeadConversion(params?: GaEventParams) {
 }
 
 export function captureGoogleAdsWhatsAppConversion(params?: GaEventParams) {
-  captureGoogleAdsConversion(getGoogleAdsWhatsAppConversionSendTo(), params);
+  captureGoogleAdsConversion(getGoogleAdsWhatsAppConversionSendTo(), {
+    value: 1.0,
+    currency: 'BRL',
+    ...params,
+  });
 }
 
 /**
  * Sends a page_view to GA4 after consent.
  */
 export function captureGaPageView(pagePath: string, pageTitle?: string) {
+  syncGoogleAnalyticsConsentFromStorage();
+
   if (!consentGranted || !getGaMeasurementId()) {
     return;
   }

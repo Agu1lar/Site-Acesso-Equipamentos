@@ -8,6 +8,7 @@ const AnalyticsEventFieldsSchema = z.object({
   equipmentName: z.string().max(300).optional(),
   pathname: z.string().max(500).optional(),
   device: z.enum(['mobile', 'desktop']).optional(),
+  analyticsConsent: z.boolean().optional(),
   attribution: AttributionSchema.optional(),
   visitorGeo: VisitorGeoSchema.optional(),
 });

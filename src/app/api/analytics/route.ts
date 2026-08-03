@@ -26,6 +26,7 @@ export const POST = async (request: Request) => {
       device: data.device,
       attribution: data.attribution,
       visitorGeo: data.visitorGeo,
+      analyticsConsent: data.analyticsConsent,
     });
 
     return NextResponse.json({ ok: true });

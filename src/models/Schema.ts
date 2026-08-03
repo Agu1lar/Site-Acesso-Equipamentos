@@ -114,6 +114,8 @@ export const analyticsEventsSchema = pgTable('analytics_events', {
   landingPage: varchar('landing_page', { length: 500 }),
   geoCity: varchar('geo_city', { length: 120 }),
   geoRegion: varchar('geo_region', { length: 120 }),
+  /** True when cookie consent was analytics at event time (Ads-eligible). */
+  analyticsConsent: boolean('analytics_consent'),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
 

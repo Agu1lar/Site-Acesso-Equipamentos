@@ -3,6 +3,7 @@ import { WhatsAppIcon } from '@/components/layout/SocialIcons';
 
 type AnalyticsWhatsappHeroProps = {
   clicks: number;
+  clicksWithConsentLabel?: string;
   clicksPrevious: number;
   delta: number;
   deltaLabel: string;
@@ -56,6 +57,9 @@ export function AnalyticsWhatsappHero(props: AnalyticsWhatsappHeroProps) {
           <p className="text-sm font-semibold uppercase tracking-wide text-neutral-600">
             {props.clicksLabel}
           </p>
+          {props.clicksWithConsentLabel ? (
+            <p className="mt-1 text-sm text-neutral-600">{props.clicksWithConsentLabel}</p>
+          ) : null}
         </div>
       </div>
 

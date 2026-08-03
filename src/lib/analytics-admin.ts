@@ -81,6 +81,25 @@ async function countEvents(
   return row?.count ?? 0;
 }
 
+/**
+ * WhatsApp clicks where the visitor had accepted analytics cookies (Ads-eligible).
+ */
+async function countWhatsAppWithAnalyticsConsent(from: Date, to: Date) {
+  const [row] = await db
+    .select({ count: count() })
+    .from(analyticsEventsSchema)
+    .where(
+      and(
+        eq(analyticsEventsSchema.eventType, 'whatsapp_click'),
+        eq(analyticsEventsSchema.analyticsConsent, true),
+        gte(analyticsEventsSchema.createdAt, from),
+        lte(analyticsEventsSchema.createdAt, to),
+      ),
+    );
+
+  return row?.count ?? 0;
+}
+
 async function whatsappByOrigin(from: Date, to: Date) {
   return clicksByOrigin('whatsapp_click', from, to);
 }
@@ -589,6 +608,7 @@ function buildEmptyOperationalDashboard(
     totalActiveSeconds: 0,
     totalActiveSecondsPrevious: 0,
     whatsappClicks: 0,
+    whatsappClicksWithConsent: 0,
     quoteSubmits: 0,
     cookieConsentLeads: 0,
     whatsappClicksPrevious: 0,
@@ -650,6 +670,7 @@ async function loadOperationalDashboard(
     engagementCurrent,
     engagementPrevious,
     whatsappClicks,
+    whatsappClicksWithConsent,
     quoteSubmits,
     cookieConsentLeads,
     whatsappClicksPrevious,
@@ -693,6 +714,9 @@ async function loadOperationalDashboard(
     ),
     runAnalyticsDashboardStep('whatsapp_current', 'Cliques WhatsApp (período)', () =>
       withAnalyticsSchema(0, () => countEvents('whatsapp_click', period.from, period.to)),
+    ),
+    runAnalyticsDashboardStep('whatsapp_consent_current', 'WhatsApp com cookie analytics', () =>
+      withAnalyticsSchema(0, () => countWhatsAppWithAnalyticsConsent(period.from, period.to)),
     ),
     runAnalyticsDashboardStep('quote_submits_current', 'Leads de orçamento (período)', () =>
       withAnalyticsSchema(0, () => countEvents('quote_submit', period.from, period.to)),
@@ -809,6 +833,7 @@ async function loadOperationalDashboard(
     totalActiveSeconds: engagementCurrent.totalActiveSeconds,
     totalActiveSecondsPrevious: engagementPrevious.totalActiveSeconds,
     whatsappClicks,
+    whatsappClicksWithConsent,
     quoteSubmits,
     cookieConsentLeads,
     whatsappClicksPrevious,
