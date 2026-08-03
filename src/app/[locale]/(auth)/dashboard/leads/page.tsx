@@ -11,6 +11,7 @@ import { getOperationalDashboard } from '@/lib/analytics-admin';
 import { Button } from '@/components/ui/Button';
 import {
   buildContactOrderCounts,
+  countWeekWhatsAppOpenedLeads,
   listCommercialQueue,
   listWeekOperationalLeads,
   WEEK_LEADS_DISPLAY_MAX,
@@ -51,7 +52,7 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
   const archivedCount = await archiveStaleCommercialLeads();
   const weekRange = currentWeekRange();
 
-  const [queueResult, weekResult, staleLeads, weekMetrics] = await Promise.all([
+  const [queueResult, weekResult, staleLeads, weekMetrics, weekWhatsAppOpened] = await Promise.all([
     listCommercialQueue(),
     listWeekOperationalLeads(),
     listStaleNewLeads(),
@@ -59,6 +60,7 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
       dateFrom: weekRange.dateFrom,
       dateTo: weekRange.dateTo,
     }),
+    countWeekWhatsAppOpenedLeads(),
   ]);
   const contactOrderCounts = await buildContactOrderCounts(weekResult.leads);
   const weekLabel = formatWeekRangeLabel(weekResult.weekRange);
@@ -86,6 +88,8 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
         })}
         detailHref="/dashboard/analytics"
         detailLabel={t('week_whatsapp_detail_link')}
+        formOpensLabel={t('week_whatsapp_form_opens', { count: weekWhatsAppOpened })}
+        hint={t('week_whatsapp_hint')}
         title={tAnalytics('whatsapp_hero_title')}
         weekLabel={weekLabel}
       />

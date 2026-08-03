@@ -1,5 +1,7 @@
 import { readStoredAttribution } from '@/lib/attribution';
+import type { AttributionInput } from '@/lib/attribution';
 import { readStoredVisitorGeo } from '@/lib/visitor-geo';
+import type { VisitorGeoInput } from '@/lib/visitor-geo';
 import {
   GA_CONVERSION_EVENTS,
   captureGaEvent,
@@ -20,46 +22,92 @@ function detectDevice() {
   return window.matchMedia('(max-width: 768px)').matches ? 'mobile' : 'desktop';
 }
 
+export type WhatsAppClickAnalyticsPayload = {
+  eventType: 'whatsapp_click';
+  origin: string;
+  equipmentSlug?: string;
+  equipmentName?: string;
+  pathname: string;
+  device?: string;
+  analyticsConsent: boolean;
+  attribution?: AttributionInput;
+  visitorGeo?: VisitorGeoInput;
+};
+
 /**
- * Sends whatsapp_click to PostHog, GA4, Google Ads (optional) and Neon.
+ * Builds the Neon payload for a WhatsApp click.
+ * Without cookie consent, stores only operational counter fields (no UTMs/gclid/geo).
+ */
+export function buildWhatsAppClickAnalyticsPayload(options: {
+  origin: string;
+  equipmentSlug?: string;
+  equipmentName?: string;
+  pathname: string;
+  device?: string;
+  analyticsConsent: boolean;
+  attribution?: AttributionInput | null;
+  visitorGeo?: VisitorGeoInput | null;
+}): WhatsAppClickAnalyticsPayload {
+  const base: WhatsAppClickAnalyticsPayload = {
+    eventType: 'whatsapp_click',
+    origin: options.origin,
+    equipmentSlug: options.equipmentSlug,
+    equipmentName: options.equipmentName,
+    pathname: options.pathname,
+    device: options.device,
+    analyticsConsent: options.analyticsConsent,
+  };
+
+  if (!options.analyticsConsent) {
+    return base;
+  }
+
+  return {
+    ...base,
+    attribution: options.attribution ?? undefined,
+    visitorGeo: options.visitorGeo ?? undefined,
+  };
+}
+
+/**
+ * Counts WhatsApp button clicks in Neon always (no cookie required).
+ * GA4 / Google Ads / PostHog only run after analytics consent.
  */
 export function trackWhatsAppClick(input: WhatsAppClickInput) {
-  // Restore consent before Ads/GA4 so returning visitors are not dropped pre-hydration.
   syncGoogleAnalyticsConsentFromStorage();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
 
-  captureWhatsAppClick(input);
+  if (analyticsConsent) {
+    captureWhatsAppClick(input);
 
-  captureGaEvent(GA_CONVERSION_EVENTS.whatsappClick, {
-    origin: input.origin,
-    equipment_slug: input.equipmentSlug,
-    equipment_name: input.equipmentName,
-  });
+    captureGaEvent(GA_CONVERSION_EVENTS.whatsappClick, {
+      origin: input.origin,
+      equipment_slug: input.equipmentSlug,
+      equipment_name: input.equipmentName,
+    });
 
-  captureGoogleAdsWhatsAppConversion({
-    origin: input.origin,
-    equipment_slug: input.equipmentSlug,
-  });
+    captureGoogleAdsWhatsAppConversion({
+      origin: input.origin,
+      equipment_slug: input.equipmentSlug,
+    });
+  }
 
   if (typeof window === 'undefined') {
     return;
   }
 
-  const attribution = readStoredAttribution();
-  const visitorGeo = readStoredVisitorGeo();
-  const pathname = window.location.pathname;
-
-  const body = JSON.stringify({
-      eventType: 'whatsapp_click',
+  const body = JSON.stringify(
+    buildWhatsAppClickAnalyticsPayload({
       origin: input.origin,
       equipmentSlug: input.equipmentSlug,
       equipmentName: input.equipmentName,
-      pathname,
+      pathname: window.location.pathname,
       device: detectDevice(),
       analyticsConsent,
-      attribution: attribution ?? undefined,
-      visitorGeo: visitorGeo ?? undefined,
-    });
+      attribution: analyticsConsent ? readStoredAttribution() : null,
+      visitorGeo: analyticsConsent ? readStoredVisitorGeo() : null,
+    }),
+  );
 
   if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
     navigator.sendBeacon(

@@ -21,24 +21,24 @@ function detectDevice() {
 }
 
 /**
- * Sends phone_click to PostHog, GA4 and persists the event in Neon.
+ * Counts phone clicks in Neon always (no cookie required).
+ * GA4 / PostHog only run after analytics consent.
  */
 export function trackPhoneClick(input: TrackPhoneClickInput) {
   syncGoogleAnalyticsConsentFromStorage();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
 
-  capturePhoneClick(input);
-
-  captureGaEvent(GA_CONVERSION_EVENTS.phoneClick, {
-    origin: input.origin,
-  });
+  if (analyticsConsent) {
+    capturePhoneClick(input);
+    captureGaEvent(GA_CONVERSION_EVENTS.phoneClick, {
+      origin: input.origin,
+    });
+  }
 
   if (typeof window === 'undefined') {
     return;
   }
 
-  const attribution = readStoredAttribution();
-  const visitorGeo = readStoredVisitorGeo();
   const pathname = window.location.pathname;
   const body = JSON.stringify({
     eventType: 'phone_click',
@@ -46,8 +46,12 @@ export function trackPhoneClick(input: TrackPhoneClickInput) {
     pathname,
     device: detectDevice(),
     analyticsConsent,
-    attribution: attribution ?? undefined,
-    visitorGeo: visitorGeo ?? undefined,
+    ...(analyticsConsent
+      ? {
+          attribution: readStoredAttribution() ?? undefined,
+          visitorGeo: readStoredVisitorGeo() ?? undefined,
+        }
+      : {}),
   });
 
   if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {

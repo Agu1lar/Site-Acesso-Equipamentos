@@ -301,6 +301,27 @@ export async function listWeekOperationalLeads(
 }
 
 /**
+ * Counts quote leads created this week that opened WhatsApp from the form.
+ * Complements the click counter (which uses analytics_events).
+ */
+export async function countWeekWhatsAppOpenedLeads() {
+  const weekRange = currentWeekRange();
+  const [row] = await db
+    .select({ count: count() })
+    .from(leadsSchema)
+    .where(
+      and(
+        eq(leadsSchema.whatsappOpened, true),
+        ne(leadsSchema.status, 'archived'),
+        sql`(${leadsSchema.createdAt} at time zone ${APP_TIMEZONE})::date >= ${weekRange.dateFrom}::date`,
+        sql`(${leadsSchema.createdAt} at time zone ${APP_TIMEZONE})::date <= ${weekRange.dateTo}::date`,
+      ),
+    );
+
+  return row?.count ?? 0;
+}
+
+/**
  * Lists leads for the admin panel with optional filters and pagination.
  *
  * @param filters - Date, status, city, origin, search and page options.
