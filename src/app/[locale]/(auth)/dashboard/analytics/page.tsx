@@ -249,9 +249,8 @@ export default async function AnalyticsAdminPage(props: AnalyticsPageProps) {
       </Suspense>
 
       <AnalyticsPeriodFilters
-        compareDateFrom={searchParams.compareDateFrom}
-        compareDateTo={searchParams.compareDateTo}
-        comparisonMode={dashboard.comparisonMode}
+        compareDateFrom={searchParams.compareDateFrom ?? dashboard.comparisonPeriod.dateFrom}
+        compareDateTo={searchParams.compareDateTo ?? dashboard.comparisonPeriod.dateTo}
         dateFrom={searchParams.dateFrom ?? dashboard.period.dateFrom}
         dateTo={searchParams.dateTo ?? dashboard.period.dateTo}
         section={activeSection}
