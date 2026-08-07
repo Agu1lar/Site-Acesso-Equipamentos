@@ -99,6 +99,7 @@ export type AnalyticsDashboardLabels = {
   hint_chart_device: string;
   chart_daily_series: string;
   hint_chart_daily_series: string;
+  col_date: string;
   col_page_views_short: string;
   chart_leads_by_city: string;
   hint_chart_leads_by_city: string;

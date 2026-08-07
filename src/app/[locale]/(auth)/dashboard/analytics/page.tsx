@@ -153,6 +153,7 @@ async function buildDashboardLabels(
     hint_chart_device: t('hint_chart_device'),
     chart_daily_series: t('chart_daily_series'),
     hint_chart_daily_series: t('hint_chart_daily_series'),
+    col_date: t('col_date'),
     col_page_views_short: t('col_page_views_short'),
     chart_leads_by_city: t('chart_leads_by_city'),
     hint_chart_leads_by_city: t('hint_chart_leads_by_city'),
