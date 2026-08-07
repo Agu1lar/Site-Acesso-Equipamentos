@@ -24,13 +24,6 @@ import {
   formatPhoneOrigin,
 } from '@/lib/analytics-display-labels';
 import { resolveAnalyticsPeriod, resolveComparisonPeriod } from '@/lib/analytics-period';
-import {
-  getCampaignPerformanceReport,
-  mergeCampaignPerformanceComparison,
-} from '@/lib/campaign-analytics';
-import {
-  mergeEquipmentConversionRows,
-} from '@/lib/equipment-conversion-analytics';
 import type {
   AnalyticsDashboardFilters,
   AnalyticsDashboardProbeResult,
@@ -215,26 +208,19 @@ async function topEquipmentLeads(from: Date, to: Date) {
   return rows.map((row) => ({ label: row.label, count: row.count }));
 }
 
+/**
+ * Leads grouped by first-touch landing path (query string stripped).
+ * Does not mix page-view / WhatsApp event counts — those inflated the old chart.
+ */
 async function landingPagesSimple(from: Date, to: Date) {
-  const eventRows = await db
-    .select({
-      label: sql<string>`coalesce(${analyticsEventsSchema.landingPage}, '—')`,
-      count: count(),
-    })
-    .from(analyticsEventsSchema)
-    .where(
-      and(
-        gte(analyticsEventsSchema.createdAt, from),
-        lte(analyticsEventsSchema.createdAt, to),
-        sql`${analyticsEventsSchema.landingPage} is not null`,
-      ),
-    )
-    .groupBy(analyticsEventsSchema.landingPage)
-    .orderBy(desc(count()));
+  const landingPathSql = sql<string>`coalesce(
+    nullif(split_part(${leadsSchema.landingPage}, '?', 1), ''),
+    '—'
+  )`;
 
   const leadRows = await db
     .select({
-      label: sql<string>`coalesce(${leadsSchema.landingPage}, '—')`,
+      label: landingPathSql,
       count: count(),
     })
     .from(leadsSchema)
@@ -242,20 +228,14 @@ async function landingPagesSimple(from: Date, to: Date) {
       and(
         gte(leadsSchema.createdAt, from),
         lte(leadsSchema.createdAt, to),
-        sql`${leadsSchema.landingPage} is not null`,
+        sql`nullif(trim(${leadsSchema.landingPage}), '') is not null`,
       ),
     )
-    .groupBy(leadsSchema.landingPage)
+    .groupBy(landingPathSql)
     .orderBy(desc(count()));
 
-  const merged = new Map<string, number>();
-
-  for (const row of [...eventRows, ...leadRows]) {
-    merged.set(row.label, (merged.get(row.label) ?? 0) + row.count);
-  }
-
-  return [...merged.entries()]
-    .map(([label, countValue]) => ({ label, count: countValue }))
+  return leadRows
+    .map((row) => ({ label: row.label, count: row.count }))
     .filter((row) => !isInternalAnalyticsPath(row.label))
     .sort((a, b) => b.count - a.count)
     .slice(0, 8);
@@ -493,85 +473,6 @@ async function countLeadReplyFunnel(from: Date, to: Date): Promise<LeadReplyFunn
   });
 }
 
-const equipmentSlugFromPath = sql<string>`substring(${pageEngagementEventsSchema.pathname} from '/equipamentos/([^/?]+)')`;
-
-async function equipmentConversionTable(from: Date, to: Date) {
-  return withAnalyticsSchema([], () => equipmentConversionTableQuery(from, to));
-}
-
-async function equipmentConversionTableQuery(from: Date, to: Date) {
-  const pageViewRows = await db
-    .select({
-      slug: equipmentSlugFromPath,
-      views: count(),
-    })
-    .from(pageEngagementEventsSchema)
-    .where(
-      and(
-        gte(pageEngagementEventsSchema.createdAt, from),
-        lte(pageEngagementEventsSchema.createdAt, to),
-        sql`${pageEngagementEventsSchema.pathname} like '%/equipamentos/%'`,
-        sql`${equipmentSlugFromPath} is not null`,
-      ),
-    )
-    .groupBy(equipmentSlugFromPath)
-    .orderBy(desc(count()));
-
-  const whatsappRows = await db
-    .select({
-      slug: analyticsEventsSchema.equipmentSlug,
-      name: sql<string>`max(${analyticsEventsSchema.equipmentName})`,
-      count: count(),
-    })
-    .from(analyticsEventsSchema)
-    .where(
-      and(
-        eq(analyticsEventsSchema.eventType, 'whatsapp_click'),
-        gte(analyticsEventsSchema.createdAt, from),
-        lte(analyticsEventsSchema.createdAt, to),
-        sql`${analyticsEventsSchema.equipmentSlug} is not null`,
-      ),
-    )
-    .groupBy(analyticsEventsSchema.equipmentSlug);
-
-  const leadRows = await db
-    .select({
-      slug: sql<string>`nullif(trim(split_part(${leadsSchema.equipmentSlug}, ',', 1)), '')`,
-      name: sql<string>`max(${leadsSchema.equipmentName})`,
-      count: count(),
-    })
-    .from(leadsSchema)
-    .where(
-      and(
-        gte(leadsSchema.createdAt, from),
-        lte(leadsSchema.createdAt, to),
-        sql`nullif(trim(split_part(${leadsSchema.equipmentSlug}, ',', 1)), '') is not null`,
-      ),
-    )
-    .groupBy(sql`nullif(trim(split_part(${leadsSchema.equipmentSlug}, ',', 1)), '')`);
-
-  return mergeEquipmentConversionRows({
-    pageViews: pageViewRows
-      .filter((row) => row.slug)
-      .map((row) => ({ slug: row.slug!, name: row.slug!, count: row.views })),
-    whatsapp: whatsappRows
-      .filter((row) => row.slug)
-      .map((row) => ({
-        slug: row.slug!,
-        name: row.name ?? row.slug!,
-        count: row.count,
-      })),
-    leads: leadRows
-      .filter((row) => row.slug)
-      .map((row) => ({
-        slug: row.slug!,
-        name: row.name ?? row.slug!,
-        count: row.count,
-      })),
-    limit: 15,
-  });
-}
-
 /**
  * Loads operational dashboard metrics from Neon conversion tables.
  */
@@ -680,12 +581,9 @@ async function loadOperationalDashboard(
     whatsappByOriginRows,
     phoneByOriginRows,
     trafficBySource,
-    campaignReport,
-    campaignReportPrevious,
     topEquipmentWhatsapp,
     topEquipmentLeadsRows,
     topPagesRows,
-    equipmentConversionRows,
     landingPages,
     deviceSplitRows,
     equipmentViewsCount,
@@ -745,16 +643,6 @@ async function loadOperationalDashboard(
     runAnalyticsDashboardStep('traffic_by_source', 'Tráfego por fonte UTM', () =>
       withAnalyticsSchema([], () => trafficBySourceSimple(period.from, period.to)),
     ),
-    runAnalyticsDashboardStep('campaign_report', 'Desempenho por campanha', () =>
-      withAnalyticsSchema({ campaigns: [], dailyLeads: [] }, () =>
-        getCampaignPerformanceReport(period.from, period.to),
-      ),
-    ),
-    runAnalyticsDashboardStep('campaign_report_previous', 'Desempenho por campanha (comparação)', () =>
-      withAnalyticsSchema({ campaigns: [], dailyLeads: [] }, () =>
-        getCampaignPerformanceReport(comparison.from, comparison.to),
-      ),
-    ),
     runAnalyticsDashboardStep('top_equipment_whatsapp', 'Equipamentos (WhatsApp)', () =>
       withAnalyticsSchema([], () => topEquipment('whatsapp_click', period.from, period.to)),
     ),
@@ -764,10 +652,7 @@ async function loadOperationalDashboard(
     runAnalyticsDashboardStep('top_pages', 'Páginas mais acessadas', () =>
       topPagesByEngagement(period.from, period.to),
     ),
-    runAnalyticsDashboardStep('equipment_conversion', 'Conversão por equipamento', () =>
-      equipmentConversionTable(period.from, period.to),
-    ),
-    runAnalyticsDashboardStep('landing_pages', 'Páginas de entrada', () =>
+    runAnalyticsDashboardStep('landing_pages', 'Leads por página de entrada', () =>
       withAnalyticsSchema([], () => landingPagesSimple(period.from, period.to)),
     ),
     runAnalyticsDashboardStep('device_split', 'Dispositivos', () =>
@@ -816,11 +701,6 @@ async function loadOperationalDashboard(
   const uniqueSessionsPrevious =
     engagementPrevious.uniqueSessions || dailyPrevious.uniqueSessions;
 
-  const campaignPerformance = mergeCampaignPerformanceComparison(
-    campaignReport.campaigns,
-    campaignReportPrevious.campaigns,
-  );
-
   return {
     period: { dateFrom: period.dateFrom, dateTo: period.dateTo },
     comparisonPeriod: { dateFrom: comparison.dateFrom, dateTo: comparison.dateTo },
@@ -843,8 +723,8 @@ async function loadOperationalDashboard(
     whatsappByOrigin: humanizeCountRows(whatsappByOriginRows, formatWhatsAppOrigin),
     phoneByOrigin: humanizeCountRows(phoneByOriginRows, formatPhoneOrigin),
     trafficBySource: humanizeCountRows(trafficBySource, formatTrafficSource),
-    campaignPerformance,
-    campaignDailyLeads: campaignReport.dailyLeads,
+    campaignPerformance: [],
+    campaignDailyLeads: [],
     topEquipmentWhatsapp: humanizeCountRows(topEquipmentWhatsapp, (label) =>
       formatEquipmentAnalyticsLabel(label, 'whatsapp'),
     ),
@@ -859,7 +739,7 @@ async function loadOperationalDashboard(
         pathnameDetail: formatted !== row.pathname ? row.pathname : undefined,
       };
     }),
-    equipmentConversion: equipmentConversionRows,
+    equipmentConversion: [],
     landingPages: humanizeCountRows(landingPages, formatSitePath),
     deviceSplit: humanizeCountRows(deviceSplitRows, formatDevice),
     conversionFunnel: buildConversionFunnel({
@@ -928,9 +808,9 @@ export async function probeAnalyticsDashboard(
       run: () => trafficBySourceSimple(period.from, period.to),
     },
     {
-      id: 'campaign_report',
-      label: 'Relatório de campanhas (GROUP BY)',
-      run: () => getCampaignPerformanceReport(period.from, period.to),
+      id: 'landing_pages',
+      label: 'Leads por página de entrada (landing_page)',
+      run: () => landingPagesSimple(period.from, period.to),
     },
     {
       id: 'full_dashboard',

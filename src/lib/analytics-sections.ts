@@ -1,7 +1,6 @@
 export const ANALYTICS_SECTIONS = [
   'visao-geral',
   'conversao',
-  'campanhas',
   'catalogo',
   'trafego',
   'comportamento',

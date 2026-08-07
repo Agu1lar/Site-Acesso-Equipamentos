@@ -1,11 +1,9 @@
 'use client';
 
 import { Link } from '@/libs/I18nNavigation';
-import { CampaignPerformanceSection } from '@/components/admin/CampaignPerformanceSection';
 import { AnalyticsBarTable } from '@/components/admin/AnalyticsBarTable';
 import { AnalyticsConversionFunnel } from '@/components/admin/AnalyticsConversionFunnel';
 import { AnalyticsDailySeriesTable } from '@/components/admin/AnalyticsDailySeriesTable';
-import { AnalyticsEquipmentConversionTable } from '@/components/admin/AnalyticsEquipmentConversionTable';
 import { AnalyticsMetricSection } from '@/components/admin/AnalyticsMetricSection';
 import { AnalyticsTopPagesTable } from '@/components/admin/AnalyticsTopPagesTable';
 import { AnalyticsWhatsappHero } from '@/components/admin/AnalyticsWhatsappHero';
@@ -32,7 +30,6 @@ export type AnalyticsDashboardLabels = {
   notes_title: string;
   posthog_visits_hint: string;
   sprint12_posthog_hint: string;
-  page_time_hint: string;
   whatsapp_tracking_hint: string;
   schema_pending_hint: string;
   empty_data: string;
@@ -48,8 +45,6 @@ export type AnalyticsDashboardLabels = {
   hint_kpi_whatsapp: string;
   kpi_page_views: string;
   hint_kpi_page_views: string;
-  kpi_active_time: string;
-  hint_kpi_active_time: string;
   kpi_whatsapp: string;
   kpi_leads: string;
   hint_kpi_leads: string;
@@ -73,40 +68,13 @@ export type AnalyticsDashboardLabels = {
   funnel_rate_from_previous: string;
   quote_abandon_summary: string;
   chart_quote_abandon: string;
-  chart_campaign_performance: string;
-  hint_chart_campaign_performance: string;
-  chart_campaign_daily: string;
-  hint_chart_campaign_daily: string;
-  col_campaign: string;
-  col_source: string;
-  col_medium: string;
-  col_whatsapp: string;
-  col_whatsapp_replied: string;
-  col_total_leads: string;
-  col_quote_leads: string;
-  col_google_leads: string;
-  col_gclid: string;
-  col_date: string;
-  col_leads: string;
-  view_campaign_leads: string;
-  campaign_compare_previous: string;
-  status_new_short: string;
-  status_contacted_short: string;
-  status_quoted_short: string;
-  status_won_short: string;
-  status_lost_short: string;
-  status_archived_short: string;
-  status_other_short: string;
   chart_top_pages: string;
   hint_chart_top_pages: string;
   col_page: string;
   col_views: string;
   col_avg_active_time: string;
-  chart_equipment_conversion: string;
-  chart_equipment_conversion_hint: string;
-  col_equipment: string;
-  col_lead_rate: string;
-  col_engagement_rate: string;
+  col_whatsapp: string;
+  col_leads: string;
   chart_top_equipment_views: string;
   hint_chart_top_equipment_views: string;
   chart_search_terms: string;
@@ -177,7 +145,6 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
   const whatsappDelta = percentChange(d.whatsappClicks, d.whatsappClicksPrevious);
   const phoneDelta = percentChange(d.phoneClicks, d.phoneClicksPrevious);
   const leadsDelta = percentChange(d.quoteSubmits, d.quoteSubmitsPrevious);
-  const activeTimeDelta = percentChange(d.totalActiveSeconds, d.totalActiveSecondsPrevious);
   const whatsappRate =
     d.pageViews > 0 ? Math.round((d.whatsappClicks / d.pageViews) * 100) : 0;
 
@@ -198,7 +165,6 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
             <div className="mt-3 space-y-2 text-sm text-neutral-600">
               {d.posthogHint ? <p>{t.posthog_visits_hint}</p> : null}
               {d.posthogHint ? <p>{t.sprint12_posthog_hint}</p> : null}
-              <p>{t.page_time_hint}</p>
               {d.whatsappClicks === 0 ? <p>{t.whatsapp_tracking_hint}</p> : null}
             </div>
           </details>
@@ -236,15 +202,6 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
               helpText={t.hint_kpi_page_views}
               label={t.kpi_page_views}
               value={d.pageViews}
-            />
-            <AdminKpiCard
-              accent="neutral"
-              delta={activeTimeDelta}
-              deltaLabel={deltaLabel}
-              helpLabel={t.meaning_toggle}
-              helpText={t.hint_kpi_active_time}
-              label={t.kpi_active_time}
-              value={d.totalActiveSeconds}
             />
             <AdminKpiCard
               accent="whatsapp"
@@ -344,19 +301,13 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
             </p>
           </AnalyticsMetricSection>
 
-          <AnalyticsEquipmentConversionTable
-            colEngagementRate={t.col_engagement_rate}
-            colEquipment={t.col_equipment}
-            colLeadRate={t.col_lead_rate}
-            colLeads={t.col_leads}
-            colViews={t.col_views}
-            colWhatsapp={t.col_whatsapp}
-            dataType="table"
-            dataTypeLabel={dataTypes.table}
+          <AnalyticsBarTable
+            dataType="ranking"
+            dataTypeLabel={dataTypes.ranking}
             emptyLabel={t.empty_data}
-            meaning={t.chart_equipment_conversion_hint}
-            rows={d.equipmentConversion}
-            title={t.chart_equipment_conversion}
+            meaning={t.hint_chart_landing_pages}
+            rows={d.landingPages}
+            title={t.chart_landing_pages}
             {...metricUi}
           />
 
@@ -380,53 +331,6 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
               {...metricUi}
             />
           </div>
-        </div>
-      ) : null}
-
-      {activeSection === 'campanhas' ? (
-        <div className="space-y-6">
-          <AnalyticsMetricSection
-            dataType="table"
-            dataTypeLabel={dataTypes.table}
-            meaning={t.hint_chart_campaign_performance}
-            title={t.chart_campaign_performance}
-            {...metricUi}
-          >
-            <CampaignPerformanceSection
-              bare
-              campaigns={d.campaignPerformance}
-              dailyLeads={d.campaignDailyLeads}
-              dateFrom={d.period.dateFrom}
-              dateTo={d.period.dateTo}
-              labels={{
-                title: t.chart_campaign_performance,
-                hint: t.hint_chart_campaign_performance,
-                dailyTitle: t.chart_campaign_daily,
-                dailyHint: t.hint_chart_campaign_daily,
-                empty: t.empty_data,
-                colCampaign: t.col_campaign,
-                colSource: t.col_source,
-                colMedium: t.col_medium,
-                colWhatsapp: t.col_whatsapp,
-                colWhatsappReplied: t.col_whatsapp_replied,
-                colTotalLeads: t.col_total_leads,
-                colQuoteLeads: t.col_quote_leads,
-                colGoogleLeads: t.col_google_leads,
-                colGclid: t.col_gclid,
-                colDate: t.col_date,
-                colLeads: t.col_leads,
-                viewLeads: t.view_campaign_leads,
-                comparePrevious: t.campaign_compare_previous,
-                statusNew: t.status_new_short,
-                statusContacted: t.status_contacted_short,
-                statusQuoted: t.status_quoted_short,
-                statusWon: t.status_won_short,
-                statusLost: t.status_lost_short,
-                statusArchived: t.status_archived_short,
-                statusOther: t.status_other_short,
-              }}
-            />
-          </AnalyticsMetricSection>
         </div>
       ) : null}
 
@@ -502,15 +406,6 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
               meaning={t.hint_chart_traffic_source}
               rows={d.trafficBySource}
               title={t.chart_traffic_source}
-              {...metricUi}
-            />
-            <AnalyticsBarTable
-              dataType="breakdown"
-              dataTypeLabel={dataTypes.breakdown}
-              emptyLabel={t.empty_data}
-              meaning={t.hint_chart_landing_pages}
-              rows={d.landingPages}
-              title={t.chart_landing_pages}
               {...metricUi}
             />
             <AnalyticsBarTable
