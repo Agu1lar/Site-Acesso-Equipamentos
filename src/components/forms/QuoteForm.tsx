@@ -22,6 +22,7 @@ import {
 } from '@/lib/open-whatsapp-popup';
 import { buildQuoteWhatsAppUrl } from '@/lib/quote-whatsapp';
 import { trackWhatsAppClick } from '@/lib/track-whatsapp-click';
+import { TrackedWhatsAppLink } from '@/components/analytics/TrackedWhatsAppLink';
 import { TrackedPhoneLink } from '@/components/TrackedPhoneLink';
 import { QuoteFormSchema, rentalPeriodOptions, summarizeCartEquipment } from '@/validations/quote';
 
@@ -223,14 +224,13 @@ export function QuoteForm(props: QuoteFormProps) {
         {whatsappRetryUrl ? (
           <p className="mt-4 text-sm text-neutral-600">
             {whatsappOpened ? 'WhatsApp não apareceu?' : 'Abrir WhatsApp agora:'}{' '}
-            <a
+            <TrackedWhatsAppLink
               className="font-medium text-primary hover:underline"
               href={whatsappRetryUrl}
-              rel="noopener noreferrer"
-              target="_blank"
+              origin="site-orcamento-envio-retry"
             >
               Abrir WhatsApp com sua mensagem
-            </a>{' '}
+            </TrackedWhatsAppLink>{' '}
             · Urgente:{' '}
             <TrackedPhoneLink
               className="font-medium text-primary hover:underline"
