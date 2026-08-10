@@ -49,7 +49,7 @@ export default async function BlogAdminNewPage(props: BlogAdminNewProps) {
     <div className="space-y-8">
       <AdminBackLink href={listPath} label={tCommon('back_to_list')} />
       <AdminPageHeader description={t('new_description')} title={t('new_title')} />
-      <BlogArticleForm action={saveBlogArticleAction} returnTo={listPath} />
+      <BlogArticleForm action={saveBlogArticleAction} returnTo={listPath} showAiGenerator />
     </div>
   );
 }

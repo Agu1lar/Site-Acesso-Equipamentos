@@ -22,6 +22,8 @@ export const Env = createEnv({
     CHATPRO_WEBHOOK_SECRET: z.string().min(16).optional(),
     /** Bearer token for server-to-server internal APIs. */
     INTERNAL_API_SECRET: z.string().min(24).optional(),
+    ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-').optional(),
+    ANTHROPIC_MODEL: z.string().min(1).default('claude-haiku-4-5-20251001'),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
@@ -53,6 +55,8 @@ export const Env = createEnv({
     WHATSAPPOS_WIDGET_KEY: process.env.WHATSAPPOS_WIDGET_KEY,
     CHATPRO_WEBHOOK_SECRET: process.env.CHATPRO_WEBHOOK_SECRET,
     INTERNAL_API_SECRET: process.env.INTERNAL_API_SECRET,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     NEXT_PUBLIC_LOGGING_LEVEL: process.env.NEXT_PUBLIC_LOGGING_LEVEL,

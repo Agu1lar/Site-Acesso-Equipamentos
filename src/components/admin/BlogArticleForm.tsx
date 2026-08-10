@@ -5,6 +5,7 @@ import { useMemo, useState, type FormEvent } from 'react';
 import { BlogCoverUpload } from '@/components/admin/BlogCoverUpload';
 import { BlogTagEditor } from '@/components/admin/BlogTagEditor';
 import { AdminPendingButton } from '@/components/admin/AdminPendingButton';
+import { BlogAiGenerator } from '@/components/admin/BlogAiGenerator';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { slugifyEquipmentName } from '@/lib/equipment-slug';
@@ -16,6 +17,7 @@ import {
   suggestBlogMetaTitle,
   validateBlogSeoField,
 } from '@/validations/blog-admin';
+import type { GeneratedBlogDraft } from '@/validations/blog-ai';
 import type { JSONContent } from '@tiptap/core';
 
 type RelatedLinkRow = {
@@ -28,6 +30,7 @@ type BlogArticleFormProps = {
   unpublishAction?: (formData: FormData) => void;
   article?: BlogArticleAdminRow;
   returnTo?: string;
+  showAiGenerator?: boolean;
 };
 
 function initialRelatedLinks(links: RelatedLinkRow[] | undefined): RelatedLinkRow[] {
@@ -79,6 +82,22 @@ export function BlogArticleForm(props: BlogArticleFormProps) {
   const [relatedLinks, setRelatedLinks] = useState(() =>
     initialRelatedLinks(article?.relatedLinks),
   );
+
+  const applyGeneratedDraft = (draft: GeneratedBlogDraft) => {
+    setTitle(draft.title);
+    setSlug(draft.slug);
+    setSlugManual(true);
+    setExcerpt(draft.excerpt);
+    setMetaTitle(draft.metaTitle);
+    setMetaDescription(draft.metaDescription);
+    setMetaTitleTouched(true);
+    setMetaDescriptionTouched(true);
+    setMetaTitleError(null);
+    setMetaDescriptionError(null);
+    setCoverImageUrl(draft.coverImageUrl);
+    setContent(draft.content);
+    setRelatedLinks(initialRelatedLinks(draft.relatedLinks));
+  };
 
   const contentJson = useMemo(() => JSON.stringify(content), [content]);
   const relatedLinksJson = useMemo(
@@ -141,6 +160,16 @@ export function BlogArticleForm(props: BlogArticleFormProps) {
       <input name="relatedLinksJson" type="hidden" value={relatedLinksJson} />
       <input name="slug" type="hidden" value={slug} />
       <input name="coverImageUrl" type="hidden" value={coverImageUrl} />
+
+      {props.showAiGenerator ? (
+        <BlogAiGenerator
+          hasExistingContent={Boolean(
+            title.trim() ||
+            content.content?.some((node) => node.type !== 'paragraph' || node.content?.length),
+          )}
+          onGenerated={applyGeneratedDraft}
+        />
+      ) : null}
 
       <section className="space-y-4 rounded-lg border border-neutral-200 bg-surface p-5">
         <h2 className="font-heading text-lg font-semibold text-neutral-900">{t('section_main')}</h2>
