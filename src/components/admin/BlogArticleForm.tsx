@@ -79,6 +79,7 @@ export function BlogArticleForm(props: BlogArticleFormProps) {
   const [metaDescriptionError, setMetaDescriptionError] = useState<string | null>(null);
   const [coverImageUrl, setCoverImageUrl] = useState(article?.coverImageUrl ?? '');
   const [content, setContent] = useState<JSONContent>(article?.content ?? emptyTiptapDoc());
+  const [contentRevision, setContentRevision] = useState(0);
   const [relatedLinks, setRelatedLinks] = useState(() =>
     initialRelatedLinks(article?.relatedLinks),
   );
@@ -96,6 +97,7 @@ export function BlogArticleForm(props: BlogArticleFormProps) {
     setMetaDescriptionError(null);
     setCoverImageUrl(draft.coverImageUrl);
     setContent(draft.content);
+    setContentRevision((revision) => revision + 1);
     setRelatedLinks(initialRelatedLinks(draft.relatedLinks));
   };
 
@@ -288,7 +290,12 @@ export function BlogArticleForm(props: BlogArticleFormProps) {
 
       <section className="space-y-4 rounded-lg border border-neutral-200 bg-surface p-5">
         <h2 className="font-heading text-lg font-semibold text-neutral-900">{t('section_content')}</h2>
-        <BlogTagEditor content={content} onChange={setContent} uploadSlug={slug || 'rascunho'} />
+        <BlogTagEditor
+          content={content}
+          key={contentRevision}
+          onChange={setContent}
+          uploadSlug={slug || 'rascunho'}
+        />
       </section>
 
       <section className="space-y-4 rounded-lg border border-neutral-200 bg-surface p-5">
