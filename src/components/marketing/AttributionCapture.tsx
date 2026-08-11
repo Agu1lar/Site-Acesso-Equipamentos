@@ -1,14 +1,17 @@
 'use client';
 
+import { useEffect } from 'react';
 import { captureAttributionFirstTouch } from '@/lib/attribution';
+import { enableEssentialAdsMeasurementForPaidVisit } from '@/lib/google-analytics';
 
 /**
- * Stores first-touch UTM and referrer in sessionStorage on the marketing site.
+ * Stores first-touch campaign attribution and enables essential Ads measurement for paid clicks.
  */
 export function AttributionCapture() {
-  if (typeof window !== 'undefined') {
+  useEffect(() => {
     captureAttributionFirstTouch();
-  }
+    enableEssentialAdsMeasurementForPaidVisit();
+  }, []);
 
   return null;
 }

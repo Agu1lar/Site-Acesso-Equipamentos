@@ -92,6 +92,71 @@ export function buildAttributionFromVisit(options: {
 }
 
 /**
+ * True when the visit carries a paid Google Ads click id or gad_source.
+ */
+export function urlHasPaidAdsClickSignal(search: string) {
+  const params = new URLSearchParams(search.startsWith('?') ? search : `?${search}`);
+  return Boolean(
+    params.get('gclid')?.trim() ||
+      params.get('gbraid')?.trim() ||
+      params.get('wbraid')?.trim() ||
+      params.get('gad_source')?.trim(),
+  );
+}
+
+/**
+ * True when attribution includes a paid click id.
+ */
+export function hasPaidClickIds(attribution: AttributionInput) {
+  return Boolean(attribution.gclid ?? attribution.gbraid ?? attribution.wbraid);
+}
+
+/**
+ * Campaign attribution kept for essential Ads conversion counting (no geo / profiling).
+ */
+export function pickEssentialCampaignAttribution(
+  attribution: AttributionInput | null | undefined,
+): AttributionInput | undefined {
+  if (!attribution) {
+    return undefined;
+  }
+
+  const essential: AttributionInput = {};
+  if (attribution.gclid) {
+    essential.gclid = attribution.gclid;
+  }
+  if (attribution.gbraid) {
+    essential.gbraid = attribution.gbraid;
+  }
+  if (attribution.wbraid) {
+    essential.wbraid = attribution.wbraid;
+  }
+  if (attribution.utmSource) {
+    essential.utmSource = attribution.utmSource;
+  }
+  if (attribution.utmMedium) {
+    essential.utmMedium = attribution.utmMedium;
+  }
+  if (attribution.utmCampaign) {
+    essential.utmCampaign = attribution.utmCampaign;
+  }
+  if (attribution.landingPage) {
+    essential.landingPage = attribution.landingPage;
+  }
+
+  if (!hasPaidClickIds(essential) && !essential.landingPage && !essential.utmCampaign) {
+    return undefined;
+  }
+
+  // Only keep when there is a paid signal or UTM campaign — avoid storing bare "/" landings alone.
+  if (!hasPaidClickIds(essential) && !essential.utmSource && !essential.utmCampaign) {
+    return undefined;
+  }
+
+  return essential;
+}
+
+/**
  * Returns true when attribution has at least one meaningful field.
  */
 export function hasAttributionData(attribution: AttributionInput) {
@@ -117,12 +182,12 @@ export function readStoredAttribution(): AttributionInput | null {
     return null;
   }
 
-  const raw = window.sessionStorage.getItem(ATTRIBUTION_STORAGE_KEY);
-  if (!raw) {
-    return null;
-  }
-
   try {
+    const raw = window.sessionStorage?.getItem(ATTRIBUTION_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+
     const parsed = AttributionSchema.safeParse(JSON.parse(raw));
     return parsed.success ? parsed.data : null;
   } catch {

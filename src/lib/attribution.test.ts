@@ -4,6 +4,8 @@ import {
   hasAttributionData,
   parseClickIdsFromSearch,
   parseUtmsFromSearch,
+  pickEssentialCampaignAttribution,
+  urlHasPaidAdsClickSignal,
 } from '@/lib/attribution';
 
 describe('parse UTMs from search', () => {
@@ -46,5 +48,31 @@ describe('has attribution data', () => {
 
   it('returns true when gclid is set', () => {
     expect(hasAttributionData({ gclid: 'abc123' })).toBeTruthy();
+  });
+});
+
+describe('essential campaign attribution', () => {
+  it('keeps gclid without analytics consent fields like referrer', () => {
+    const essential = pickEssentialCampaignAttribution({
+      gclid: 'abc',
+      referrer: 'https://google.com',
+      landingPage: '/?gclid=abc',
+      utmSource: 'google',
+    });
+    expect(essential?.gclid).toBe('abc');
+    expect(essential?.utmSource).toBe('google');
+    expect(essential?.referrer).toBeUndefined();
+  });
+
+  it('omits bare landing without campaign or click id', () => {
+    expect(pickEssentialCampaignAttribution({ landingPage: '/', referrer: 'x' })).toBeUndefined();
+  });
+});
+
+describe('paid ads click signals', () => {
+  it('detects gclid and gad_source in the URL', () => {
+    expect(urlHasPaidAdsClickSignal('?gclid=x')).toBe(true);
+    expect(urlHasPaidAdsClickSignal('?gad_source=1')).toBe(true);
+    expect(urlHasPaidAdsClickSignal('?utm_source=google')).toBe(false);
   });
 });

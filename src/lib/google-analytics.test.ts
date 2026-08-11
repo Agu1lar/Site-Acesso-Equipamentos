@@ -104,4 +104,47 @@ describe('google analytics consent sync', () => {
       transport_type: 'beacon',
     });
   });
+
+  it('keeps ad_storage after reject when visit has gclid', async () => {
+    const dataLayer: unknown[] = [];
+    vi.stubGlobal('window', {
+      localStorage: {
+        getItem: () => 'essential',
+        setItem: () => undefined,
+        removeItem: () => undefined,
+        clear: () => undefined,
+      },
+      sessionStorage: {
+        getItem: () => null,
+        setItem: () => undefined,
+        removeItem: () => undefined,
+        clear: () => undefined,
+      },
+      location: { search: '?gclid=CjwKCAiAexample' },
+      dataLayer,
+      gtag: (...args: unknown[]) => {
+        dataLayer.push(args);
+      },
+    });
+
+    const { denyGoogleAnalyticsConsent, isGoogleAnalyticsConsentGranted } =
+      await import('@/lib/google-analytics');
+
+    denyGoogleAnalyticsConsent();
+    expect(isGoogleAnalyticsConsentGranted()).toBe(false);
+
+    const lastConsent = [...dataLayer]
+      .reverse()
+      .find((entry) => Array.isArray(entry) && entry[0] === 'consent' && entry[1] === 'update') as
+      | unknown[]
+      | undefined;
+
+    expect(lastConsent?.[2]).toMatchObject({
+      ad_storage: 'granted',
+      ad_user_data: 'granted',
+    });
+    expect(
+      (lastConsent?.[2] as { analytics_storage?: string } | undefined)?.analytics_storage,
+    ).toBeUndefined();
+  });
 });

@@ -86,7 +86,7 @@
   },
   "CookieConsent": {
     "title": "Cookies and privacy",
-    "description": "We use essential cookies for the site to work (quotes and session). With your consent, we use PostHog to measure visits and WhatsApp clicks — data processed in the US (US Cloud).",
+    "description": "We use essential cookies for the site to work (quotes, session, and paid-campaign conversion measurement such as WhatsApp clicks from ads). With your consent, we use PostHog and Google Analytics for visits and behavior — data may be processed outside Brazil.",
     "privacy_link": "Privacy policy",
     "accept": "Accept analytics",
     "reject": "Essential only",

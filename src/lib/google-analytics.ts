@@ -6,6 +6,11 @@
  */
 
 import { COOKIE_CONSENT_STORAGE_KEY, parseConsentValue } from '@/lib/cookie-consent';
+import {
+  hasPaidClickIds,
+  readStoredAttribution,
+  urlHasPaidAdsClickSignal,
+} from '@/lib/attribution';
 
 export const GA_CONVERSION_EVENTS = {
   whatsappClick: 'whatsapp_click',
@@ -116,7 +121,8 @@ export function grantGoogleAnalyticsConsent() {
 }
 
 /**
- * Revokes ad/analytics storage (essential cookies remain).
+ * Revokes GA4/PostHog analytics storage. Keeps essential Ads click measurement
+ * when the visit came from a paid campaign (gclid/gbraid/wbraid).
  */
 export function denyGoogleAnalyticsConsent() {
   if (!isGoogleAnalyticsConfigured()) {
@@ -131,6 +137,7 @@ export function denyGoogleAnalyticsConsent() {
   });
 
   consentGranted = false;
+  enableEssentialAdsMeasurementForPaidVisit();
 }
 
 /**
@@ -147,6 +154,34 @@ export function grantGoogleAdsClickMeasurement() {
     ad_user_data: 'granted',
     ad_personalization: 'denied',
   });
+}
+
+/**
+ * When the visit came from a paid Ads click, grant ad_storage early (essential conversion
+ * measurement). Does not enable GA4/PostHog analytics_storage.
+ */
+export function enableEssentialAdsMeasurementForPaidVisit() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  try {
+    const search = window.location?.search ?? '';
+    if (urlHasPaidAdsClickSignal(search)) {
+      grantGoogleAdsClickMeasurement();
+      return true;
+    }
+
+    const stored = readStoredAttribution();
+    if (stored && hasPaidClickIds(stored)) {
+      grantGoogleAdsClickMeasurement();
+      return true;
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
 }
 
 export type GaEventParams = Record<string, string | number | undefined>;

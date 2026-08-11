@@ -1,11 +1,13 @@
 import { readStoredAttribution } from '@/lib/attribution';
 import type { AttributionInput } from '@/lib/attribution';
+import { pickEssentialCampaignAttribution } from '@/lib/attribution';
 import { readStoredVisitorGeo } from '@/lib/visitor-geo';
 import type { VisitorGeoInput } from '@/lib/visitor-geo';
 import {
   GA_CONVERSION_EVENTS,
   captureGaEvent,
   captureGoogleAdsWhatsAppConversion,
+  enableEssentialAdsMeasurementForPaidVisit,
   isGoogleAnalyticsConsentGranted,
   syncGoogleAnalyticsConsentFromStorage,
 } from '@/lib/google-analytics';
@@ -36,7 +38,8 @@ export type WhatsAppClickAnalyticsPayload = {
 
 /**
  * Builds the Neon payload for a WhatsApp click.
- * Without cookie consent, stores only operational counter fields (no UTMs/gclid/geo).
+ * Without analytics cookies: still keeps essential campaign attribution (gclid/UTM/landing)
+ * for Ads conversion counting — never geo or profiling fields.
  */
 export function buildWhatsAppClickAnalyticsPayload(options: {
   origin: string;
@@ -58,14 +61,22 @@ export function buildWhatsAppClickAnalyticsPayload(options: {
     analyticsConsent: options.analyticsConsent,
   };
 
-  if (!options.analyticsConsent) {
+  if (options.analyticsConsent) {
+    return {
+      ...base,
+      attribution: options.attribution ?? undefined,
+      visitorGeo: options.visitorGeo ?? undefined,
+    };
+  }
+
+  const essential = pickEssentialCampaignAttribution(options.attribution);
+  if (!essential) {
     return base;
   }
 
   return {
     ...base,
-    attribution: options.attribution ?? undefined,
-    visitorGeo: options.visitorGeo ?? undefined,
+    attribution: essential,
   };
 }
 
@@ -76,6 +87,7 @@ export function buildWhatsAppClickAnalyticsPayload(options: {
  */
 export function trackWhatsAppClick(input: WhatsAppClickInput) {
   syncGoogleAnalyticsConsentFromStorage();
+  enableEssentialAdsMeasurementForPaidVisit();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
 
   // Ads conversion tracks the click itself — not tied to analytics cookies / PII.
@@ -98,6 +110,7 @@ export function trackWhatsAppClick(input: WhatsAppClickInput) {
     return;
   }
 
+  const attribution = readStoredAttribution();
   const body = JSON.stringify(
     buildWhatsAppClickAnalyticsPayload({
       origin: input.origin,
@@ -106,7 +119,7 @@ export function trackWhatsAppClick(input: WhatsAppClickInput) {
       pathname: window.location.pathname,
       device: detectDevice(),
       analyticsConsent,
-      attribution: analyticsConsent ? readStoredAttribution() : null,
+      attribution,
       visitorGeo: analyticsConsent ? readStoredVisitorGeo() : null,
     }),
   );

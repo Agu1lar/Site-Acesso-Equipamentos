@@ -45,6 +45,25 @@ export function GoogleAnalyticsScripts() {
                 ad_user_data: 'granted',
                 ad_personalization: 'denied'
               });
+            } else {
+              var search = window.location.search || '';
+              var paidAds = /[?&](gclid|gbraid|wbraid|gad_source)=/.test(search);
+              if (!paidAds) {
+                try {
+                  var raw = window.sessionStorage.getItem('acesso_attribution');
+                  if (raw) {
+                    var attr = JSON.parse(raw);
+                    paidAds = !!(attr && (attr.gclid || attr.gbraid || attr.wbraid));
+                  }
+                } catch (e2) {}
+              }
+              if (paidAds) {
+                gtag('consent', 'update', {
+                  ad_storage: 'granted',
+                  ad_user_data: 'granted',
+                  ad_personalization: 'denied'
+                });
+              }
             }
           } catch (e) {}
           gtag('js', new Date());
