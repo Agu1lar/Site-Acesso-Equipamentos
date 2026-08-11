@@ -9,6 +9,7 @@ import { COOKIE_CONSENT_STORAGE_KEY, parseConsentValue } from '@/lib/cookie-cons
 import {
   hasPaidClickIds,
   readStoredAttribution,
+  restorePaidClickIdsToLocationSearch,
   urlHasPaidAdsClickSignal,
 } from '@/lib/attribution';
 
@@ -184,6 +185,32 @@ export function enableEssentialAdsMeasurementForPaidVisit() {
   return false;
 }
 
+/**
+ * Prepares paid-search attribution for the Ads conversion snippet without analytics cookies:
+ * restores gclid to the URL (conversion linker), grants ad_storage, re-configs the Ads tag.
+ * @returns true when a paid click id is available
+ */
+export function preparePaidSearchAdsConversion() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const isPaid = restorePaidClickIdsToLocationSearch() || enableEssentialAdsMeasurementForPaidVisit();
+  if (!isPaid) {
+    return false;
+  }
+
+  grantGoogleAdsClickMeasurement();
+
+  const adsId = getGoogleAdsId();
+  if (adsId) {
+    // Re-run Ads config so the conversion linker can read gclid from the URL after consent.
+    gtag('config', adsId);
+  }
+
+  return true;
+}
+
 export type GaEventParams = Record<string, string | number | undefined>;
 
 export type GoogleAdsConversionOptions = {
@@ -229,6 +256,8 @@ export function captureGoogleAdsConversion(
       return;
     }
   } else {
+    // Paid search: restore gclid + grant ad_storage. Organic: still grant so the beacon can leave.
+    preparePaidSearchAdsConversion();
     grantGoogleAdsClickMeasurement();
   }
 
@@ -257,9 +286,12 @@ export function captureGoogleAdsLeadConversion(params?: GaEventParams) {
 }
 
 /**
- * WhatsApp button conversion: click beacon only (no analytics cookie required).
+ * WhatsApp button conversion for Ads (especially paid search / gclid).
+ * Does not require analytics cookies — only essential ad click measurement.
  */
 export function captureGoogleAdsWhatsAppConversion(params?: GaEventParams) {
+  preparePaidSearchAdsConversion();
+
   captureGoogleAdsConversion(
     getGoogleAdsWhatsAppConversionSendTo(),
     {

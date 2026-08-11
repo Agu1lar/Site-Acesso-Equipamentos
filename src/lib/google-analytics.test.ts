@@ -147,4 +147,64 @@ describe('google analytics consent sync', () => {
       (lastConsent?.[2] as { analytics_storage?: string } | undefined)?.analytics_storage,
     ).toBeUndefined();
   });
+
+  it('restores gclid and fires WhatsApp Ads conversion without analytics consent', async () => {
+    const dataLayer: unknown[] = [];
+    const replaceState = vi.fn();
+    vi.stubGlobal('window', {
+      localStorage: {
+        getItem: () => 'essential',
+        setItem: () => undefined,
+        removeItem: () => undefined,
+        clear: () => undefined,
+      },
+      sessionStorage: {
+        getItem: () => JSON.stringify({ gclid: 'CjwKCAiApaid' }),
+        setItem: () => undefined,
+        removeItem: () => undefined,
+        clear: () => undefined,
+      },
+      location: {
+        href: 'https://acessoequipamentos.com.br/orcamento',
+        search: '',
+        pathname: '/orcamento',
+        hash: '',
+      },
+      history: { state: null, replaceState },
+      dataLayer,
+      gtag: (...args: unknown[]) => {
+        dataLayer.push(args);
+      },
+    });
+
+    const {
+      captureGoogleAdsWhatsAppConversion,
+      isGoogleAnalyticsConsentGranted,
+    } = await import('@/lib/google-analytics');
+
+    expect(isGoogleAnalyticsConsentGranted()).toBe(false);
+    captureGoogleAdsWhatsAppConversion({ origin: 'site-home' });
+
+    expect(replaceState).toHaveBeenCalled();
+    expect(String(replaceState.mock.calls[0]?.[2] ?? '')).toContain('gclid=CjwKCAiApaid');
+
+    const consentGranted = dataLayer.some(
+      (entry) =>
+        Array.isArray(entry) &&
+        entry[0] === 'consent' &&
+        entry[1] === 'update' &&
+        (entry[2] as { ad_storage?: string })?.ad_storage === 'granted',
+    );
+    expect(consentGranted).toBe(true);
+
+    const conversion = dataLayer.find(
+      (entry) =>
+        Array.isArray(entry) && entry[0] === 'event' && entry[1] === 'conversion',
+    ) as unknown[] | undefined;
+
+    expect(conversion?.[2]).toMatchObject({
+      send_to: 'AW-11323862073/RLI1CNa09tQcELnY0Zcq',
+      transport_type: 'beacon',
+    });
+  });
 });

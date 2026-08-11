@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   buildAttributionFromVisit,
   hasAttributionData,
   parseClickIdsFromSearch,
   parseUtmsFromSearch,
   pickEssentialCampaignAttribution,
+  restorePaidClickIdsToLocationSearch,
   urlHasPaidAdsClickSignal,
 } from '@/lib/attribution';
 
@@ -74,5 +75,35 @@ describe('paid ads click signals', () => {
     expect(urlHasPaidAdsClickSignal('?gclid=x')).toBe(true);
     expect(urlHasPaidAdsClickSignal('?gad_source=1')).toBe(true);
     expect(urlHasPaidAdsClickSignal('?utm_source=google')).toBe(false);
+  });
+});
+
+describe('restore paid click ids to location search', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('rewrites the URL with gclid from session attribution', () => {
+    const replaceState = vi.fn();
+    vi.stubGlobal('window', {
+      location: {
+        href: 'https://acessoequipamentos.com.br/equipamentos',
+        search: '',
+        pathname: '/equipamentos',
+        hash: '',
+      },
+      history: { state: null, replaceState },
+      sessionStorage: {
+        getItem: () => JSON.stringify({ gclid: 'CjwKCAiAexample' }),
+        setItem: () => undefined,
+        removeItem: () => undefined,
+        clear: () => undefined,
+      },
+    });
+
+    expect(restorePaidClickIdsToLocationSearch()).toBe(true);
+    expect(replaceState).toHaveBeenCalled();
+    const nextUrl = String(replaceState.mock.calls[0]?.[2] ?? '');
+    expect(nextUrl).toContain('gclid=CjwKCAiAexample');
   });
 });

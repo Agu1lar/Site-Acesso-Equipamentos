@@ -112,6 +112,65 @@ export function hasPaidClickIds(attribution: AttributionInput) {
 }
 
 /**
+ * Resolves paid click ids from the current URL or first-touch session storage.
+ */
+export function resolvePaidClickIds(): Pick<AttributionInput, 'gclid' | 'gbraid' | 'wbraid'> | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const fromUrl = parseClickIdsFromSearch(window.location?.search ?? '');
+  const stored = readStoredAttribution();
+  const gclid = fromUrl.gclid ?? stored?.gclid;
+  const gbraid = fromUrl.gbraid ?? stored?.gbraid;
+  const wbraid = fromUrl.wbraid ?? stored?.wbraid;
+
+  if (!gclid && !gbraid && !wbraid) {
+    return null;
+  }
+
+  return { gclid, gbraid, wbraid };
+}
+
+/**
+ * Puts stored gclid/gbraid/wbraid back into the URL so the Ads conversion linker
+ * can attribute the WhatsApp click without analytics cookies.
+ * @returns true when a paid click id is present after the call
+ */
+export function restorePaidClickIdsToLocationSearch() {
+  const paid = resolvePaidClickIds();
+  if (!paid || typeof window === 'undefined') {
+    return false;
+  }
+
+  try {
+    const url = new URL(window.location.href);
+    let changed = false;
+
+    if (paid.gclid && url.searchParams.get('gclid') !== paid.gclid) {
+      url.searchParams.set('gclid', paid.gclid);
+      changed = true;
+    }
+    if (paid.gbraid && url.searchParams.get('gbraid') !== paid.gbraid) {
+      url.searchParams.set('gbraid', paid.gbraid);
+      changed = true;
+    }
+    if (paid.wbraid && url.searchParams.get('wbraid') !== paid.wbraid) {
+      url.searchParams.set('wbraid', paid.wbraid);
+      changed = true;
+    }
+
+    if (changed && typeof window.history?.replaceState === 'function') {
+      window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+    }
+  } catch {
+    return Boolean(paid.gclid ?? paid.gbraid ?? paid.wbraid);
+  }
+
+  return true;
+}
+
+/**
  * Campaign attribution kept for essential Ads conversion counting (no geo / profiling).
  */
 export function pickEssentialCampaignAttribution(

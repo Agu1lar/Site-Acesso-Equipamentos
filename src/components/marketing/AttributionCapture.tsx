@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { captureAttributionFirstTouch } from '@/lib/attribution';
-import { enableEssentialAdsMeasurementForPaidVisit } from '@/lib/google-analytics';
+import { captureAttributionFirstTouch, restorePaidClickIdsToLocationSearch } from '@/lib/attribution';
+import { preparePaidSearchAdsConversion } from '@/lib/google-analytics';
 
 /**
  * Stores first-touch campaign attribution and enables essential Ads measurement for paid clicks.
@@ -10,7 +10,8 @@ import { enableEssentialAdsMeasurementForPaidVisit } from '@/lib/google-analytic
 export function AttributionCapture() {
   useEffect(() => {
     captureAttributionFirstTouch();
-    enableEssentialAdsMeasurementForPaidVisit();
+    restorePaidClickIdsToLocationSearch();
+    preparePaidSearchAdsConversion();
   }, []);
 
   return null;

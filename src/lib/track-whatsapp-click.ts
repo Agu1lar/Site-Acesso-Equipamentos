@@ -7,7 +7,7 @@ import {
   GA_CONVERSION_EVENTS,
   captureGaEvent,
   captureGoogleAdsWhatsAppConversion,
-  enableEssentialAdsMeasurementForPaidVisit,
+  preparePaidSearchAdsConversion,
   isGoogleAnalyticsConsentGranted,
   syncGoogleAnalyticsConsentFromStorage,
 } from '@/lib/google-analytics';
@@ -82,15 +82,16 @@ export function buildWhatsAppClickAnalyticsPayload(options: {
 
 /**
  * Counts WhatsApp button clicks in Neon always (no cookie required).
- * Fires the Google Ads WhatsApp conversion on every click (click beacon only).
+ * Fires the Google Ads WhatsApp conversion without analytics cookies.
+ * For paid search (gclid), restores click id + ad_storage so the Ads snippet attributes.
  * GA4 / PostHog still require analytics cookie consent.
  */
 export function trackWhatsAppClick(input: WhatsAppClickInput) {
   syncGoogleAnalyticsConsentFromStorage();
-  enableEssentialAdsMeasurementForPaidVisit();
+  // Paid search: put gclid back in the URL and grant ad_storage before the Ads snippet.
+  preparePaidSearchAdsConversion();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
 
-  // Ads conversion tracks the click itself — not tied to analytics cookies / PII.
   captureGoogleAdsWhatsAppConversion({
     origin: input.origin,
     equipment_slug: input.equipmentSlug,
