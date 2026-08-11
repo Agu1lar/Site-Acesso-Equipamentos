@@ -34,7 +34,7 @@ export function BlogImagePanel(props: BlogImagePanelProps) {
             <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-neutral-100">
               <Image
                 alt={image.alt || t('tag_image_number', { number: index + 1 })}
-                className="object-cover"
+                className="object-contain object-center"
                 fill
                 sizes="112px"
                 src={image.url}

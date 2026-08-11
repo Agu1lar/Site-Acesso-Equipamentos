@@ -43,7 +43,7 @@ function ArticleCard(props: {
             <div className="relative aspect-[16/10] w-full bg-neutral-100 lg:aspect-auto lg:min-h-[280px]">
               <Image
                 alt=""
-                className="object-cover transition duration-300 group-hover:scale-[1.02]"
+                className="object-contain object-center transition duration-300 group-hover:scale-[1.02]"
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 560px"
@@ -78,7 +78,7 @@ function ArticleCard(props: {
           <div className="relative aspect-[16/10] w-full bg-neutral-100">
             <Image
               alt=""
-              className="object-cover transition duration-300 group-hover:scale-[1.02]"
+              className="object-contain object-center transition duration-300 group-hover:scale-[1.02]"
               fill
               sizes="(max-width: 768px) 100vw, 360px"
               src={article.coverImageUrl}

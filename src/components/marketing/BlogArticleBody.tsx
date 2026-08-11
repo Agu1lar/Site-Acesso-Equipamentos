@@ -76,14 +76,15 @@ function BlogImageFigure(props: { src: string; alt: string; priority?: boolean }
 
   return (
     <figure className="not-prose my-10 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
-      <div className="relative aspect-[16/9] w-full bg-neutral-100">
+      <div className="relative flex min-h-[12rem] w-full items-center justify-center bg-neutral-100 sm:min-h-[16rem]">
         <Image
           alt={alt || 'Imagem do artigo'}
-          className="object-cover"
-          fill
+          className="h-auto max-h-[36rem] w-full object-contain"
+          height={900}
           priority={props.priority}
           sizes="(max-width: 768px) 100vw, 768px"
           src={props.src}
+          width={1600}
         />
       </div>
       {alt ? (
@@ -193,7 +194,7 @@ function renderNode(node: JSONContent, key: string, imageIndex: { current: numbe
 }
 
 /**
- * Renders TipTap article body with Next.js images (reliable aspect boxes).
+ * Renders TipTap article body with Next.js images that keep the full frame visible.
  */
 export function BlogArticleBody(props: BlogArticleBodyProps) {
   const imageIndex = { current: 0 };

@@ -5,10 +5,19 @@ export const BlogAiRequestSchema = z.object({
   topic: z.string().trim().min(10).max(600),
 });
 
-const generatedImageSchema = z.object({
-  url: z.string().startsWith('/equipamentos/'),
+/** Raw image slot as returned by Claude (empty strings allowed). */
+export const ClaudeBlogImageSlotRawSchema = z.object({
+  type: z.enum(['generated', 'equipment']),
+  prompt: z.string().max(900).default(''),
+  url: z.string().max(500).default(''),
   alt: z.string().trim().min(5).max(220),
 });
+
+export type ClaudeBlogImageSlotRaw = z.infer<typeof ClaudeBlogImageSlotRawSchema>;
+
+export type ClaudeBlogImageSlot =
+  | { type: 'generated'; prompt: string; alt: string }
+  | { type: 'equipment'; url: string; alt: string };
 
 const generatedRelatedLinkSchema = z.object({
   label: z.string().trim().min(2).max(120),
@@ -24,15 +33,20 @@ export const ClaudeBlogDraftSchema = z.object({
   excerpt: z.string().trim().min(30).max(500),
   metaTitle: z.string().trim().min(10).max(200),
   metaDescription: z.string().trim().min(20).max(320),
-  coverImageUrl: z.string(),
+  /** Zero-based index into `images` for the cover (usually the first generated slot). */
+  coverImageIndex: z.number().int().min(0).max(3),
   contentMarkup: z.string().trim().min(500),
-  images: z.array(generatedImageSchema).max(4),
+  images: z.array(ClaudeBlogImageSlotRawSchema).max(4),
   relatedLinks: z.array(generatedRelatedLinkSchema).max(4),
 });
 
-export type GeneratedBlogDraft = Omit<
-  z.infer<typeof ClaudeBlogDraftSchema>,
-  'contentMarkup' | 'images'
-> & {
+export type GeneratedBlogDraft = {
+  title: string;
+  slug: string;
+  excerpt: string;
+  metaTitle: string;
+  metaDescription: string;
+  coverImageUrl: string;
   content: JSONContent;
+  relatedLinks: z.infer<typeof generatedRelatedLinkSchema>[];
 };

@@ -56,7 +56,7 @@ export function BlogCoverUpload(props: BlogCoverUploadProps) {
         <div className="relative h-48 w-full max-w-md overflow-hidden rounded-lg bg-neutral-100">
           <Image
             alt=""
-            className="object-cover"
+            className="object-contain object-center"
             fill
             sizes="400px"
             src={props.coverImageUrl}

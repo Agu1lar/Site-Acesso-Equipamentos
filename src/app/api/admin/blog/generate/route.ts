@@ -3,7 +3,7 @@ import { requireDashboardAccess } from '@/lib/auth-roles';
 import { generateBlogDraftWithClaude } from '@/lib/blog-ai';
 import { BlogAiRequestSchema } from '@/validations/blog-ai';
 
-export const maxDuration = 120;
+export const maxDuration = 180;
 
 /**
  * Generates an editable blog draft for an authenticated dashboard user.
@@ -30,7 +30,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ draft });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'generation_failed';
-    const status = message === 'anthropic_not_configured' ? 503 : 502;
+    let status = 502;
+    if (message === 'anthropic_not_configured' || message === 'openai_not_configured') {
+      status = 503;
+    }
     return NextResponse.json({ error: message }, { status });
   }
 }

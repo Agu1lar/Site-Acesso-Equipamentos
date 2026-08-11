@@ -130,14 +130,15 @@ export default async function DicaArticlePage(props: DicaArticlePageProps) {
         {article.coverImageUrl ? (
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <figure className="-mt-2 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 shadow-sm">
-              <div className="relative aspect-[16/9] w-full">
+              <div className="relative flex min-h-[14rem] w-full items-center justify-center bg-neutral-100 sm:min-h-[18rem]">
                 <Image
                   alt={article.title}
-                  className="object-cover"
-                  fill
+                  className="h-auto max-h-[28rem] w-full object-contain"
+                  height={900}
                   priority
                   sizes="(max-width: 1024px) 100vw, 1024px"
                   src={article.coverImageUrl}
+                  width={1600}
                 />
               </div>
             </figure>
