@@ -46,7 +46,7 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
     setErrorMessage(null);
     setSuccess(false);
 
-    const imageSource: BlogAiImageSource = useCatalogImages ? 'catalog' : 'generated';
+    const imageSource: BlogAiImageSource = useCatalogImages ? 'catalog' : 'none';
 
     try {
       const response = await fetch('/api/admin/blog/generate', {
@@ -68,8 +68,6 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
       const code = error instanceof Error ? error.message : 'generation_failed';
       if (code === 'anthropic_not_configured') {
         setErrorMessage(t('ai_error_not_configured'));
-      } else if (code === 'claude_image_failed') {
-        setErrorMessage(t('ai_error_claude_image'));
       } else {
         setErrorMessage(t('ai_error_generic'));
       }

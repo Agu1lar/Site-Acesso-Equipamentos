@@ -3,8 +3,8 @@ import * as z from 'zod';
 
 export const BlogAiRequestSchema = z.object({
   topic: z.string().trim().min(10).max(600),
-  /** Default: Claude-generated illustrations. Use `catalog` only when explicitly requested. */
-  imageSource: z.enum(['generated', 'catalog']).default('generated'),
+  /** Default: no images. Use `catalog` only when explicitly requested. */
+  imageSource: z.enum(['none', 'catalog']).default('none'),
 });
 
 export type BlogAiImageSource = z.infer<typeof BlogAiRequestSchema>['imageSource'];

@@ -49,8 +49,8 @@ const allowedRelatedPaths = new Set([
   '/treinamento-plataformas-aereas',
 ]);
 
-function buildClaudeOutputSchema(imageSource: 'generated' | 'catalog') {
-  const generatedOnly = imageSource === 'generated';
+function buildClaudeOutputSchema(imageSource: 'none' | 'catalog') {
+  const useCatalogImages = imageSource === 'catalog';
 
   return {
     type: 'object',
@@ -68,25 +68,23 @@ function buildClaudeOutputSchema(imageSource: 'generated' | 'catalog') {
       },
       coverImageIndex: {
         type: 'integer',
-        description: generatedOnly
-          ? 'Índice zero-based da capa gerada no array images (sempre 0).'
-          : 'Índice zero-based da foto de capa do catálogo no array images.',
+        description: useCatalogImages
+          ? 'Índice zero-based da foto de capa do catálogo no array images.'
+          : 'Use 0. Sem imagens neste modo — a capa será enviada no painel.',
       },
       contentMarkup: { type: 'string', description: CLAUDE_BLOG_TAG_CONTRACT },
       images: {
         type: 'array',
-        description: generatedOnly
-          ? '1 capa + até 2 ilustrações editoriais em SVG (type=generated). Proibido type=equipment ou URLs do site.'
-          : '2 a 4 fotos reais do catálogo (type=equipment) com URLs exatas informadas. Proibido type=generated.',
+        description: useCatalogImages
+          ? '2 a 4 fotos reais do catálogo (type=equipment) com URLs exatas informadas.'
+          : 'Sempre vazio. Não inclua SVG, fotos do site nem prompts de imagem.',
         items: {
           type: 'object',
           properties: {
             type: {
               type: 'string',
-              enum: generatedOnly ? ['generated'] : ['equipment'],
-              description: generatedOnly
-                ? 'Sempre generated — ilustração SVG criada neste JSON.'
-                : 'Sempre equipment — foto real do catálogo informado.',
+              enum: ['equipment'],
+              description: 'Foto real do catálogo informado.',
             },
             prompt: {
               type: 'string',
@@ -94,15 +92,13 @@ function buildClaudeOutputSchema(imageSource: 'generated' | 'catalog') {
             },
             url: {
               type: 'string',
-              description: generatedOnly
-                ? 'Sempre vazio.'
-                : 'URL exata do catálogo filtrado (obrigatório).',
+              description: useCatalogImages
+                ? 'URL exata do catálogo filtrado (obrigatório).'
+                : 'Deixe vazio.',
             },
             svg: {
               type: 'string',
-              description: generatedOnly
-                ? 'SVG completo começando com <svg e fechando com </svg>. viewBox 1600 900, ilustração editorial vetorial de obra no Brasil, sem texto, sem logos, sem marcas, sem fotos reais.'
-                : 'Deixe vazio.',
+              description: 'Deixe vazio.',
             },
             alt: { type: 'string', description: 'Descrição objetiva da imagem em português.' },
           },
@@ -183,23 +179,18 @@ function catalogLinesForPrompt(topic: string) {
   return list.map((image) => `${image.slug}: ${image.url}`).join('\n');
 }
 
-function blogImageSystemInstructions(imageSource: 'generated' | 'catalog') {
+function blogImageSystemInstructions(imageSource: 'none' | 'catalog') {
   if (imageSource === 'catalog') {
     return 'Imagens: use somente type=equipment com URLs exatas do catálogo informado (2 a 4 imagens quando pertinente). Use uma delas como capa (coverImageIndex). Se nenhuma imagem for realmente pertinente, use images vazio e coverImageIndex 0. Nunca use type=generated.';
   }
-  return [
-    'Imagens: você também cria as ilustrações. Use somente type=generated.',
-    'Entregue 1 capa (images[0]) e 1 ou 2 ilustrações internas, cada uma com SVG completo no campo svg.',
-    'O SVG deve ter viewBox="0 0 1600 900", xmlns, formas vetoriais, cores sólidas, clima de obra brasileira, sem texto, sem logos, sem marcas e sem URLs do catálogo.',
-    'Inclua [img1], [img2] e [img3] no contentMarkup na ordem do array images. coverImageIndex deve ser 0.',
-  ].join(' ');
+  return 'Imagens: deixe o array images vazio e não use tags [img]. A capa será enviada depois no painel. Nunca invente SVG nem use fotos do catálogo.';
 }
 
-function blogImageUserMessageBlock(topic: string, imageSource: 'generated' | 'catalog') {
+function blogImageUserMessageBlock(topic: string, imageSource: 'none' | 'catalog') {
   if (imageSource === 'catalog') {
     return `Imagens disponíveis (use exclusivamente deste catálogo):\n${catalogLinesForPrompt(topic)}`;
   }
-  return 'Crie capa e ilustrações em SVG no array images. Não use fotos do catálogo do site.';
+  return 'Não inclua imagens. O editor enviará a capa depois no painel.';
 }
 
 function isAllowedRelatedPath(href: string) {
@@ -374,21 +365,21 @@ export function normalizeClaudeBlogDraft(raw: unknown): GeneratedBlogDraft {
 
 /**
  * Generates a complete, unpublished blog draft with Claude.
- * Claude writes text, SEO, links and SVG illustrations. Catalog photos only when requested.
+ * Claude writes text, SEO and links. Catalog photos only when requested; otherwise the editor adds the cover.
  * @param topic Editorial direction supplied by the dashboard user.
  * @param options Image source preference from the admin UI.
  * @returns A validated draft ready for review.
  */
 export async function generateBlogDraftWithClaude(
   topic: string,
-  options: { imageSource?: 'generated' | 'catalog' } = {},
+  options: { imageSource?: 'none' | 'catalog' } = {},
 ): Promise<GeneratedBlogDraft> {
   if (!Env.ANTHROPIC_API_KEY) {
     throw new Error('anthropic_not_configured');
   }
 
-  const imageSource = options.imageSource ?? 'generated';
-  const useGeneratedImages = imageSource === 'generated';
+  const imageSource = options.imageSource ?? 'none';
+  const useCatalogImages = imageSource === 'catalog';
 
   const response = await fetch(ANTHROPIC_MESSAGES_URL, {
     method: 'POST',
@@ -399,13 +390,13 @@ export async function generateBlogDraftWithClaude(
     },
     body: JSON.stringify({
       model: Env.ANTHROPIC_MODEL,
-      max_tokens: 12_000,
+      max_tokens: 6000,
       system: [
         'Você é editor sênior do blog da Acesso Equipamentos, locadora de equipamentos para construção civil em Minas Gerais.',
         'Produza conteúdo útil, responsável, original e em português do Brasil. Nunca invente normas, estatísticas, preços, especificações técnicas ou fatos atuais.',
         'O artigo deve ter introdução forte, de 5 a 8 seções H2, H3 quando necessário, listas úteis e conclusão com CTA contextual. Escreva entre 900 e 1.400 palavras.',
         'O título deve ser claro e específico. Use slug sem acentos, em minúsculas e separado por hífens. Meta title deve ter 45 a 60 caracteres, meta description de 120 a 155 e excerpt de 150 a 300.',
-        'Preencha também slug, excerpt, metaTitle, metaDescription, relatedLinks e as imagens do artigo.',
+        'Preencha também slug, excerpt, metaTitle, metaDescription e relatedLinks.',
         blogImageSystemInstructions(imageSource),
         'Use apenas links internos da lista fornecida. Não transforme referências externas, normas ou fontes não fornecidas em links.',
         CLAUDE_BLOG_TAG_CONTRACT,
@@ -440,22 +431,13 @@ export async function generateBlogDraftWithClaude(
   }
 
   const parsed = parseClaudeBlogDraft(JSON.parse(text) as unknown, {
-    allowGeneratedImages: useGeneratedImages,
-    allowEquipmentImages: imageSource === 'catalog',
+    allowGeneratedImages: false,
+    allowEquipmentImages: useCatalogImages,
   });
-
-  if (useGeneratedImages && !parsed.imageSlots.some((slot) => slot.type === 'generated')) {
-    throw new Error('claude_image_failed');
-  }
-
   const images = await materializeBlogImageSlots({
     slots: parsed.imageSlots,
     slug: parsed.slug,
   });
-
-  if (useGeneratedImages && !images.some((image) => image.url)) {
-    throw new Error('claude_image_failed');
-  }
 
   return buildGeneratedBlogDraft(parsed, images);
 }

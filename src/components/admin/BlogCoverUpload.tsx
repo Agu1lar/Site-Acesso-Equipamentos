@@ -2,18 +2,22 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { BlogCatalogImagePicker } from '@/components/admin/BlogCatalogImagePicker';
 import { Button } from '@/components/ui/Button';
 import { pickImageFiles, uploadAdminImage } from '@/lib/admin-image-upload-client';
+import { isBlogVectorImage } from '@/lib/blog-ai-svg';
 
 type BlogCoverUploadProps = {
   coverImageUrl: string;
+  highlightEmpty?: boolean;
   onChange: (url: string) => void;
   slug: string;
 };
 
 /**
- * Drag-and-drop cover image upload for blog articles.
+ * Drag, paste or pick a cover image for a blog article.
+ * @param props Cover URL, slug and change callback.
  */
 export function BlogCoverUpload(props: BlogCoverUploadProps) {
   const t = useTranslations('BlogArticleForm');
@@ -21,6 +25,7 @@ export function BlogCoverUpload(props: BlogCoverUploadProps) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const empty = !props.coverImageUrl;
 
   const uploadFile = async (file: File) => {
     setUploading(true);
@@ -50,17 +55,35 @@ export function BlogCoverUpload(props: BlogCoverUploadProps) {
     await uploadFile(list[0]!);
   };
 
+  useEffect(() => {
+    const onPaste = (event: ClipboardEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      const files = [...(event.clipboardData?.files ?? [])];
+      if (files.length === 0) {
+        return;
+      }
+      event.preventDefault();
+      void uploadFiles(files);
+    };
+
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+  }, [props.slug]);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" id="blog-cover">
       {props.coverImageUrl ? (
-        <div className="relative h-48 w-full max-w-md overflow-hidden rounded-lg bg-neutral-100">
+        <div className="relative h-56 w-full max-w-xl overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100">
           <Image
             alt=""
             className="object-contain object-center"
             fill
-            sizes="400px"
+            sizes="576px"
             src={props.coverImageUrl}
-            unoptimized
+            unoptimized={isBlogVectorImage(props.coverImageUrl)}
           />
         </div>
       ) : null}
@@ -69,7 +92,9 @@ export function BlogCoverUpload(props: BlogCoverUploadProps) {
         className={`rounded-xl border-2 border-dashed p-6 text-center transition-colors ${
           dragOver
             ? 'border-primary bg-primary-light/40'
-            : 'border-neutral-300 bg-neutral-50/80 hover:border-neutral-400'
+            : empty && props.highlightEmpty
+              ? 'border-primary bg-primary-50/70'
+              : 'border-neutral-300 bg-neutral-50/80 hover:border-neutral-400'
         }`}
         onDragLeave={() => setDragOver(false)}
         onDragOver={(event) => {
@@ -83,6 +108,14 @@ export function BlogCoverUpload(props: BlogCoverUploadProps) {
             void uploadFiles(event.dataTransfer.files);
           }
         }}
+        onPaste={(event) => {
+          const files = [...event.clipboardData.files];
+          if (files.length > 0) {
+            event.preventDefault();
+            void uploadFiles(files);
+          }
+        }}
+        tabIndex={0}
       >
         <input
           accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
@@ -96,19 +129,23 @@ export function BlogCoverUpload(props: BlogCoverUploadProps) {
           ref={inputRef}
           type="file"
         />
-        <p className="font-medium text-neutral-900">{t('upload_drop_title')}</p>
-        <p className="mt-1 text-sm text-neutral-600">{t('upload_drop_hint')}</p>
+        <p className="font-medium text-neutral-900">
+          {empty ? t('cover_empty_title') : t('upload_drop_title')}
+        </p>
+        <p className="mt-1 text-sm text-neutral-600">{t('cover_empty_hint')}</p>
         <Button
           className="mt-4"
           disabled={uploading}
           onClick={() => inputRef.current?.click()}
           size="sm"
           type="button"
-          variant="outline"
+          variant="primary"
         >
           {uploading ? t('cover_uploading') : t('cover_upload')}
         </Button>
       </div>
+
+      <BlogCatalogImagePicker onSelect={props.onChange} />
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 

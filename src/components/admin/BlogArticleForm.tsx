@@ -78,6 +78,7 @@ export function BlogArticleForm(props: BlogArticleFormProps) {
   const [metaTitleError, setMetaTitleError] = useState<string | null>(null);
   const [metaDescriptionError, setMetaDescriptionError] = useState<string | null>(null);
   const [coverImageUrl, setCoverImageUrl] = useState(article?.coverImageUrl ?? '');
+  const [awaitingCover, setAwaitingCover] = useState(false);
   const [content, setContent] = useState<JSONContent>(article?.content ?? emptyTiptapDoc());
   const [contentRevision, setContentRevision] = useState(0);
   const [relatedLinks, setRelatedLinks] = useState(() =>
@@ -96,9 +97,13 @@ export function BlogArticleForm(props: BlogArticleFormProps) {
     setMetaTitleError(null);
     setMetaDescriptionError(null);
     setCoverImageUrl(draft.coverImageUrl);
+    setAwaitingCover(!draft.coverImageUrl);
     setContent(draft.content);
     setContentRevision((revision) => revision + 1);
     setRelatedLinks(initialRelatedLinks(draft.relatedLinks));
+    requestAnimationFrame(() => {
+      document.getElementById('blog-cover')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   };
 
   const contentJson = useMemo(() => JSON.stringify(content), [content]);
@@ -172,6 +177,22 @@ export function BlogArticleForm(props: BlogArticleFormProps) {
           onGenerated={applyGeneratedDraft}
         />
       ) : null}
+
+      <section className="space-y-4 rounded-lg border border-neutral-200 bg-surface p-5">
+        <h2 className="font-heading text-lg font-semibold text-neutral-900">{t('section_cover')}</h2>
+        <p className="text-sm text-neutral-600">{t('section_cover_hint')}</p>
+        <BlogCoverUpload
+          coverImageUrl={coverImageUrl}
+          highlightEmpty={awaitingCover && !coverImageUrl}
+          onChange={(url) => {
+            setCoverImageUrl(url);
+            if (url) {
+              setAwaitingCover(false);
+            }
+          }}
+          slug={slug || 'rascunho'}
+        />
+      </section>
 
       <section className="space-y-4 rounded-lg border border-neutral-200 bg-surface p-5">
         <h2 className="font-heading text-lg font-semibold text-neutral-900">{t('section_main')}</h2>
@@ -276,16 +297,6 @@ export function BlogArticleForm(props: BlogArticleFormProps) {
             {metaDescriptionError ?? metaDescriptionHint}
           </p>
         </div>
-      </section>
-
-      <section className="space-y-4 rounded-lg border border-neutral-200 bg-surface p-5">
-        <h2 className="font-heading text-lg font-semibold text-neutral-900">{t('section_cover')}</h2>
-
-        <BlogCoverUpload
-          coverImageUrl={coverImageUrl}
-          onChange={setCoverImageUrl}
-          slug={slug || 'rascunho'}
-        />
       </section>
 
       <section className="space-y-4 rounded-lg border border-neutral-200 bg-surface p-5">

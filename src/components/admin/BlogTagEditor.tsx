@@ -376,6 +376,12 @@ export function BlogTagEditor(props: BlogTagEditorProps) {
               <p className="mb-3 text-xs text-neutral-600">{t('tag_images_hint')}</p>
               <BlogImagePanel
                 images={tagState.images}
+                onAddFiles={(files) => {
+                  const file = [...files][0];
+                  if (file) {
+                    void insertImageTag(file);
+                  }
+                }}
                 onAltChange={(imageId, alt) => {
                   updateMarkup((current) => ({
                     ...current,
@@ -387,6 +393,7 @@ export function BlogTagEditor(props: BlogTagEditorProps) {
                 onInsertTag={(_imageId, imageNumber) => insertImageTagAtCursor(imageNumber)}
                 onMove={moveImage}
                 onRemove={removeImage}
+                uploading={uploadingMedia}
               />
             </div>
 
