@@ -5,23 +5,20 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import { BlogArticleBody } from '@/components/marketing/BlogArticleBody';
 import { ConversionCtas } from '@/components/marketing/ConversionCtas';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { getAllBlogSlugs, getBlogArticleBySlug } from '@/lib/blog-articles';
+import { getBlogArticleBySlug } from '@/lib/blog-articles';
 import { getBlogSlugRedirectTarget } from '@/lib/blog-slug-redirects';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
 import { buildDicaArticleJsonLd } from '@/lib/json-ld';
 import { buildMarketingMetadata } from '@/lib/seo-metadata';
 import { Link } from '@/libs/I18nNavigation';
-import { routing } from '@/libs/I18nRouting';
 import { resolveAppLocale } from '@/utils/locale';
 
 type DicaArticlePageProps = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
-export async function generateStaticParams() {
-  const slugs = await getAllBlogSlugs();
-  return routing.locales.flatMap((locale) => slugs.map((slug) => ({ locale, slug })));
-}
+/** Always read publish status from the database (admin unpublish must take effect immediately). */
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(props: DicaArticlePageProps): Promise<Metadata> {
   const { slug } = await props.params;

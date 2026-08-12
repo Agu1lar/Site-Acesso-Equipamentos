@@ -21,8 +21,8 @@ import {
 } from '@/validations/blog-admin';
 
 function revalidateBlogPaths(slug: string) {
-  revalidatePath('/dicas');
-  revalidatePath(`/dicas/${slug}`);
+  revalidatePath('/dicas', 'layout');
+  revalidatePath(`/dicas/${slug}`, 'page');
   revalidatePath('/sitemap.xml');
   revalidatePath('/dashboard/dicas');
 }

@@ -13,6 +13,9 @@ type DicasPageProps = {
   params: Promise<{ locale: string }>;
 };
 
+/** Reflect publish/unpublish from the database on every request. */
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(props: DicasPageProps): Promise<Metadata> {
   const locale = resolveAppLocale((await props.params)?.locale);
   const t = await getTranslations({

@@ -5,6 +5,9 @@ import { getAllEquipment, getEquipmentSitemapLastModifiedBySlug } from '@/lib/eq
 import type { EquipmentCategory } from '@/types/equipment';
 import { getBaseUrl } from '@/utils/Helpers';
 
+/** Blog publish state changes must appear in sitemap without waiting for a rebuild. */
+export const revalidate = 0;
+
 /** Stable lastmod for institutional pages (update when content changes). */
 const STATIC_ROUTE_LAST_MODIFIED: Record<string, Date> = {
   '': new Date('2026-06-08'),
