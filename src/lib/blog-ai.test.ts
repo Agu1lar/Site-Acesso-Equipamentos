@@ -1,36 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   CLAUDE_BLOG_TAG_CONTRACT,
-  ensureGeneratedImageSlots,
   filterEquipmentCatalogForTopic,
-  materializeBlogImageSlots,
   normalizeClaudeBlogDraft,
   parseClaudeBlogDraft,
   sanitizeClaudeImageSlots,
-  urlsAreCatalogOnly,
 } from '@/lib/blog-ai';
-import { buildBlogImagePrompt, generateBlogImageBuffer, isOpenAiImageConfigured, mapOpenAiImageError } from '@/lib/blog-ai-images';
-
-const hasOpenAi = isOpenAiImageConfigured();
-
-async function probeOpenAiImageApi() {
-  if (!hasOpenAi) {
-    return 'missing' as const;
-  }
-
-  try {
-    await generateBlogImageBuffer('Solid red circle minimal editorial test image on white background');
-    return 'ready' as const;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'openai_image_failed';
-    if (message === 'openai_no_credits') {
-      return 'no_credits' as const;
-    }
-    return 'error' as const;
-  }
-}
-
-const openAiProbe = await probeOpenAiImageApi();
 
 const longMarkup = `[h2]Como planejar a obra[/h2]\n\n${'Planejamento seguro e eficiente. '.repeat(25)}`;
 
@@ -168,7 +143,7 @@ describe('normalize Claude blog draft', () => {
 });
 
 describe('sanitize Claude image slots', () => {
-  it('keeps generated prompts and allowlisted equipment urls', () => {
+  it('keeps allowlisted equipment urls and drops generated slots', () => {
     const slots = sanitizeClaudeImageSlots([
       {
         type: 'generated',
@@ -187,41 +162,16 @@ describe('sanitize Claude image slots', () => {
       },
     ]);
 
-    expect(slots).toHaveLength(2);
-    expect(slots[0]).toMatchObject({ type: 'generated' });
-    expect(slots[1]).toMatchObject({
-      type: 'equipment',
-      url: '/equipamentos/betoneira.webp',
-    });
-  });
-
-  it('drops generated slots when OpenAI images are disabled', () => {
-    const slots = sanitizeClaudeImageSlots(
-      [
-        {
-          type: 'generated',
-          prompt: 'Editorial cover for construction safety training in Brazil',
-          alt: 'Capa editorial',
-        },
-        {
-          type: 'equipment',
-          url: '/equipamentos/betoneira.webp',
-          alt: 'Betoneira',
-        },
-      ],
-      { allowGenerated: false },
-    );
-
     expect(slots).toEqual([
       {
         type: 'equipment',
         url: '/equipamentos/betoneira.webp',
-        alt: 'Betoneira',
+        alt: 'Betoneira pronta para obra',
       },
     ]);
   });
 
-  it('drops equipment slots when only generated images are allowed', () => {
+  it('drops equipment slots when catalog images are disabled', () => {
     const slots = sanitizeClaudeImageSlots(
       [
         {
@@ -238,37 +188,11 @@ describe('sanitize Claude image slots', () => {
       { allowEquipment: false },
     );
 
-    expect(slots).toEqual([
-      {
-        type: 'generated',
-        prompt: 'Editorial cover for construction safety training in Brazil',
-        alt: 'Capa editorial',
-      },
-    ]);
+    expect(slots).toEqual([]);
   });
 
-  it('caps generated and equipment counts', () => {
+  it('caps equipment counts', () => {
     const slots = sanitizeClaudeImageSlots([
-      {
-        type: 'generated',
-        prompt: 'Cover one for construction safety editorial photography Brazil',
-        alt: 'Capa um',
-      },
-      {
-        type: 'generated',
-        prompt: 'Inline two showing scaffolding and helmets on a job site',
-        alt: 'Inline dois',
-      },
-      {
-        type: 'generated',
-        prompt: 'Inline three with concrete mixer in organized Brazilian yard',
-        alt: 'Inline três',
-      },
-      {
-        type: 'generated',
-        prompt: 'Extra generated image that should be dropped by the cap',
-        alt: 'Extra',
-      },
       {
         type: 'equipment',
         url: '/equipamentos/betoneira.webp',
@@ -286,8 +210,7 @@ describe('sanitize Claude image slots', () => {
       },
     ]);
 
-    expect(slots.filter((slot) => slot.type === 'generated')).toHaveLength(3);
-    expect(slots.filter((slot) => slot.type === 'equipment')).toHaveLength(2);
+    expect(slots).toHaveLength(2);
   });
 });
 
@@ -304,7 +227,7 @@ describe('filter equipment catalog for topic', () => {
 });
 
 describe('parse Claude blog draft image modes', () => {
-  it('strips catalog equipment when generated mode is enforced', () => {
+  it('strips catalog equipment when images are disabled', () => {
     const parsed = parseClaudeBlogDraft(
       {
         title: 'Como escolher equipamentos para uma obra eficiente',
@@ -331,108 +254,9 @@ describe('parse Claude blog draft image modes', () => {
         ],
         relatedLinks: [],
       },
-      { allowGeneratedImages: true, allowEquipmentImages: false },
+      { allowEquipmentImages: false },
     );
 
-    expect(parsed.imageSlots).toEqual([
-      {
-        type: 'generated',
-        prompt: 'Editorial cover showing organized construction yard in Brazil at sunrise',
-        alt: 'Capa editorial sobre planejamento de obra',
-      },
-    ]);
-  });
-
-  it('adds a generated cover when Claude returns only catalog slots', () => {
-    const parsed = parseClaudeBlogDraft(
-      {
-        title: 'Segurança em altura na construção civil mineira',
-        slug: 'seguranca-em-altura-construcao',
-        excerpt: 'Orientações práticas para reduzir riscos em trabalhos em altura na construção civil.',
-        metaTitle: 'Segurança em altura na construção | Acesso',
-        metaDescription:
-          'Saiba como organizar trabalhos em altura com planejamento, EPI e equipamentos adequados.',
-        coverImageIndex: 0,
-        contentMarkup: longMarkup,
-        images: [
-          {
-            type: 'equipment',
-            prompt: '',
-            url: '/equipamentos/betoneira.webp',
-            alt: 'Betoneira em obra',
-          },
-        ],
-        relatedLinks: [],
-      },
-      { allowGeneratedImages: true, allowEquipmentImages: false },
-    );
-
-    ensureGeneratedImageSlots(parsed, 'segurança em altura na construção civil');
-
-    expect(parsed.imageSlots).toHaveLength(1);
-    expect(parsed.imageSlots[0]?.type).toBe('generated');
-    expect(parsed.coverImageIndex).toBe(0);
-  });
-});
-
-describe('catalog url guard', () => {
-  it('detects catalog-only image sets', () => {
-    expect(urlsAreCatalogOnly(['/equipamentos/betoneira.webp'])).toBe(true);
-    expect(urlsAreCatalogOnly(['/uploads/blog/ai-cover.webp'])).toBe(false);
-    expect(urlsAreCatalogOnly([])).toBe(false);
-  });
-});
-
-describe.skipIf(openAiProbe !== 'ready')('OpenAI image generation (live)', () => {
-  it('generates an image buffer from the API', async () => {
-    const result = await generateBlogImageBuffer(
-      'Scissor lift beside a warehouse facade in Brazil under clear daylight',
-    );
-
-    expect(result.buffer.byteLength).toBeGreaterThan(1000);
-    expect(['image/png', 'image/jpeg', 'image/webp']).toContain(result.mime);
-  }, 120_000);
-
-  it('materializes generated slots without catalog URLs', async () => {
-    const images = await materializeBlogImageSlots({
-      slots: [
-        {
-          type: 'generated',
-          prompt: 'Construction workers reviewing safety checklist on a Brazilian job site',
-          alt: 'Equipe revisando checklist de segurança',
-        },
-      ],
-      slug: 'teste-imagem-gerada',
-      generatedOnly: true,
-    });
-
-    const urls = images.map((image) => image.url).filter(Boolean);
-    expect(urls).toHaveLength(1);
-    expect(urlsAreCatalogOnly(urls)).toBe(false);
-    expect(urls[0]).not.toMatch(/^\/equipamentos\//);
-  }, 120_000);
-});
-
-if (openAiProbe === 'no_credits') {
-  console.warn(
-    'OpenAI: conta sem créditos — testes live de imagem foram ignorados. Adicione saldo em platform.openai.com.',
-  );
-}
-
-describe('build blog image prompt', () => {
-  it('maps OpenAI billing errors to a stable code', () => {
-    const response = new Response(null, { status: 429 });
-    expect(
-      mapOpenAiImageError(response, {
-        error: { message: 'You have no credits remaining. Add credits to continue using the API.' },
-      }),
-    ).toBe('openai_no_credits');
-  });
-
-  it('appends brand-safe style constraints', () => {
-    const prompt = buildBlogImagePrompt('Scissor lift at a warehouse');
-    expect(prompt).toContain('Scissor lift at a warehouse');
-    expect(prompt).toContain('no text');
-    expect(prompt).toContain('Brazilian construction-equipment');
+    expect(parsed.imageSlots).toEqual([]);
   });
 });

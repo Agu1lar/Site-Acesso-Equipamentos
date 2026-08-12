@@ -28,7 +28,7 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
     buttonLabel = t('ai_replace_generate');
   }
   if (pending) {
-    buttonLabel = useCatalogImages ? t('ai_generating') : t('ai_generating_with_images');
+    buttonLabel = t('ai_generating');
   }
 
   const generate = async () => {
@@ -46,7 +46,7 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
     setErrorMessage(null);
     setSuccess(false);
 
-    const imageSource: BlogAiImageSource = useCatalogImages ? 'catalog' : 'generated';
+    const imageSource: BlogAiImageSource = useCatalogImages ? 'catalog' : 'none';
 
     try {
       const response = await fetch('/api/admin/blog/generate', {
@@ -68,12 +68,6 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
       const code = error instanceof Error ? error.message : 'generation_failed';
       if (code === 'anthropic_not_configured') {
         setErrorMessage(t('ai_error_not_configured'));
-      } else if (code === 'openai_not_configured') {
-        setErrorMessage(t('ai_error_openai_not_configured'));
-      } else if (code === 'openai_no_credits') {
-        setErrorMessage(t('ai_error_openai_no_credits'));
-      } else if (code === 'openai_image_failed') {
-        setErrorMessage(t('ai_error_openai_image'));
       } else {
         setErrorMessage(t('ai_error_generic'));
       }

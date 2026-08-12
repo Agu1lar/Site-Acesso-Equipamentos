@@ -24,8 +24,6 @@ export const Env = createEnv({
     INTERNAL_API_SECRET: z.string().min(24).optional(),
     ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-').optional(),
     ANTHROPIC_MODEL: z.string().min(1).default('claude-haiku-4-5-20251001'),
-    OPENAI_API_KEY: z.string().startsWith('sk-').optional(),
-    OPENAI_IMAGE_MODEL: z.string().min(1).default('gpt-image-1-mini'),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
@@ -59,8 +57,6 @@ export const Env = createEnv({
     INTERNAL_API_SECRET: process.env.INTERNAL_API_SECRET,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    OPENAI_IMAGE_MODEL: process.env.OPENAI_IMAGE_MODEL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     NEXT_PUBLIC_LOGGING_LEVEL: process.env.NEXT_PUBLIC_LOGGING_LEVEL,

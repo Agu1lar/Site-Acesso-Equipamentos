@@ -3,8 +3,8 @@ import * as z from 'zod';
 
 export const BlogAiRequestSchema = z.object({
   topic: z.string().trim().min(10).max(600),
-  /** Default: AI-generated editorial images. Use `catalog` only when explicitly requested. */
-  imageSource: z.enum(['generated', 'catalog']).default('generated'),
+  /** Default: no images. Use `catalog` only when explicitly requested. */
+  imageSource: z.enum(['none', 'catalog']).default('none'),
 });
 
 export type BlogAiImageSource = z.infer<typeof BlogAiRequestSchema>['imageSource'];
@@ -37,7 +37,7 @@ export const ClaudeBlogDraftSchema = z.object({
   excerpt: z.string().trim().min(30).max(500),
   metaTitle: z.string().trim().min(10).max(200),
   metaDescription: z.string().trim().min(20).max(320),
-  /** Zero-based index into `images` for the cover (usually the first generated slot). */
+  /** Zero-based index into `images` for the cover. */
   coverImageIndex: z.number().int().min(0).max(3),
   contentMarkup: z.string().trim().min(500),
   images: z.array(ClaudeBlogImageSlotRawSchema).max(4),
