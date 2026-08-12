@@ -1,9 +1,9 @@
 import 'server-only';
 
-import { and, asc, eq, gt, inArray, isNull } from 'drizzle-orm';
+import { and, asc, gt, inArray, isNull } from 'drizzle-orm';
 import type { ChatProInboundEvent } from '@/lib/chatpro-webhook';
 import { db } from '@/libs/DB';
-import { chatproMessagesSchema, chatproOutboxSchema } from '@/models/Schema';
+import { chatproOutboxSchema } from '@/models/Schema';
 
 export type ChatProOutboxPayload = {
   messageId: number;
@@ -114,9 +114,9 @@ export async function listPendingChatProOutboxEvents(since = 0, limit = 50) {
     externalId: row.externalId,
     leadId: row.leadId,
     phoneKey: row.phoneKey,
-    payload: row.payload,
+    payload: row.payload as ChatProOutboxPayload,
     createdAt: row.createdAt,
-  })) satisfies ChatProOutboxEvent[];
+  }));
 }
 
 /**
