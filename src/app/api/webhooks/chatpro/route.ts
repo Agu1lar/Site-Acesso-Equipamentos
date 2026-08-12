@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { applyChatProReplyToLead } from '@/lib/chatpro-lead-match';
+import { persistChatProMessage } from '@/lib/chatpro-messages';
 import { parseChatProWebhookPayload } from '@/lib/chatpro-webhook';
 import { Env } from '@/libs/Env';
 import { logger } from '@/libs/Logger';
@@ -71,8 +72,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await applyChatProReplyToLead(event);
-    return NextResponse.json({ event: event.event, ...result });
+    const persistResult = await persistChatProMessage(event, payload);
+    const matchResult = await applyChatProReplyToLead(event);
+    return NextResponse.json({
+      event: event.event,
+      message: persistResult,
+      ...matchResult,
+    });
   } catch (error) {
     logger.error('ChatPro webhook falhou ao atualizar lead', {
       message: error instanceof Error ? error.message : String(error),

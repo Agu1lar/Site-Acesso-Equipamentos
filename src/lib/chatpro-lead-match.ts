@@ -1,13 +1,11 @@
 import 'server-only';
 
-import { and, desc, eq, gte, ne, or, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { isChatProClientReply, type ChatProInboundEvent } from '@/lib/chatpro-webhook';
+import { findLeadIdForChatProPhone } from '@/lib/chatpro-lead-find';
 import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { leadsSchema } from '@/models/Schema';
-
-/** Only match leads created/active in this window (avoids stale phone reuse). */
-const MATCH_WINDOW_DAYS = 45;
 
 export type ChatProLeadMatchResult =
   | { ok: true; ignored: true; reason: string }
@@ -22,11 +20,11 @@ export async function applyChatProReplyToLead(event: ChatProInboundEvent): Promi
     return { ok: true, ignored: true, reason: 'not_client_reply' };
   }
 
-  const since = new Date();
-  since.setDate(since.getDate() - MATCH_WINDOW_DAYS);
-
-  const key = event.phoneKey;
-  const keyLen = key.length;
+  const leadId = await findLeadIdForChatProPhone(event.phoneKey);
+  if (!leadId) {
+    logger.info('ChatPro webhook: sem lead para o telefone', { phoneKey: event.phoneKey });
+    return { ok: true, ignored: true, reason: 'no_match', phoneKey: event.phoneKey };
+  }
 
   const matches = await db
     .select({
@@ -36,20 +34,12 @@ export async function applyChatProReplyToLead(event: ChatProInboundEvent): Promi
       internalNotes: leadsSchema.internalNotes,
     })
     .from(leadsSchema)
-    .where(
-      and(
-        ne(leadsSchema.leadKind, 'cookie_consent'),
-        or(gte(leadsSchema.createdAt, since), gte(leadsSchema.lastActivityAt, since)),
-        sql`right(regexp_replace(coalesce(${leadsSchema.phone}, ''), '\\D', '', 'g'), ${keyLen}) = ${key}`,
-      ),
-    )
-    .orderBy(desc(sql`coalesce(${leadsSchema.lastActivityAt}, ${leadsSchema.createdAt})`))
+    .where(eq(leadsSchema.id, leadId))
     .limit(1);
 
   const lead = matches[0];
   if (!lead) {
-    logger.info('ChatPro webhook: sem lead para o telefone', { phoneKey: key });
-    return { ok: true, ignored: true, reason: 'no_match', phoneKey: key };
+    return { ok: true, ignored: true, reason: 'no_match', phoneKey: event.phoneKey };
   }
 
   const now = event.eventAt && !Number.isNaN(event.eventAt.getTime()) ? event.eventAt : new Date();
@@ -73,7 +63,7 @@ export async function applyChatProReplyToLead(event: ChatProInboundEvent): Promi
 
   logger.info('ChatPro webhook: lead marcado como respondeu', {
     leadId: lead.id,
-    phoneKey: key,
+    phoneKey: event.phoneKey,
     status: nextStatus,
   });
 

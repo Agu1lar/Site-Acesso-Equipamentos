@@ -31,8 +31,41 @@ describe('parseChatProWebhookPayload', () => {
       fromMe: false,
       phoneKey: '31999988770',
       messagePreview: 'Quero orçamento',
+      externalId: null,
+      media: {
+        mediaType: null,
+        mediaUrl: null,
+        mediaFilename: null,
+        mediaMimetype: null,
+      },
     });
     expect(isChatProClientReply(event!)).toBe(true);
+  });
+
+  it('parses document attachment fields', () => {
+    const event = parseChatProWebhookPayload({
+      event: 'received_message',
+      message_data: {
+        from_me: false,
+        message: 'Segue contrato',
+        number: '5531999988770@s.whatsapp.net',
+        message_id: 'msg-99',
+        type: 'document',
+        filename: 'contrato-locacao.pdf',
+        mimetype: 'application/pdf',
+        media_url: 'https://cdn.chatpro.example/contrato.pdf',
+      },
+    });
+
+    expect(event).toMatchObject({
+      externalId: 'msg-99',
+      media: {
+        mediaType: 'document',
+        mediaFilename: 'contrato-locacao.pdf',
+        mediaMimetype: 'application/pdf',
+        mediaUrl: 'https://cdn.chatpro.example/contrato.pdf',
+      },
+    });
   });
 
   it('ignores outbound messages from the company', () => {

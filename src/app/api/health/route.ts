@@ -100,6 +100,14 @@ export async function GET() {
     posthogConfigured,
     chatproWebhookConfigured: Boolean(Env.CHATPRO_WEBHOOK_SECRET?.trim()),
     chatproWebhookPath: 'POST /api/webhooks/chatpro?token=…',
+    googleAdsApiConfigured: Boolean(
+      Env.GOOGLE_ADS_DEVELOPER_TOKEN?.trim()
+      && Env.GOOGLE_ADS_CUSTOMER_ID?.trim()
+      && Env.GOOGLE_ADS_CLIENT_ID?.trim()
+      && Env.GOOGLE_ADS_CLIENT_SECRET?.trim()
+      && Env.GOOGLE_ADS_REFRESH_TOKEN?.trim(),
+    ),
+    googleAdsRoiDoc: 'docs/GOOGLE-ADS-ROI-API.md',
     leadTracking: {
       cookieConsentLeadRequiresGoogleOneTap: true,
       dashboardLoginDoesNotCreateLead: true,

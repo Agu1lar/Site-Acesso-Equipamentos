@@ -1,11 +1,20 @@
 import { phoneMatchKey } from '@/lib/lead-contact';
 
+export type ChatProMediaInfo = {
+  mediaType: string | null;
+  mediaUrl: string | null;
+  mediaFilename: string | null;
+  mediaMimetype: string | null;
+};
+
 export type ChatProInboundEvent = {
   event: string;
   phoneKey: string | null;
   fromMe: boolean;
   messagePreview: string | null;
   eventAt: Date | null;
+  externalId: string | null;
+  media: ChatProMediaInfo;
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -26,6 +35,58 @@ function parseEventDate(value: unknown) {
   }
   const date = new Date(raw);
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function readMediaFromRecord(record: Record<string, unknown> | null): ChatProMediaInfo {
+  if (!record) {
+    return {
+      mediaType: null,
+      mediaUrl: null,
+      mediaFilename: null,
+      mediaMimetype: null,
+    };
+  }
+
+  const nestedMedia = asRecord(record.media) ?? asRecord(record.attachment) ?? asRecord(record.document);
+
+  return {
+    mediaType:
+      readString(record.type)
+      ?? readString(record.message_type)
+      ?? readString(record.messageType)
+      ?? readString(nestedMedia?.type),
+    mediaUrl:
+      readString(record.media_url)
+      ?? readString(record.mediaUrl)
+      ?? readString(record.file_url)
+      ?? readString(record.fileUrl)
+      ?? readString(record.url)
+      ?? readString(nestedMedia?.url)
+      ?? readString(nestedMedia?.media_url),
+    mediaFilename:
+      readString(record.filename)
+      ?? readString(record.file_name)
+      ?? readString(record.fileName)
+      ?? readString(nestedMedia?.filename)
+      ?? readString(nestedMedia?.file_name),
+    mediaMimetype:
+      readString(record.mimetype)
+      ?? readString(record.mime_type)
+      ?? readString(record.mimeType)
+      ?? readString(nestedMedia?.mimetype)
+      ?? readString(nestedMedia?.mime_type),
+  };
+}
+
+function readExternalId(record: Record<string, unknown> | null, root: Record<string, unknown>) {
+  return (
+    readString(record?.id)
+    ?? readString(record?.message_id)
+    ?? readString(record?.messageId)
+    ?? readString(root.id)
+    ?? readString(root.message_id)
+    ?? readString(root.messageId)
+  );
 }
 
 /** Extracts digits from ChatPro JID (`5511999...@s.whatsapp.net`) or raw phone. */
@@ -57,20 +118,22 @@ export function parseChatProWebhookPayload(payload: unknown): ChatProInboundEven
       readString(messageData?.number)
       ?? readString(messageData?.participant)
       ?? readString(root.number);
+
     return {
       event: event === 'unknown' ? 'received_message' : event,
       phoneKey: extractChatProPhone(number),
       fromMe,
-      messagePreview: readString(messageData?.message)?.slice(0, 280) ?? null,
+      messagePreview: readString(messageData?.message)?.slice(0, 2000) ?? null,
       eventAt:
         parseEventDate(messageData?.ts_receive)
         ?? parseEventDate(root.event_ts)
         ?? parseEventDate(root.eventTs),
+      externalId: readExternalId(messageData, root),
+      media: readMediaFromRecord(messageData),
     };
   }
 
   if (event === 'opened_session' || sessionData) {
-    // Opening a session alone is not a client reply — ignore for replied_at.
     return {
       event: event === 'unknown' ? 'opened_session' : event,
       phoneKey: extractChatProPhone(
@@ -81,6 +144,8 @@ export function parseChatProWebhookPayload(payload: unknown): ChatProInboundEven
       fromMe: true,
       messagePreview: readString(sessionData?.last_message),
       eventAt: parseEventDate(root.event_ts) ?? parseEventDate(sessionData?.open_ts),
+      externalId: readExternalId(sessionData, root),
+      media: readMediaFromRecord(sessionData),
     };
   }
 
@@ -90,6 +155,8 @@ export function parseChatProWebhookPayload(payload: unknown): ChatProInboundEven
     fromMe: true,
     messagePreview: null,
     eventAt: parseEventDate(root.event_ts),
+    externalId: readExternalId(null, root),
+    media: readMediaFromRecord(root),
   };
 }
 
@@ -99,4 +166,12 @@ export function isChatProClientReply(event: ChatProInboundEvent) {
     return false;
   }
   return event.event === 'received_message' || event.event.toLowerCase().includes('received');
+}
+
+/** Builds a stable dedup key when ChatPro does not send an external id. */
+export function buildChatProMessageDedupKey(event: ChatProInboundEvent) {
+  const stamp = event.eventAt?.toISOString() ?? 'unknown';
+  const text = event.messagePreview?.slice(0, 80) ?? '';
+  const media = event.media.mediaUrl ?? '';
+  return `${event.phoneKey}:${stamp}:${event.fromMe}:${text}:${media}`;
 }

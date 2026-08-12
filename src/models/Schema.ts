@@ -62,6 +62,57 @@ export const leadsSchema = pgTable('leads', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
 
+/** Inbound/outbound ChatPro WhatsApp events — captured by webhook for ROI worker. */
+export const chatproMessagesSchema = pgTable(
+  'chatpro_messages',
+  {
+    id: serial('id').primaryKey(),
+    leadId: integer('lead_id'),
+    phoneKey: varchar('phone_key', { length: 20 }).notNull(),
+    chatproEvent: varchar('chatpro_event', { length: 80 }).notNull(),
+    fromMe: boolean('from_me').notNull().default(false),
+    messageText: text('message_text'),
+    mediaType: varchar('media_type', { length: 40 }),
+    mediaUrl: text('media_url'),
+    mediaFilename: varchar('media_filename', { length: 255 }),
+    mediaMimetype: varchar('media_mimetype', { length: 120 }),
+    externalId: varchar('external_id', { length: 120 }),
+    rawPayload: jsonb('raw_payload').$type<Record<string, unknown>>(),
+    eventAt: timestamp('event_at', { mode: 'date' }),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex('chatpro_messages_external_id_uidx').on(table.externalId)],
+);
+
+/** Claude ROI evaluations for campaign-attributed leads (local worker, not dashboard UI). */
+export const chatproLeadEvaluationsSchema = pgTable('chatpro_lead_evaluations', {
+  id: serial('id').primaryKey(),
+  leadId: integer('lead_id').notNull(),
+  evaluatedAt: timestamp('evaluated_at', { mode: 'date' }).defaultNow().notNull(),
+  messageCount: integer('message_count').notNull().default(0),
+  lastMessageId: integer('last_message_id'),
+  model: varchar('model', { length: 80 }).notNull(),
+  trigger: varchar('trigger', { length: 40 }).notNull().default('daily_worker'),
+  result: jsonb('result').$type<Record<string, unknown>>().notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+/** Outbox for pull-based delivery to the local ChatPro ROI consumer. */
+export const chatproOutboxSchema = pgTable(
+  'chatpro_outbox',
+  {
+    id: serial('id').primaryKey(),
+    messageId: integer('message_id').notNull(),
+    externalId: varchar('external_id', { length: 120 }).notNull(),
+    leadId: integer('lead_id'),
+    phoneKey: varchar('phone_key', { length: 20 }).notNull(),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+    deliveredAt: timestamp('delivered_at', { mode: 'date' }),
+  },
+  (table) => [uniqueIndex('chatpro_outbox_external_id_uidx').on(table.externalId)],
+);
+
 /** Unique contacts (deduplicated by e-mail, phone or Google account). */
 export const clientsSchema = pgTable('clients', {
   id: serial('id').primaryKey(),

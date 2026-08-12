@@ -232,6 +232,20 @@
       "when": 1782300000000,
       "tag": "0036_analytics_events_consent",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1782400000000,
+      "tag": "0037_chatpro_roi_worker",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1782500000000,
+      "tag": "0038_chatpro_outbox",
+      "breakpoints": true
     }
   ]
 }
