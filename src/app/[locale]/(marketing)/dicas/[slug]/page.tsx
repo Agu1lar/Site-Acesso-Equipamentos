@@ -6,6 +6,7 @@ import { BlogArticleBody } from '@/components/marketing/BlogArticleBody';
 import { ConversionCtas } from '@/components/marketing/ConversionCtas';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { getBlogArticleBySlug } from '@/lib/blog-articles';
+import { isBlogVectorImage } from '@/lib/blog-ai-svg';
 import { getBlogSlugRedirectTarget } from '@/lib/blog-slug-redirects';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
 import { buildDicaArticleJsonLd } from '@/lib/json-ld';
@@ -135,6 +136,7 @@ export default async function DicaArticlePage(props: DicaArticlePageProps) {
                   priority
                   sizes="(max-width: 1024px) 100vw, 1024px"
                   src={article.coverImageUrl}
+                  unoptimized={isBlogVectorImage(article.coverImageUrl)}
                   width={1600}
                 />
               </div>

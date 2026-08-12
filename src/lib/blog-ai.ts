@@ -1,5 +1,7 @@
 import 'server-only';
 import imageManifest from '@/data/equipment-image-manifest.json';
+import { storeAdminSvgMarkup } from '@/lib/admin-image-upload';
+import { sanitizeClaudeSvg } from '@/lib/blog-ai-svg';
 import {
   createBlogEditorImage,
   parseBlogTagMarkup,
@@ -12,6 +14,7 @@ import type { ClaudeBlogImageSlot, GeneratedBlogDraft } from '@/validations/blog
 
 const ANTHROPIC_MESSAGES_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
+const MAX_GENERATED_IMAGES = 3;
 const MAX_EQUIPMENT_IMAGES = 2;
 const MAX_CATALOG_FOR_PROMPT = 20;
 
@@ -32,7 +35,7 @@ FORMATO OBRIGATÓRIO DE contentMarkup:
 2. Segundo item
 [/lista-numerada]
 - Bloco destacado: [citacao]Síntese ou orientação sem atribuição inventada[/citacao].
-- Imagem: use [img1], [img2], [img3] e [img4] isoladamente em uma linha. Os números devem ser sequenciais, começar em 1, corresponder à ordem do array images e aparecer uma única vez cada. Se images estiver vazio, não use tags [img].
+- Imagem: use [img1], [img2], [img3] e [img4] isoladamente em uma linha. Os números devem ser sequenciais, começar em 1, corresponder à ordem do array images e aparecer uma única vez cada.
 - Botão final: [botao url="/orcamento"]Solicitar orçamento[/botao].
 - Não use Markdown (#, **, crases), HTML, H1, tabelas, tags não listadas ou atributos adicionais.
 `.trim();
@@ -46,7 +49,9 @@ const allowedRelatedPaths = new Set([
   '/treinamento-plataformas-aereas',
 ]);
 
-function buildClaudeOutputSchema(useCatalogImages: boolean) {
+function buildClaudeOutputSchema(imageSource: 'generated' | 'catalog') {
+  const generatedOnly = imageSource === 'generated';
+
   return {
     type: 'object',
     properties: {
@@ -63,23 +68,25 @@ function buildClaudeOutputSchema(useCatalogImages: boolean) {
       },
       coverImageIndex: {
         type: 'integer',
-        description: useCatalogImages
-          ? 'Índice zero-based da foto de capa do catálogo no array images.'
-          : 'Use 0. Sem imagens neste modo.',
+        description: generatedOnly
+          ? 'Índice zero-based da capa gerada no array images (sempre 0).'
+          : 'Índice zero-based da foto de capa do catálogo no array images.',
       },
       contentMarkup: { type: 'string', description: CLAUDE_BLOG_TAG_CONTRACT },
       images: {
         type: 'array',
-        description: useCatalogImages
-          ? '2 a 4 fotos reais do catálogo (type=equipment) com URLs exatas informadas.'
-          : 'Sempre vazio. Não inclua fotos do site nem prompts de imagem.',
+        description: generatedOnly
+          ? '1 capa + até 2 ilustrações editoriais em SVG (type=generated). Proibido type=equipment ou URLs do site.'
+          : '2 a 4 fotos reais do catálogo (type=equipment) com URLs exatas informadas. Proibido type=generated.',
         items: {
           type: 'object',
           properties: {
             type: {
               type: 'string',
-              enum: ['equipment'],
-              description: 'Foto real do catálogo informado.',
+              enum: generatedOnly ? ['generated'] : ['equipment'],
+              description: generatedOnly
+                ? 'Sempre generated — ilustração SVG criada neste JSON.'
+                : 'Sempre equipment — foto real do catálogo informado.',
             },
             prompt: {
               type: 'string',
@@ -87,13 +94,19 @@ function buildClaudeOutputSchema(useCatalogImages: boolean) {
             },
             url: {
               type: 'string',
-              description: useCatalogImages
-                ? 'URL exata do catálogo filtrado (obrigatório).'
+              description: generatedOnly
+                ? 'Sempre vazio.'
+                : 'URL exata do catálogo filtrado (obrigatório).',
+            },
+            svg: {
+              type: 'string',
+              description: generatedOnly
+                ? 'SVG completo começando com <svg e fechando com </svg>. viewBox 1600 900, ilustração editorial vetorial de obra no Brasil, sem texto, sem logos, sem marcas, sem fotos reais.'
                 : 'Deixe vazio.',
             },
             alt: { type: 'string', description: 'Descrição objetiva da imagem em português.' },
           },
-          required: ['type', 'prompt', 'url', 'alt'],
+          required: ['type', 'prompt', 'url', 'svg', 'alt'],
           additionalProperties: false,
         },
       },
@@ -170,18 +183,23 @@ function catalogLinesForPrompt(topic: string) {
   return list.map((image) => `${image.slug}: ${image.url}`).join('\n');
 }
 
-function blogImageSystemInstructions(useCatalogImages: boolean) {
-  if (useCatalogImages) {
-    return 'Imagens: use somente type=equipment com URLs exatas do catálogo informado (2 a 4 imagens quando pertinente). Use uma delas como capa (coverImageIndex). Se nenhuma imagem for realmente pertinente, use images vazio e coverImageIndex 0.';
+function blogImageSystemInstructions(imageSource: 'generated' | 'catalog') {
+  if (imageSource === 'catalog') {
+    return 'Imagens: use somente type=equipment com URLs exatas do catálogo informado (2 a 4 imagens quando pertinente). Use uma delas como capa (coverImageIndex). Se nenhuma imagem for realmente pertinente, use images vazio e coverImageIndex 0. Nunca use type=generated.';
   }
-  return 'Imagens: deixe o array images vazio e não use tags [img]. A capa será enviada depois no painel. Nunca use fotos do catálogo do site.';
+  return [
+    'Imagens: você também cria as ilustrações. Use somente type=generated.',
+    'Entregue 1 capa (images[0]) e 1 ou 2 ilustrações internas, cada uma com SVG completo no campo svg.',
+    'O SVG deve ter viewBox="0 0 1600 900", xmlns, formas vetoriais, cores sólidas, clima de obra brasileira, sem texto, sem logos, sem marcas e sem URLs do catálogo.',
+    'Inclua [img1], [img2] e [img3] no contentMarkup na ordem do array images. coverImageIndex deve ser 0.',
+  ].join(' ');
 }
 
-function blogImageUserMessageBlock(topic: string, useCatalogImages: boolean) {
-  if (useCatalogImages) {
+function blogImageUserMessageBlock(topic: string, imageSource: 'generated' | 'catalog') {
+  if (imageSource === 'catalog') {
     return `Imagens disponíveis (use exclusivamente deste catálogo):\n${catalogLinesForPrompt(topic)}`;
   }
-  return 'Não inclua imagens. O editor enviará a capa depois.';
+  return 'Crie capa e ilustrações em SVG no array images. Não use fotos do catálogo do site.';
 }
 
 function isAllowedRelatedPath(href: string) {
@@ -197,21 +215,32 @@ function isAllowedRelatedPath(href: string) {
 
 /**
  * Caps and sanitizes Claude image slots before materialization.
- * Generated/OpenAI slots are always dropped.
  * @param slots Raw slots from Claude.
  */
 export function sanitizeClaudeImageSlots(
-  slots: { type: 'generated' | 'equipment'; prompt?: string; url?: string; alt: string }[],
-  options?: { allowEquipment?: boolean },
+  slots: { type: 'generated' | 'equipment'; prompt?: string; url?: string; svg?: string; alt: string }[],
+  options?: { allowGenerated?: boolean; allowEquipment?: boolean },
 ): ClaudeBlogImageSlot[] {
+  const allowGenerated = options?.allowGenerated === true;
   const allowEquipment = options?.allowEquipment !== false;
   const result: ClaudeBlogImageSlot[] = [];
+  let generatedCount = 0;
   let equipmentCount = 0;
 
   for (const slot of slots) {
-    if (slot.type !== 'equipment') {
+    if (slot.type === 'generated') {
+      if (!allowGenerated || generatedCount >= MAX_GENERATED_IMAGES) {
+        continue;
+      }
+      const svg = sanitizeClaudeSvg(slot.svg ?? '');
+      if (!svg) {
+        continue;
+      }
+      result.push({ type: 'generated', svg, alt: slot.alt });
+      generatedCount += 1;
       continue;
     }
+
     if (!allowEquipment || equipmentCount >= MAX_EQUIPMENT_IMAGES) {
       continue;
     }
@@ -227,15 +256,26 @@ export function sanitizeClaudeImageSlots(
 }
 
 /**
- * Resolves equipment slots into editor image URLs (same order as slots).
+ * Resolves generated SVG and equipment slots into editor image URLs.
  * @param options Sanitized slots and article slug.
  */
-export function materializeBlogImageSlots(options: {
+export async function materializeBlogImageSlots(options: {
   slots: ClaudeBlogImageSlot[];
-}): BlogEditorImage[] {
-  return options.slots
-    .filter((slot): slot is Extract<ClaudeBlogImageSlot, { type: 'equipment' }> => slot.type === 'equipment')
-    .map((slot) => createBlogEditorImage(slot.url, slot.alt));
+  slug: string;
+}): Promise<BlogEditorImage[]> {
+  const resolved: BlogEditorImage[] = [];
+
+  for (const slot of options.slots) {
+    if (slot.type === 'equipment') {
+      resolved.push(createBlogEditorImage(slot.url, slot.alt));
+      continue;
+    }
+
+    const url = await storeAdminSvgMarkup(slot.svg, { slug: options.slug });
+    resolved.push(createBlogEditorImage(url, slot.alt));
+  }
+
+  return resolved;
 }
 
 type ParsedClaudeBlogDraft = {
@@ -256,10 +296,11 @@ type ParsedClaudeBlogDraft = {
  */
 export function parseClaudeBlogDraft(
   raw: unknown,
-  options?: { allowEquipmentImages?: boolean },
+  options?: { allowGeneratedImages?: boolean; allowEquipmentImages?: boolean },
 ): ParsedClaudeBlogDraft {
   const parsed = ClaudeBlogDraftSchema.parse(raw);
   const imageSlots = sanitizeClaudeImageSlots(parsed.images, {
+    allowGenerated: options?.allowGeneratedImages === true,
     allowEquipment: options?.allowEquipmentImages !== false,
   });
   const relatedLinks = parsed.relatedLinks.filter((link) => isAllowedRelatedPath(link.href));
@@ -308,15 +349,23 @@ export function buildGeneratedBlogDraft(
 
 /**
  * Normalizes a Claude draft when image URLs are already final (tests / equipment-only).
+ * Generated SVG slots are dropped in this sync path.
  * @param raw Untrusted structured output.
  */
 export function normalizeClaudeBlogDraft(raw: unknown): GeneratedBlogDraft {
-  const parsed = parseClaudeBlogDraft(raw, { allowEquipmentImages: true });
-  const images = materializeBlogImageSlots({ slots: parsed.imageSlots });
+  const parsed = parseClaudeBlogDraft(raw, {
+    allowGeneratedImages: false,
+    allowEquipmentImages: true,
+  });
+  const equipmentSlots = parsed.imageSlots.filter(
+    (slot): slot is Extract<ClaudeBlogImageSlot, { type: 'equipment' }> => slot.type === 'equipment',
+  );
+  const images = equipmentSlots.map((slot) => createBlogEditorImage(slot.url, slot.alt));
 
   return buildGeneratedBlogDraft(
     {
       ...parsed,
+      imageSlots: equipmentSlots,
       coverImageIndex: Math.min(parsed.coverImageIndex, Math.max(images.length - 1, 0)),
     },
     images,
@@ -325,21 +374,21 @@ export function normalizeClaudeBlogDraft(raw: unknown): GeneratedBlogDraft {
 
 /**
  * Generates a complete, unpublished blog draft with Claude.
- * No images by default. Catalog photos only when imageSource is `catalog`.
+ * Claude writes text, SEO, links and SVG illustrations. Catalog photos only when requested.
  * @param topic Editorial direction supplied by the dashboard user.
  * @param options Image source preference from the admin UI.
  * @returns A validated draft ready for review.
  */
 export async function generateBlogDraftWithClaude(
   topic: string,
-  options: { imageSource?: 'none' | 'catalog' } = {},
+  options: { imageSource?: 'generated' | 'catalog' } = {},
 ): Promise<GeneratedBlogDraft> {
   if (!Env.ANTHROPIC_API_KEY) {
     throw new Error('anthropic_not_configured');
   }
 
-  const imageSource = options.imageSource ?? 'none';
-  const useCatalogImages = imageSource === 'catalog';
+  const imageSource = options.imageSource ?? 'generated';
+  const useGeneratedImages = imageSource === 'generated';
 
   const response = await fetch(ANTHROPIC_MESSAGES_URL, {
     method: 'POST',
@@ -350,30 +399,31 @@ export async function generateBlogDraftWithClaude(
     },
     body: JSON.stringify({
       model: Env.ANTHROPIC_MODEL,
-      max_tokens: 6000,
+      max_tokens: 12_000,
       system: [
         'Você é editor sênior do blog da Acesso Equipamentos, locadora de equipamentos para construção civil em Minas Gerais.',
         'Produza conteúdo útil, responsável, original e em português do Brasil. Nunca invente normas, estatísticas, preços, especificações técnicas ou fatos atuais.',
         'O artigo deve ter introdução forte, de 5 a 8 seções H2, H3 quando necessário, listas úteis e conclusão com CTA contextual. Escreva entre 900 e 1.400 palavras.',
         'O título deve ser claro e específico. Use slug sem acentos, em minúsculas e separado por hífens. Meta title deve ter 45 a 60 caracteres, meta description de 120 a 155 e excerpt de 150 a 300.',
-        blogImageSystemInstructions(useCatalogImages),
+        'Preencha também slug, excerpt, metaTitle, metaDescription, relatedLinks e as imagens do artigo.',
+        blogImageSystemInstructions(imageSource),
         'Use apenas links internos da lista fornecida. Não transforme referências externas, normas ou fontes não fornecidas em links.',
         CLAUDE_BLOG_TAG_CONTRACT,
       ].join('\n\n'),
       messages: [
         {
           role: 'user',
-          content: `Crie um artigo completo sobre: ${topic}\n\n${blogImageUserMessageBlock(topic, useCatalogImages)}\n\nLinks internos permitidos: /orcamento, /equipamentos, /contato, /treinamento-plataformas-aereas e /equipamentos/{slug-exato-do-catálogo}.`,
+          content: `Crie um artigo completo sobre: ${topic}\n\n${blogImageUserMessageBlock(topic, imageSource)}\n\nLinks internos permitidos: /orcamento, /equipamentos, /contato, /treinamento-plataformas-aereas e /equipamentos/{slug-exato-do-catálogo}.`,
         },
       ],
       output_config: {
         format: {
           type: 'json_schema',
-          schema: buildClaudeOutputSchema(useCatalogImages),
+          schema: buildClaudeOutputSchema(imageSource),
         },
       },
     }),
-    signal: AbortSignal.timeout(90_000),
+    signal: AbortSignal.timeout(120_000),
   });
 
   const payload = (await response.json()) as ClaudeResponse;
@@ -390,9 +440,22 @@ export async function generateBlogDraftWithClaude(
   }
 
   const parsed = parseClaudeBlogDraft(JSON.parse(text) as unknown, {
-    allowEquipmentImages: useCatalogImages,
+    allowGeneratedImages: useGeneratedImages,
+    allowEquipmentImages: imageSource === 'catalog',
   });
-  const images = materializeBlogImageSlots({ slots: parsed.imageSlots });
+
+  if (useGeneratedImages && !parsed.imageSlots.some((slot) => slot.type === 'generated')) {
+    throw new Error('claude_image_failed');
+  }
+
+  const images = await materializeBlogImageSlots({
+    slots: parsed.imageSlots,
+    slug: parsed.slug,
+  });
+
+  if (useGeneratedImages && !images.some((image) => image.url)) {
+    throw new Error('claude_image_failed');
+  }
 
   return buildGeneratedBlogDraft(parsed, images);
 }

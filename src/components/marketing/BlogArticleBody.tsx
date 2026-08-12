@@ -1,6 +1,7 @@
 import type { JSONContent } from '@tiptap/core';
 import Image from 'next/image';
 import type { ReactNode } from 'react';
+import { isBlogVectorImage } from '@/lib/blog-ai-svg';
 
 type BlogArticleBodyProps = {
   content: JSONContent;
@@ -84,6 +85,7 @@ function BlogImageFigure(props: { src: string; alt: string; priority?: boolean }
           priority={props.priority}
           sizes="(max-width: 768px) 100vw, 768px"
           src={props.src}
+          unoptimized={isBlogVectorImage(props.src)}
           width={1600}
         />
       </div>

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { listPublishedBlogArticles } from '@/lib/blog-articles';
+import { isBlogVectorImage } from '@/lib/blog-ai-svg';
 import { buildDicasIndexJsonLd } from '@/lib/json-ld';
 import { buildMarketingMetadata } from '@/lib/seo-metadata';
 import type { BlogArticle } from '@/types/blog-article';
@@ -51,6 +52,7 @@ function ArticleCard(props: {
                 priority
                 sizes="(max-width: 1024px) 100vw, 560px"
                 src={article.coverImageUrl}
+                unoptimized={isBlogVectorImage(article.coverImageUrl)}
               />
             </div>
           ) : (
@@ -85,6 +87,7 @@ function ArticleCard(props: {
               fill
               sizes="(max-width: 768px) 100vw, 360px"
               src={article.coverImageUrl}
+              unoptimized={isBlogVectorImage(article.coverImageUrl)}
             />
           </div>
         ) : null}

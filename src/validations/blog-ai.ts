@@ -3,8 +3,8 @@ import * as z from 'zod';
 
 export const BlogAiRequestSchema = z.object({
   topic: z.string().trim().min(10).max(600),
-  /** Default: no images. Use `catalog` only when explicitly requested. */
-  imageSource: z.enum(['none', 'catalog']).default('none'),
+  /** Default: Claude-generated illustrations. Use `catalog` only when explicitly requested. */
+  imageSource: z.enum(['generated', 'catalog']).default('generated'),
 });
 
 export type BlogAiImageSource = z.infer<typeof BlogAiRequestSchema>['imageSource'];
@@ -14,13 +14,14 @@ export const ClaudeBlogImageSlotRawSchema = z.object({
   type: z.enum(['generated', 'equipment']),
   prompt: z.string().max(900).default(''),
   url: z.string().max(500).default(''),
+  svg: z.string().max(40_000).default(''),
   alt: z.string().trim().min(5).max(220),
 });
 
 export type ClaudeBlogImageSlotRaw = z.infer<typeof ClaudeBlogImageSlotRawSchema>;
 
 export type ClaudeBlogImageSlot =
-  | { type: 'generated'; prompt: string; alt: string }
+  | { type: 'generated'; svg: string; alt: string }
   | { type: 'equipment'; url: string; alt: string };
 
 const generatedRelatedLinkSchema = z.object({

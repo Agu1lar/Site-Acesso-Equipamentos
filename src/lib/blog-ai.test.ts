@@ -6,6 +6,9 @@ import {
   parseClaudeBlogDraft,
   sanitizeClaudeImageSlots,
 } from '@/lib/blog-ai';
+import { isBlogVectorImage, sanitizeClaudeSvg } from '@/lib/blog-ai-svg';
+
+const sampleSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900"><rect width="1600" height="900" fill="#e8eef2"/><rect x="200" y="300" width="400" height="280" fill="#c45c26"/><circle cx="1100" cy="420" r="160" fill="#2f4f63"/></svg>`;
 
 const longMarkup = `[h2]Como planejar a obra[/h2]\n\n${'Planejamento seguro e eficiente. '.repeat(25)}`;
 
@@ -227,7 +230,7 @@ describe('filter equipment catalog for topic', () => {
 });
 
 describe('parse Claude blog draft image modes', () => {
-  it('strips catalog equipment when images are disabled', () => {
+  it('keeps generated svg and strips catalog equipment', () => {
     const parsed = parseClaudeBlogDraft(
       {
         title: 'Como escolher equipamentos para uma obra eficiente',
@@ -243,20 +246,40 @@ describe('parse Claude blog draft image modes', () => {
             type: 'equipment',
             prompt: '',
             url: '/equipamentos/betoneira.webp',
+            svg: '',
             alt: 'Betoneira em uma obra organizada',
           },
           {
             type: 'generated',
-            prompt: 'Editorial cover showing organized construction yard in Brazil at sunrise',
+            prompt: '',
             url: '',
+            svg: sampleSvg,
             alt: 'Capa editorial sobre planejamento de obra',
           },
         ],
         relatedLinks: [],
       },
-      { allowEquipmentImages: false },
+      { allowGeneratedImages: true, allowEquipmentImages: false },
     );
 
-    expect(parsed.imageSlots).toEqual([]);
+    expect(parsed.imageSlots).toEqual([
+      {
+        type: 'generated',
+        svg: sampleSvg,
+        alt: 'Capa editorial sobre planejamento de obra',
+      },
+    ]);
+  });
+});
+
+describe('claude svg illustrations', () => {
+  it('keeps a complete svg and rejects script tags', () => {
+    expect(sanitizeClaudeSvg(sampleSvg)).toBe(sampleSvg);
+    expect(sanitizeClaudeSvg('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>')).toBeNull();
+  });
+
+  it('detects vector blog image urls', () => {
+    expect(isBlogVectorImage('/blog/uploads/capa.svg')).toBe(true);
+    expect(isBlogVectorImage('/equipamentos/betoneira.webp')).toBe(false);
   });
 });

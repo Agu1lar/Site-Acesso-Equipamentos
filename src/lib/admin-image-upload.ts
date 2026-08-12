@@ -184,3 +184,35 @@ export async function storeAdminImage(file: File, options: StoreAdminImageOption
   await writeFile(path.join(uploadsDir, filename), buffer);
   return `/${localFolder}/uploads/${filename}`;
 }
+
+/**
+ * Stores a Claude-generated SVG illustration for a blog article.
+ * @param svg Sanitized SVG markup.
+ * @param options Article slug used in the filename.
+ * @returns Public URL of the stored SVG.
+ */
+export async function storeAdminSvgMarkup(svg: string, options: { slug: string }) {
+  const buffer = Buffer.from(svg, 'utf8');
+  if (buffer.byteLength > MAX_BYTES) {
+    throw new Error('Arquivo muito grande. Máximo 5 MB.');
+  }
+
+  const prefix = options.slug.trim() ? slugifySafe(options.slug.trim()) : 'rascunho';
+  const filename = `${prefix}-${Date.now()}.svg`;
+  const pathname = `blog/${filename}`;
+
+  if (canUseVercelBlobStorage() || isVercelRuntime()) {
+    return uploadToVercelBlob(pathname, buffer, 'image/svg+xml');
+  }
+
+  if (!canPersistAdminImagesLocally()) {
+    throw new Error(
+      'Armazenamento de imagens não configurado. Conecte o Blob Public ao projeto e confira BLOB_STORE_ID em Production.',
+    );
+  }
+
+  const uploadsDir = path.join(process.cwd(), 'public', 'blog', 'uploads');
+  await mkdir(uploadsDir, { recursive: true });
+  await writeFile(path.join(uploadsDir, filename), buffer);
+  return `/blog/uploads/${filename}`;
+}
