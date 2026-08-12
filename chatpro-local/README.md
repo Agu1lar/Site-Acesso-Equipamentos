@@ -42,9 +42,12 @@ Agendador de Tarefas no logon, ou PM2/nssm para manter o processo ativo.
 ## Depuração
 
 ```powershell
+# Status da fila + evaluations recentes
+npm run status
+
 # Reduzir debounce para testar (5 minutos)
 $env:CHATPRO_LOCAL_DEBOUNCE_MS=300000
 npm start
 ```
 
-Ver pending: `GET /api/internal/v1/chatpro-roi/summary`
+Ver pending: `GET /api/internal/v1/chatpro-roi/summary` (ou `npm run status`).

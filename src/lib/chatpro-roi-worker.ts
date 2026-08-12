@@ -74,8 +74,13 @@ async function findCandidateLeadIds(options: WorkerOptions) {
     return [options.leadId];
   }
 
+  const sortAt = sql`coalesce(${leadsSchema.lastActivityAt}, ${leadsSchema.createdAt})`;
+
   const rows = await db
-    .selectDistinct({ id: leadsSchema.id })
+    .select({
+      id: leadsSchema.id,
+      sortAt: sortAt.as('sort_at'),
+    })
     .from(leadsSchema)
     .leftJoin(chatproMessagesSchema, eq(chatproMessagesSchema.leadId, leadsSchema.id))
     .where(
@@ -91,7 +96,8 @@ async function findCandidateLeadIds(options: WorkerOptions) {
         or(isNotNull(leadsSchema.whatsappRepliedAt), isNotNull(chatproMessagesSchema.id)),
       ),
     )
-    .orderBy(desc(sql`coalesce(${leadsSchema.lastActivityAt}, ${leadsSchema.createdAt})`))
+    .groupBy(leadsSchema.id, sortAt)
+    .orderBy(desc(sortAt))
     .limit(options.limit ?? 50);
 
   return rows.map((row) => row.id);
