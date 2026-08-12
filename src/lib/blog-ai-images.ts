@@ -11,8 +11,21 @@ const STYLE_SUFFIX =
 
 type OpenAiImagesResponse = {
   data?: { b64_json?: string; url?: string }[];
-  error?: { message?: string };
+  error?: { message?: string; code?: string; type?: string };
 };
+
+/**
+ * Maps OpenAI HTTP failures to stable blog AI error codes.
+ * @param response Fetch response from OpenAI Images.
+ * @param payload Parsed JSON body.
+ */
+export function mapOpenAiImageError(response: Response, payload: OpenAiImagesResponse) {
+  const message = payload.error?.message || 'openai_image_failed';
+  if (response.status === 429 && /no credits remaining/i.test(message)) {
+    return 'openai_no_credits';
+  }
+  return message;
+}
 
 /**
  * Returns true when OpenAI image generation is configured.
@@ -56,7 +69,7 @@ export async function generateBlogImageBuffer(prompt: string) {
 
   const payload = (await response.json()) as OpenAiImagesResponse;
   if (!response.ok) {
-    throw new Error(payload.error?.message || 'openai_image_failed');
+    throw new Error(mapOpenAiImageError(response, payload));
   }
 
   const item = payload.data?.[0];

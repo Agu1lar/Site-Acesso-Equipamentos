@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import type { GeneratedBlogDraft } from '@/validations/blog-ai';
+import type { BlogAiImageSource, GeneratedBlogDraft } from '@/validations/blog-ai';
 
 type BlogAiGeneratorProps = {
   hasExistingContent: boolean;
@@ -18,6 +18,7 @@ type BlogAiGeneratorProps = {
 export function BlogAiGenerator(props: BlogAiGeneratorProps) {
   const t = useTranslations('BlogArticleForm');
   const [topic, setTopic] = useState('');
+  const [useCatalogImages, setUseCatalogImages] = useState(false);
   const [pending, setPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -27,7 +28,7 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
     buttonLabel = t('ai_replace_generate');
   }
   if (pending) {
-    buttonLabel = t('ai_generating');
+    buttonLabel = useCatalogImages ? t('ai_generating') : t('ai_generating_with_images');
   }
 
   const generate = async () => {
@@ -45,11 +46,13 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
     setErrorMessage(null);
     setSuccess(false);
 
+    const imageSource: BlogAiImageSource = useCatalogImages ? 'catalog' : 'generated';
+
     try {
       const response = await fetch('/api/admin/blog/generate', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ topic: topic.trim() }),
+        body: JSON.stringify({ topic: topic.trim(), imageSource }),
       });
       const payload = (await response.json()) as {
         draft?: GeneratedBlogDraft;
@@ -65,6 +68,10 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
       const code = error instanceof Error ? error.message : 'generation_failed';
       if (code === 'anthropic_not_configured') {
         setErrorMessage(t('ai_error_not_configured'));
+      } else if (code === 'openai_not_configured') {
+        setErrorMessage(t('ai_error_openai_not_configured'));
+      } else if (code === 'openai_no_credits') {
+        setErrorMessage(t('ai_error_openai_no_credits'));
       } else if (code === 'openai_image_failed') {
         setErrorMessage(t('ai_error_openai_image'));
       } else {
@@ -105,6 +112,25 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
           rows={4}
           value={topic}
         />
+
+        <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm text-neutral-700">
+          <input
+            checked={useCatalogImages}
+            className="mt-1 size-4 rounded border-neutral-300 text-primary focus:ring-primary"
+            disabled={pending}
+            id="blog-ai-use-catalog"
+            onChange={(event) => {
+              setUseCatalogImages(event.target.checked);
+              setErrorMessage(null);
+              setSuccess(false);
+            }}
+            type="checkbox"
+          />
+          <span>
+            <span className="font-medium text-neutral-900">{t('ai_use_catalog_images')}</span>
+            <span className="mt-0.5 block text-neutral-600">{t('ai_use_catalog_images_hint')}</span>
+          </span>
+        </label>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button disabled={pending} onClick={generate} type="button" variant="primary">

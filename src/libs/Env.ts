@@ -25,7 +25,7 @@ export const Env = createEnv({
     ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-').optional(),
     ANTHROPIC_MODEL: z.string().min(1).default('claude-haiku-4-5-20251001'),
     OPENAI_API_KEY: z.string().startsWith('sk-').optional(),
-    OPENAI_IMAGE_MODEL: z.string().min(1).default('gpt-image-1'),
+    OPENAI_IMAGE_MODEL: z.string().min(1).default('gpt-image-1-mini'),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),

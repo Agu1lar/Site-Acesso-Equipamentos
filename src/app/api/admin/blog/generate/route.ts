@@ -26,12 +26,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const draft = await generateBlogDraftWithClaude(parsed.data.topic);
+    const draft = await generateBlogDraftWithClaude(parsed.data.topic, {
+      imageSource: parsed.data.imageSource,
+    });
     return NextResponse.json({ draft });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'generation_failed';
     let status = 502;
-    if (message === 'anthropic_not_configured') {
+    if (message === 'anthropic_not_configured' || message === 'openai_not_configured' || message === 'openai_no_credits') {
       status = 503;
     }
     return NextResponse.json({ error: message }, { status });

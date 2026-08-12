@@ -51,79 +51,90 @@ const allowedRelatedPaths = new Set([
   '/treinamento-plataformas-aereas',
 ]);
 
-const outputSchema = {
-  type: 'object',
-  properties: {
-    title: { type: 'string', description: 'Título claro e específico do artigo.' },
-    slug: {
-      type: 'string',
-      description: 'Slug em minúsculas, sem acentos e separado somente por hífens.',
-    },
-    excerpt: { type: 'string', description: 'Resumo editorial entre 150 e 300 caracteres.' },
-    metaTitle: { type: 'string', description: 'Título SEO entre 45 e 60 caracteres.' },
-    metaDescription: {
-      type: 'string',
-      description: 'Descrição SEO entre 120 e 155 caracteres.',
-    },
-    coverImageIndex: {
-      type: 'integer',
-      description: 'Índice zero-based da imagem de capa no array images (geralmente 0).',
-    },
-    contentMarkup: { type: 'string', description: CLAUDE_BLOG_TAG_CONTRACT },
-    images: {
-      type: 'array',
-      description:
-        '1 capa gerada + até 2 ilustrações geradas. Opcionalmente até 2 fotos de equipamento do catálogo filtrado.',
-      items: {
-        type: 'object',
-        properties: {
-          type: {
-            type: 'string',
-            enum: ['generated', 'equipment'],
-            description: 'generated = ilustração editorial; equipment = foto real do catálogo.',
+function buildClaudeOutputSchema(imageSource: 'generated' | 'catalog') {
+  const generatedOnly = imageSource === 'generated';
+
+  return {
+    type: 'object',
+    properties: {
+      title: { type: 'string', description: 'Título claro e específico do artigo.' },
+      slug: {
+        type: 'string',
+        description: 'Slug em minúsculas, sem acentos e separado somente por hífens.',
+      },
+      excerpt: { type: 'string', description: 'Resumo editorial entre 150 e 300 caracteres.' },
+      metaTitle: { type: 'string', description: 'Título SEO entre 45 e 60 caracteres.' },
+      metaDescription: {
+        type: 'string',
+        description: 'Descrição SEO entre 120 a 155 caracteres.',
+      },
+      coverImageIndex: {
+        type: 'integer',
+        description: generatedOnly
+          ? 'Índice zero-based da capa gerada no array images (sempre 0).'
+          : 'Índice zero-based da foto de capa do catálogo no array images.',
+      },
+      contentMarkup: { type: 'string', description: CLAUDE_BLOG_TAG_CONTRACT },
+      images: {
+        type: 'array',
+        description: generatedOnly
+          ? '1 capa gerada (type=generated) + até 2 ilustrações editoriais geradas. Proibido type=equipment ou URLs do site.'
+          : '2 a 4 fotos reais do catálogo (type=equipment) com URLs exatas informadas. Proibido type=generated.',
+        items: {
+          type: 'object',
+          properties: {
+            type: {
+              type: 'string',
+              enum: generatedOnly ? ['generated'] : ['equipment'],
+              description: generatedOnly
+                ? 'Sempre generated — imagem editorial criada por IA a partir do prompt.'
+                : 'Sempre equipment — foto real do catálogo informado.',
+            },
+            prompt: {
+              type: 'string',
+              description: generatedOnly
+                ? 'Brief visual detalhado em inglês para OpenAI Images (obrigatório).'
+                : 'Deixe vazio quando type=equipment.',
+            },
+            url: {
+              type: 'string',
+              description: generatedOnly
+                ? 'Sempre vazio — a URL será gerada depois.'
+                : 'URL exata do catálogo filtrado (obrigatório).',
+            },
+            alt: { type: 'string', description: 'Descrição objetiva da imagem em português.' },
           },
-          prompt: {
-            type: 'string',
-            description:
-              'Brief visual em inglês para OpenAI Images (obrigatório se type=generated). Vazio se equipment.',
-          },
-          url: {
-            type: 'string',
-            description:
-              'URL exata do catálogo filtrado (obrigatório se type=equipment). Vazio se generated.',
-          },
-          alt: { type: 'string', description: 'Descrição objetiva da imagem em português.' },
+          required: ['type', 'prompt', 'url', 'alt'],
+          additionalProperties: false,
         },
-        required: ['type', 'prompt', 'url', 'alt'],
-        additionalProperties: false,
+      },
+      relatedLinks: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            label: { type: 'string', description: 'Texto curto e contextual do link.' },
+            href: { type: 'string', description: 'Caminho exato da lista de links permitidos.' },
+          },
+          required: ['label', 'href'],
+          additionalProperties: false,
+        },
       },
     },
-    relatedLinks: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          label: { type: 'string', description: 'Texto curto e contextual do link.' },
-          href: { type: 'string', description: 'Caminho exato da lista de links permitidos.' },
-        },
-        required: ['label', 'href'],
-        additionalProperties: false,
-      },
-    },
-  },
-  required: [
-    'title',
-    'slug',
-    'excerpt',
-    'metaTitle',
-    'metaDescription',
-    'coverImageIndex',
-    'contentMarkup',
-    'images',
-    'relatedLinks',
-  ],
-  additionalProperties: false,
-} as const;
+    required: [
+      'title',
+      'slug',
+      'excerpt',
+      'metaTitle',
+      'metaDescription',
+      'coverImageIndex',
+      'contentMarkup',
+      'images',
+      'relatedLinks',
+    ],
+    additionalProperties: false,
+  } as const;
+}
 
 type ClaudeResponse = {
   content?: { type?: string; text?: string }[];
@@ -178,18 +189,18 @@ function catalogLinesForPrompt(topic: string, options?: { includeSampleWhenEmpty
   return list.map((image) => `${image.slug}: ${image.url}`).join('\n');
 }
 
-function blogImageSystemInstructions(useGeneratedImages: boolean) {
-  if (useGeneratedImages) {
-    return 'Imagens: priorize type=generated (capa + até 2 ilustrações editoriais). O prompt deve ser um brief visual detalhado em inglês. Use type=equipment somente se o tema for claramente um equipamento do catálogo filtrado (no máximo 2). coverImageIndex deve apontar para a capa gerada (geralmente 0).';
+function blogImageSystemInstructions(imageSource: 'generated' | 'catalog') {
+  if (imageSource === 'catalog') {
+    return 'Imagens: use somente type=equipment com URLs exatas do catálogo informado (2 a 4 imagens quando pertinente). Use uma delas como capa (coverImageIndex). Se nenhuma imagem for realmente pertinente, use images vazio e coverImageIndex 0. Nunca use type=generated.';
   }
-  return 'Imagens: use somente type=equipment com URLs exatas do catálogo informado (2 a 4 imagens quando pertinente). Use uma delas como capa (coverImageIndex). Se nenhuma imagem for realmente pertinente, use images vazio e coverImageIndex 0. Nunca use type=generated.';
+  return 'Imagens: use somente type=generated (capa + até 2 ilustrações editoriais). O prompt deve ser um brief visual detalhado em inglês. Nunca use type=equipment nem URLs do catálogo. coverImageIndex deve apontar para a capa gerada (geralmente 0).';
 }
 
-function blogImageUserCatalogBlock(topic: string, useGeneratedImages: boolean) {
-  if (useGeneratedImages) {
-    return `Catálogo filtrado de equipamentos (use só se pertinente):\n${catalogLinesForPrompt(topic)}`;
+function blogImageUserMessageBlock(topic: string, imageSource: 'generated' | 'catalog') {
+  if (imageSource === 'catalog') {
+    return `Imagens disponíveis (use exclusivamente deste catálogo):\n${catalogLinesForPrompt(topic, { includeSampleWhenEmpty: true })}`;
   }
-  return `Imagens disponíveis (use exclusivamente deste catálogo):\n${catalogLinesForPrompt(topic, { includeSampleWhenEmpty: true })}`;
+  return 'Imagens: serão geradas por IA a partir dos prompts type=generated — não use fotos do catálogo.';
 }
 
 function isAllowedRelatedPath(href: string) {
@@ -209,9 +220,10 @@ function isAllowedRelatedPath(href: string) {
  */
 export function sanitizeClaudeImageSlots(
   slots: { type: 'generated' | 'equipment'; prompt?: string; url?: string; alt: string }[],
-  options?: { allowGenerated?: boolean },
+  options?: { allowGenerated?: boolean; allowEquipment?: boolean },
 ): ClaudeBlogImageSlot[] {
   const allowGenerated = options?.allowGenerated !== false;
+  const allowEquipment = options?.allowEquipment !== false;
   const result: ClaudeBlogImageSlot[] = [];
   let generatedCount = 0;
   let equipmentCount = 0;
@@ -233,6 +245,9 @@ export function sanitizeClaudeImageSlots(
     if (equipmentCount >= MAX_EQUIPMENT_IMAGES) {
       continue;
     }
+    if (!allowEquipment) {
+      continue;
+    }
     const url = slot.url?.trim() ?? '';
     if (!allowedImageUrls.has(url)) {
       continue;
@@ -244,6 +259,41 @@ export function sanitizeClaudeImageSlots(
   return result;
 }
 
+function isCatalogImageUrl(url: string) {
+  return url.startsWith('/equipamentos/') || allowedImageUrls.has(url);
+}
+
+/**
+ * Ensures generated mode has AI slots only and a valid cover index.
+ * @param parsed Parsed draft after sanitization.
+ * @param topic Editorial topic for fallback prompts.
+ */
+export function ensureGeneratedImageSlots(parsed: ParsedClaudeBlogDraft, topic: string) {
+  const generatedOnly = parsed.imageSlots.filter(
+    (slot): slot is Extract<ClaudeBlogImageSlot, { type: 'generated' }> => slot.type === 'generated',
+  );
+
+  if (generatedOnly.length === 0) {
+    generatedOnly.push({
+      type: 'generated',
+      prompt: `Editorial cover image about ${topic.slice(0, 200)} on a Brazilian construction site`,
+      alt: `Ilustração editorial sobre ${parsed.title.slice(0, 80)}`,
+    });
+  }
+
+  parsed.imageSlots = generatedOnly;
+  parsed.coverImageIndex = 0;
+}
+
+/**
+ * Returns true when every resolved image URL is from the site equipment catalog.
+ * @param urls Image URLs to inspect.
+ */
+export function urlsAreCatalogOnly(urls: string[]) {
+  const kept = urls.filter(Boolean);
+  return kept.length > 0 && kept.every((url) => isCatalogImageUrl(url));
+}
+
 /**
  * Resolves generated + equipment slots into editor image URLs (same order as slots).
  * Failed generations become empty URLs and are dropped when building TipTap content.
@@ -252,11 +302,15 @@ export function sanitizeClaudeImageSlots(
 export async function materializeBlogImageSlots(options: {
   slots: ClaudeBlogImageSlot[];
   slug: string;
+  generatedOnly?: boolean;
 }): Promise<BlogEditorImage[]> {
   const resolved: BlogEditorImage[] = [];
 
   for (const slot of options.slots) {
     if (slot.type === 'equipment') {
+      if (options.generatedOnly) {
+        continue;
+      }
       resolved.push(createBlogEditorImage(slot.url, slot.alt));
       continue;
     }
@@ -272,7 +326,10 @@ export async function materializeBlogImageSlots(options: {
         slug: options.slug,
       });
       resolved.push(createBlogEditorImage(url, slot.alt));
-    } catch {
+    } catch (error) {
+      if (options.generatedOnly) {
+        throw error;
+      }
       resolved.push(createBlogEditorImage('', slot.alt));
     }
   }
@@ -298,11 +355,12 @@ type ParsedClaudeBlogDraft = {
  */
 export function parseClaudeBlogDraft(
   raw: unknown,
-  options?: { allowGeneratedImages?: boolean },
+  options?: { allowGeneratedImages?: boolean; allowEquipmentImages?: boolean },
 ): ParsedClaudeBlogDraft {
   const parsed = ClaudeBlogDraftSchema.parse(raw);
   const imageSlots = sanitizeClaudeImageSlots(parsed.images, {
     allowGenerated: options?.allowGeneratedImages !== false,
+    allowEquipment: options?.allowEquipmentImages !== false,
   });
   const relatedLinks = parsed.relatedLinks.filter((link) => isAllowedRelatedPath(link.href));
 
@@ -354,7 +412,10 @@ export function buildGeneratedBlogDraft(
  * @param raw Untrusted structured output.
  */
 export function normalizeClaudeBlogDraft(raw: unknown): GeneratedBlogDraft {
-  const parsed = parseClaudeBlogDraft(raw, { allowGeneratedImages: false });
+  const parsed = parseClaudeBlogDraft(raw, {
+    allowGeneratedImages: false,
+    allowEquipmentImages: true,
+  });
   const equipmentSlots = parsed.imageSlots.filter(
     (slot): slot is Extract<ClaudeBlogImageSlot, { type: 'equipment' }> => slot.type === 'equipment',
   );
@@ -372,16 +433,25 @@ export function normalizeClaudeBlogDraft(raw: unknown): GeneratedBlogDraft {
 
 /**
  * Generates a complete, unpublished blog draft with Claude.
- * OpenAI Images is optional — without OPENAI_API_KEY, images come from the equipment catalog only.
+ * Default images are AI-generated (OpenAI). Catalog photos only when imageSource is `catalog`.
  * @param topic Editorial direction supplied by the dashboard user.
+ * @param options Image source preference from the admin UI.
  * @returns A validated draft ready for review.
  */
-export async function generateBlogDraftWithClaude(topic: string): Promise<GeneratedBlogDraft> {
+export async function generateBlogDraftWithClaude(
+  topic: string,
+  options: { imageSource?: 'generated' | 'catalog' } = {},
+): Promise<GeneratedBlogDraft> {
   if (!Env.ANTHROPIC_API_KEY) {
     throw new Error('anthropic_not_configured');
   }
 
-  const useGeneratedImages = isOpenAiImageConfigured();
+  const imageSource = options.imageSource ?? 'generated';
+  const useGeneratedImages = imageSource === 'generated';
+
+  if (useGeneratedImages && !isOpenAiImageConfigured()) {
+    throw new Error('openai_not_configured');
+  }
 
   const response = await fetch(ANTHROPIC_MESSAGES_URL, {
     method: 'POST',
@@ -398,20 +468,20 @@ export async function generateBlogDraftWithClaude(topic: string): Promise<Genera
         'Produza conteúdo útil, responsável, original e em português do Brasil. Nunca invente normas, estatísticas, preços, especificações técnicas ou fatos atuais.',
         'O artigo deve ter introdução forte, de 5 a 8 seções H2, H3 quando necessário, listas úteis e conclusão com CTA contextual. Escreva entre 900 e 1.400 palavras.',
         'O título deve ser claro e específico. Use slug sem acentos, em minúsculas e separado por hífens. Meta title deve ter 45 a 60 caracteres, meta description de 120 a 155 e excerpt de 150 a 300.',
-        blogImageSystemInstructions(useGeneratedImages),
+        blogImageSystemInstructions(imageSource),
         'Use apenas links internos da lista fornecida. Não transforme referências externas, normas ou fontes não fornecidas em links.',
         CLAUDE_BLOG_TAG_CONTRACT,
       ].join('\n\n'),
       messages: [
         {
           role: 'user',
-          content: `Crie um artigo completo sobre: ${topic}\n\n${blogImageUserCatalogBlock(topic, useGeneratedImages)}\n\nLinks internos permitidos: /orcamento, /equipamentos, /contato, /treinamento-plataformas-aereas e /equipamentos/{slug-exato-do-catálogo}.`,
+          content: `Crie um artigo completo sobre: ${topic}\n\n${blogImageUserMessageBlock(topic, imageSource)}\n\nLinks internos permitidos: /orcamento, /equipamentos, /contato, /treinamento-plataformas-aereas e /equipamentos/{slug-exato-do-catálogo}.`,
         },
       ],
       output_config: {
         format: {
           type: 'json_schema',
-          schema: outputSchema,
+          schema: buildClaudeOutputSchema(imageSource),
         },
       },
     }),
@@ -433,23 +503,26 @@ export async function generateBlogDraftWithClaude(topic: string): Promise<Genera
 
   const parsed = parseClaudeBlogDraft(JSON.parse(text) as unknown, {
     allowGeneratedImages: useGeneratedImages,
+    allowEquipmentImages: imageSource === 'catalog',
   });
 
-  if (useGeneratedImages && !parsed.imageSlots.some((slot) => slot.type === 'generated')) {
-    parsed.imageSlots.unshift({
-      type: 'generated',
-      prompt: `Editorial cover image about ${topic.slice(0, 200)} on a Brazilian construction site`,
-      alt: `Ilustração editorial sobre ${parsed.title.slice(0, 80)}`,
-    });
-    parsed.coverImageIndex = 0;
+  if (useGeneratedImages) {
+    ensureGeneratedImageSlots(parsed, topic);
   }
 
   const images = await materializeBlogImageSlots({
     slots: parsed.imageSlots,
     slug: parsed.slug,
+    generatedOnly: useGeneratedImages,
   });
 
-  if (useGeneratedImages && !images.some((image) => image.url)) {
+  const resolvedUrls = images.map((image) => image.url).filter(Boolean);
+
+  if (useGeneratedImages && resolvedUrls.length === 0) {
+    throw new Error('openai_image_failed');
+  }
+
+  if (useGeneratedImages && urlsAreCatalogOnly(resolvedUrls)) {
     throw new Error('openai_image_failed');
   }
 

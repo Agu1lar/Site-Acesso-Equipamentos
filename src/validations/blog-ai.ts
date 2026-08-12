@@ -3,7 +3,11 @@ import * as z from 'zod';
 
 export const BlogAiRequestSchema = z.object({
   topic: z.string().trim().min(10).max(600),
+  /** Default: AI-generated editorial images. Use `catalog` only when explicitly requested. */
+  imageSource: z.enum(['generated', 'catalog']).default('generated'),
 });
+
+export type BlogAiImageSource = z.infer<typeof BlogAiRequestSchema>['imageSource'];
 
 /** Raw image slot as returned by Claude (empty strings allowed). */
 export const ClaudeBlogImageSlotRawSchema = z.object({
