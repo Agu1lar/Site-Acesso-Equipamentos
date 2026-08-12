@@ -65,7 +65,10 @@ export async function consumeReadyLeadGroups(
         continue;
       }
 
-      const { evaluation } = await analyzeLeadContext(context, config);
+      const { evaluation, analysisMode, analyzedMessageCount } = await analyzeLeadContext(
+        context,
+        config,
+      );
 
       const submitResult = await api.submitEvaluation({
         leadId: group.lead_id,
@@ -79,6 +82,9 @@ export async function consumeReadyLeadGroups(
       console.log('[chatpro-local] evaluation saved', {
         leadId: group.lead_id,
         evaluationId: submitResult.evaluationId,
+        analysisMode,
+        analyzedMessageCount,
+        totalMessages: context.messageCount,
         stage: evaluation.stage,
         dealLikelihood: evaluation.dealLikelihood,
         contractDetected: evaluation.contractDetected,

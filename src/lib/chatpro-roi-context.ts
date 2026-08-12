@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { asc, eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 import { loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
 import {
   leadHasCampaignAttribution,
@@ -9,13 +9,16 @@ import {
 import type {
   ChatProConversationMessage,
   ChatProLeadContext,
+  ChatProPriorEvaluation,
 } from '@/lib/chatpro-roi-ai-core';
+import { ChatProRoiEvaluationSchema } from '@/validations/chatpro-roi';
 import { db } from '@/libs/DB';
-import { chatproMessagesSchema } from '@/models/Schema';
+import { chatproLeadEvaluationsSchema, chatproMessagesSchema } from '@/models/Schema';
 
 export type ChatProLeadAnalysisContext = {
   lead: ChatProLeadContext;
   messages: ChatProConversationMessage[];
+  priorEvaluation: ChatProPriorEvaluation | null;
 };
 
 export type ChatProLeadAnalysisGateResult =
@@ -42,6 +45,37 @@ function snapshotToLeadContext(snapshot: NonNullable<Awaited<ReturnType<typeof l
   };
 }
 
+async function loadPriorEvaluation(leadId: number): Promise<ChatProPriorEvaluation | null> {
+  const rows = await db
+    .select({
+      lastMessageId: chatproLeadEvaluationsSchema.lastMessageId,
+      messageCount: chatproLeadEvaluationsSchema.messageCount,
+      evaluatedAt: chatproLeadEvaluationsSchema.evaluatedAt,
+      result: chatproLeadEvaluationsSchema.result,
+    })
+    .from(chatproLeadEvaluationsSchema)
+    .where(eq(chatproLeadEvaluationsSchema.leadId, leadId))
+    .orderBy(desc(chatproLeadEvaluationsSchema.evaluatedAt))
+    .limit(1);
+
+  const row = rows[0];
+  if (!row) {
+    return null;
+  }
+
+  const parsed = ChatProRoiEvaluationSchema.safeParse(row.result);
+  if (!parsed.success) {
+    return null;
+  }
+
+  return {
+    lastMessageId: row.lastMessageId,
+    messageCount: row.messageCount,
+    evaluatedAt: row.evaluatedAt,
+    result: parsed.data,
+  };
+}
+
 /**
  * Loads lead + messages for Claude only when the lead has campaign attribution.
  * @param leadId Site lead primary key.
@@ -57,26 +91,30 @@ export async function resolveChatProLeadAnalysisContext(
     return { ok: false, reason: 'not_campaign_lead' };
   }
 
-  const rows = await db
-    .select({
-      id: chatproMessagesSchema.id,
-      fromMe: chatproMessagesSchema.fromMe,
-      messageText: chatproMessagesSchema.messageText,
-      mediaType: chatproMessagesSchema.mediaType,
-      mediaFilename: chatproMessagesSchema.mediaFilename,
-      mediaMimetype: chatproMessagesSchema.mediaMimetype,
-      mediaUrl: chatproMessagesSchema.mediaUrl,
-      eventAt: chatproMessagesSchema.eventAt,
-    })
-    .from(chatproMessagesSchema)
-    .where(eq(chatproMessagesSchema.leadId, leadId))
-    .orderBy(asc(chatproMessagesSchema.eventAt), asc(chatproMessagesSchema.id));
+  const [rows, priorEvaluation] = await Promise.all([
+    db
+      .select({
+        id: chatproMessagesSchema.id,
+        fromMe: chatproMessagesSchema.fromMe,
+        messageText: chatproMessagesSchema.messageText,
+        mediaType: chatproMessagesSchema.mediaType,
+        mediaFilename: chatproMessagesSchema.mediaFilename,
+        mediaMimetype: chatproMessagesSchema.mediaMimetype,
+        mediaUrl: chatproMessagesSchema.mediaUrl,
+        eventAt: chatproMessagesSchema.eventAt,
+      })
+      .from(chatproMessagesSchema)
+      .where(eq(chatproMessagesSchema.leadId, leadId))
+      .orderBy(asc(chatproMessagesSchema.eventAt), asc(chatproMessagesSchema.id)),
+    loadPriorEvaluation(leadId),
+  ]);
 
   return {
     ok: true,
     context: {
       lead: snapshotToLeadContext(snapshot),
       messages: rows,
+      priorEvaluation,
     },
   };
 }

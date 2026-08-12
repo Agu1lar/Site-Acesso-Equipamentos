@@ -35,5 +35,14 @@ export async function GET(request: Request, context: RouteContext) {
     })),
     messageCount: analysisContext.messages.length,
     lastMessageId: analysisContext.messages.at(-1)?.id ?? null,
+    priorEvaluation: analysisContext.priorEvaluation
+      ? {
+          ...analysisContext.priorEvaluation,
+          evaluatedAt:
+            analysisContext.priorEvaluation.evaluatedAt instanceof Date
+              ? analysisContext.priorEvaluation.evaluatedAt.toISOString()
+              : analysisContext.priorEvaluation.evaluatedAt,
+        }
+      : null,
   });
 }

@@ -40,6 +40,12 @@ export type RemoteLeadContext = {
   }>;
   messageCount: number;
   lastMessageId: number | null;
+  priorEvaluation: {
+    lastMessageId: number | null;
+    messageCount: number;
+    evaluatedAt: string | null;
+    result: Record<string, unknown>;
+  } | null;
 };
 
 export class ChatProRemoteApi {

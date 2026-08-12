@@ -104,6 +104,7 @@ O consumer em `chatpro-local/`:
 
 - Busca contexto completo via `GET /api/internal/v1/chatpro-roi/leads/{id}/context`
 - Chama Claude (`chatpro-roi-ai-core.ts`) com PDFs de contrato
+- Em reavaliações: reutiliza a última evaluation + **só mensagens novas** (não rele a conversa inteira)
 - Grava via `POST /api/internal/v1/chatpro-roi/evaluations`
 
 ## Sandbox Claude (local)

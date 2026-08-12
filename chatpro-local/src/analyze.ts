@@ -1,8 +1,11 @@
 import {
   evaluateChatProLeadWithClaude,
+  selectMessagesForClaudeAnalysis,
   type ChatProConversationMessage,
   type ChatProLeadContext,
+  type ChatProPriorEvaluation,
 } from '../../src/lib/chatpro-roi-ai-core.ts';
+import { ChatProRoiEvaluationSchema } from '../../src/validations/chatpro-roi.ts';
 import type { LocalConfig } from './config.js';
 import type { RemoteLeadContext } from './api-client.js';
 
@@ -20,7 +23,20 @@ export function mapRemoteLeadContext(context: RemoteLeadContext) {
     eventAt: message.eventAt ? new Date(message.eventAt) : null,
   }));
 
-  return { lead, messages };
+  let priorEvaluation: ChatProPriorEvaluation | null = null;
+  if (context.priorEvaluation) {
+    const parsed = ChatProRoiEvaluationSchema.safeParse(context.priorEvaluation.result);
+    if (parsed.success) {
+      priorEvaluation = {
+        lastMessageId: context.priorEvaluation.lastMessageId,
+        messageCount: context.priorEvaluation.messageCount,
+        evaluatedAt: context.priorEvaluation.evaluatedAt,
+        result: parsed.data,
+      };
+    }
+  }
+
+  return { lead, messages, priorEvaluation };
 }
 
 /**
@@ -33,12 +49,25 @@ export async function analyzeLeadContext(context: RemoteLeadContext, config: Loc
     throw new Error('anthropic_not_configured');
   }
 
-  const { lead, messages } = mapRemoteLeadContext(context);
-  const evaluation = await evaluateChatProLeadWithClaude(lead, messages, {
-    apiKey: config.anthropicApiKey,
-    model: config.anthropicModel,
-    pdfAllowedHostSuffixes: config.pdfAllowedHostSuffixes,
-  });
+  const { lead, messages, priorEvaluation } = mapRemoteLeadContext(context);
+  const selected = selectMessagesForClaudeAnalysis(messages, priorEvaluation?.lastMessageId);
 
-  return { lead, messages, evaluation };
+  const evaluation = await evaluateChatProLeadWithClaude(
+    lead,
+    messages,
+    {
+      apiKey: config.anthropicApiKey,
+      model: config.anthropicModel,
+      pdfAllowedHostSuffixes: config.pdfAllowedHostSuffixes,
+    },
+    priorEvaluation,
+  );
+
+  return {
+    lead,
+    messages,
+    evaluation,
+    analysisMode: selected.mode,
+    analyzedMessageCount: selected.messages.length,
+  };
 }

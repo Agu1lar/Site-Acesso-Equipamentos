@@ -15,7 +15,10 @@ import {
   chatproMessagesSchema,
   leadsSchema,
 } from '@/models/Schema';
-import type { ChatProRoiEvaluation } from '@/validations/chatpro-roi';
+import {
+  ChatProRoiEvaluationSchema,
+  type ChatProRoiEvaluation,
+} from '@/validations/chatpro-roi';
 
 export type ChatProRoiWorkerRunResult = {
   scanned: number;
@@ -43,6 +46,7 @@ async function loadLastEvaluation(leadId: number) {
       evaluatedAt: chatproLeadEvaluationsSchema.evaluatedAt,
       lastMessageId: chatproLeadEvaluationsSchema.lastMessageId,
       messageCount: chatproLeadEvaluationsSchema.messageCount,
+      result: chatproLeadEvaluationsSchema.result,
     })
     .from(chatproLeadEvaluationsSchema)
     .where(eq(chatproLeadEvaluationsSchema.leadId, leadId))
@@ -163,7 +167,24 @@ export async function runChatProRoiWorker(options: WorkerOptions = {}): Promise<
         continue;
       }
 
-      const evaluation = await evaluateChatProLeadWithClaude(lead, messages);
+      const evaluation = await evaluateChatProLeadWithClaude(
+        lead,
+        messages,
+        lastEval
+          ? (() => {
+              const parsed = ChatProRoiEvaluationSchema.safeParse(lastEval.result);
+              if (!parsed.success) {
+                return null;
+              }
+              return {
+                lastMessageId: lastEval.lastMessageId,
+                messageCount: lastEval.messageCount,
+                evaluatedAt: lastEval.evaluatedAt,
+                result: parsed.data,
+              };
+            })()
+          : null,
+      );
 
       await db.insert(chatproLeadEvaluationsSchema).values({
         leadId,

@@ -16,6 +16,13 @@ export type ChatProRoiAiConfig = {
   pdfAllowedHostSuffixes?: string[];
 };
 
+export type ChatProPriorEvaluation = {
+  lastMessageId: number | null;
+  messageCount: number;
+  evaluatedAt: Date | string | null;
+  result: ChatProRoiEvaluation;
+};
+
 export type ChatProConversationMessage = {
   id: number;
   fromMe: boolean;
@@ -79,6 +86,49 @@ function isPdfAttachment(message: ChatProConversationMessage) {
 }
 
 /**
+ * Picks messages Claude should read: full thread on first run, only new ones after that.
+ * @param messages Chronological ChatPro messages for the lead.
+ * @param priorLastMessageId Last message id already covered by a previous evaluation.
+ */
+export function selectMessagesForClaudeAnalysis(
+  messages: ChatProConversationMessage[],
+  priorLastMessageId: number | null | undefined,
+) {
+  if (!priorLastMessageId) {
+    return { mode: 'full' as const, messages };
+  }
+
+  const incremental = messages.filter((message) => message.id > priorLastMessageId);
+  if (incremental.length === 0) {
+    return { mode: 'full' as const, messages };
+  }
+
+  return { mode: 'incremental' as const, messages: incremental };
+}
+
+function formatPriorEvaluationBlock(prior: ChatProPriorEvaluation) {
+  const stamp =
+    prior.evaluatedAt instanceof Date
+      ? prior.evaluatedAt.toISOString()
+      : prior.evaluatedAt ?? 'sem data';
+  const result = prior.result;
+
+  return [
+    'Contexto já analisado desta mesma conversa (não releia o histórico antigo):',
+    `- Avaliado em: ${stamp}`,
+    `- Até messageId: ${prior.lastMessageId ?? '—'} (${prior.messageCount} msgs)`,
+    `- Stage anterior: ${result.stage}`,
+    `- Intent/deal anteriores: ${result.intentScore}/${result.dealLikelihood}`,
+    `- Contrato detectado antes: ${result.contractDetected ? 'sim' : 'não'}`,
+    `- Valor mensal anterior: ${result.estimatedMonthlyValueBrl ?? 'null'}`,
+    `- Resumo anterior: ${result.summary}`,
+    `- Notas ROI anteriores: ${result.roiNotes}`,
+    '',
+    'Atualize a avaliação só com as mensagens NOVAS abaixo, preservando o que ainda for válido do contexto anterior.',
+  ].join('\n');
+}
+
+/**
  * Downloads a PDF attachment for Claude document analysis.
  * @param url Remote file URL from ChatPro.
  * @param allowedHostSuffixes Optional extra host suffixes from env.
@@ -108,14 +158,17 @@ export async function fetchPdfForAnalysis(url: string, allowedHostSuffixes: stri
 
 /**
  * Evaluates a ChatPro conversation (+ optional contract PDFs) with Claude.
+ * Reuses prior evaluation context so Claude only reads new messages when possible.
  * @param lead Lead attribution and form context.
- * @param messages Chronological ChatPro messages.
+ * @param messages Chronological ChatPro messages (full thread).
  * @param config Anthropic credentials and model.
+ * @param priorEvaluation Last saved evaluation for this lead, if any.
  */
 export async function evaluateChatProLeadWithClaude(
   lead: ChatProLeadContext,
   messages: ChatProConversationMessage[],
   config: ChatProRoiAiConfig,
+  priorEvaluation?: ChatProPriorEvaluation | null,
 ): Promise<ChatProRoiEvaluation> {
   if (!config.apiKey) {
     throw new Error('anthropic_not_configured');
@@ -124,14 +177,23 @@ export async function evaluateChatProLeadWithClaude(
     throw new Error('chatpro_no_messages');
   }
 
-  const conversation = formatConversation(messages);
-  const pdfMessages = messages.filter((message) => message.mediaUrl && isPdfAttachment(message));
+  const selected = selectMessagesForClaudeAnalysis(
+    messages,
+    priorEvaluation?.lastMessageId,
+  );
+  const conversation = formatConversation(selected.messages);
+  const pdfMessages = selected.messages.filter(
+    (message) => message.mediaUrl && isPdfAttachment(message),
+  );
+  const isIncremental = selected.mode === 'incremental' && priorEvaluation;
 
   const contentBlocks: AnthropicContentBlock[] = [
     {
       type: 'text',
       text: [
-        'Analise esta conversa de WhatsApp (ChatPro) de um lead que veio de campanha paga.',
+        isIncremental
+          ? 'Atualize a análise desta conversa WhatsApp (ChatPro) com mensagens novas de um lead de campanha paga.'
+          : 'Analise esta conversa de WhatsApp (ChatPro) de um lead que veio de campanha paga.',
         'Contexto do formulário do site:',
         `- Nome: ${lead.name}`,
         `- Status CRM: ${lead.status}`,
@@ -141,16 +203,19 @@ export async function evaluateChatProLeadWithClaude(
         `- Campanha UTM: ${lead.utmCampaign ?? '—'} | Source: ${lead.utmSource ?? '—'} | Medium: ${lead.utmMedium ?? '—'}`,
         `- gclid: ${lead.gclid ? 'sim' : 'não'}`,
         '',
-        'Conversa WhatsApp (ordem cronológica):',
+        isIncremental && priorEvaluation ? formatPriorEvaluationBlock(priorEvaluation) : '',
+        isIncremental ? 'Mensagens NOVAS desde a última análise:' : 'Conversa WhatsApp (ordem cronológica):',
         conversation,
         '',
         pdfMessages.length > 0
           ? 'Há PDF(s) anexados abaixo — verifique se parecem contrato de locação e se batem com a conversa.'
-          : 'Nenhum PDF anexado nesta conversa.',
+          : isIncremental
+            ? 'Nenhum PDF novo nestas mensagens.'
+            : 'Nenhum PDF anexado nesta conversa.',
         '',
         'Responda em português do Brasil. Não invente valores — use null se não houver base na conversa ou no PDF.',
         'Fechamento real em locação costuma envolver contrato PDF; priorize evidências explícitas.',
-      ].join('\n'),
+      ].filter(Boolean).join('\n'),
     },
   ];
 
@@ -196,6 +261,7 @@ export async function evaluateChatProLeadWithClaude(
       system: [
         'Você é analista comercial da Acesso Equipamentos (locação de equipamentos para construção civil, MG).',
         'Avalie intenção, estágio do funil, probabilidade de fechamento e consistência de contratos PDF com a conversa.',
+        'Quando houver contexto anterior da mesma conversa, atualize a partir dele e das mensagens novas — não ignore evidências já registradas sem motivo.',
         'Seja conservador: só marque closed_won ou contractDetected quando houver evidência clara.',
         'estimatedMonthlyValueBrl só quando valores aparecerem na conversa ou contrato.',
       ].join(' '),

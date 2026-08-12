@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { evaluateChatProLeadWithClaude } from '@/lib/chatpro-roi-ai-core';
+import {
+  evaluateChatProLeadWithClaude,
+  selectMessagesForClaudeAnalysis,
+} from '@/lib/chatpro-roi-ai-core';
 
 const sampleEvaluation = {
   stage: 'negotiation',
@@ -16,6 +19,53 @@ const sampleEvaluation = {
   roiNotes: 'Lead quente com valor mensal informado; acompanhar envio de contrato.',
   followUpPriority: 'high',
 };
+
+describe('selectMessagesForClaudeAnalysis', () => {
+  const messages = [
+    {
+      id: 1,
+      fromMe: false,
+      messageText: 'Oi',
+      mediaType: null,
+      mediaFilename: null,
+      mediaMimetype: null,
+      mediaUrl: null,
+      eventAt: new Date('2026-08-12T14:00:00.000Z'),
+    },
+    {
+      id: 2,
+      fromMe: true,
+      messageText: 'Olá',
+      mediaType: null,
+      mediaFilename: null,
+      mediaMimetype: null,
+      mediaUrl: null,
+      eventAt: new Date('2026-08-12T14:01:00.000Z'),
+    },
+    {
+      id: 3,
+      fromMe: false,
+      messageText: 'Vamos fechar',
+      mediaType: null,
+      mediaFilename: null,
+      mediaMimetype: null,
+      mediaUrl: null,
+      eventAt: new Date('2026-08-12T14:02:00.000Z'),
+    },
+  ];
+
+  it('returns full thread on first analysis', () => {
+    const selected = selectMessagesForClaudeAnalysis(messages, null);
+    expect(selected.mode).toBe('full');
+    expect(selected.messages).toHaveLength(3);
+  });
+
+  it('returns only new messages after prior lastMessageId', () => {
+    const selected = selectMessagesForClaudeAnalysis(messages, 1);
+    expect(selected.mode).toBe('incremental');
+    expect(selected.messages.map((message) => message.id)).toEqual([2, 3]);
+  });
+});
 
 describe('evaluateChatProLeadWithClaude', () => {
   afterEach(() => {
