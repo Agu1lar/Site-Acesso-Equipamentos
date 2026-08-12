@@ -170,6 +170,32 @@ describe('sanitize Claude image slots', () => {
     });
   });
 
+  it('drops generated slots when OpenAI images are disabled', () => {
+    const slots = sanitizeClaudeImageSlots(
+      [
+        {
+          type: 'generated',
+          prompt: 'Editorial cover for construction safety training in Brazil',
+          alt: 'Capa editorial',
+        },
+        {
+          type: 'equipment',
+          url: '/equipamentos/betoneira.webp',
+          alt: 'Betoneira',
+        },
+      ],
+      { allowGenerated: false },
+    );
+
+    expect(slots).toEqual([
+      {
+        type: 'equipment',
+        url: '/equipamentos/betoneira.webp',
+        alt: 'Betoneira',
+      },
+    ]);
+  });
+
   it('caps generated and equipment counts', () => {
     const slots = sanitizeClaudeImageSlots([
       {

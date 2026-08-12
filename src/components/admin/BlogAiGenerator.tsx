@@ -65,8 +65,6 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
       const code = error instanceof Error ? error.message : 'generation_failed';
       if (code === 'anthropic_not_configured') {
         setErrorMessage(t('ai_error_not_configured'));
-      } else if (code === 'openai_not_configured') {
-        setErrorMessage(t('ai_error_openai_not_configured'));
       } else if (code === 'openai_image_failed') {
         setErrorMessage(t('ai_error_openai_image'));
       } else {
