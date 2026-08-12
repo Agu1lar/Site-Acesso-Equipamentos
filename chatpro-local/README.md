@@ -28,12 +28,14 @@ npm start
 
 ## Fluxo completo
 
-1. `GET …/chatpro-roi/events` — puxa outbox
-2. Enfileira no SQLite (`job_id` = `externalId`)
-3. `POST …/chatpro-roi/events` — ack na Vercel
-4. Após debounce → `GET …/leads/{id}/context` — lead + histórico completo
-5. Claude analisa conversa + PDFs de contrato
-6. `POST …/chatpro-roi/evaluations` — salva no Neon
+1. `GET …/chatpro-roi/events` — puxa outbox pendente
+2. Enfileira no SQLite (`job_id` = `externalId`, idempotente)
+3. Após debounce → `GET …/leads/{id}/context` — lead + histórico (+ evaluation anterior)
+4. Claude analisa (1ª vez: conversa completa; depois: só msgs novas)
+5. `POST …/chatpro-roi/evaluations` — salva no Neon
+6. `POST …/chatpro-roi/events` — **ack só depois** da análise (ou skip seguro)
+
+Não rode `scripts/chatpro-roi-worker.mjs` ao mesmo tempo que este consumer (duplica Claude).
 
 ## Windows — rodar com o PC
 

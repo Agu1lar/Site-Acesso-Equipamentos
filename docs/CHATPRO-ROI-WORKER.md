@@ -23,10 +23,9 @@ chatpro-local/ (sua máquina)
 O Claude **nunca** analisa conversas orgânicas ou sem atribuição paga. Mensagens entram no pipeline ROI apenas quando o lead tem:
 
 - `gclid`, `gbraid` ou `wbraid`, ou
-- `utm_medium` cpc/ppc/paid, ou
-- Google Ads (`utm_source` google + medium)
+- `utm_medium` cpc/ppc/paid
 
-`utm_campaign` sozinho **não** entra no pipeline.
+`utm_campaign` sozinho **não** entra. `utm_source=google` sem medium pago **também não**.
 
 Leads orgânicos continuam marcando `whatsapp_replied_at` no CRM, mas **não** geram `chatpro_messages`, outbox nem evaluation.
 

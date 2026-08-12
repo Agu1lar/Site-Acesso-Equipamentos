@@ -14,6 +14,12 @@ describe('attributionQualifiesForWhatsAppBridge', () => {
   it('rejects utm campaign without paid signal', () => {
     expect(attributionQualifiesForWhatsAppBridge({ utmCampaign: 'nova_plataformas' })).toBe(false);
   });
+
+  it('rejects google organic', () => {
+    expect(
+      attributionQualifiesForWhatsAppBridge({ utmSource: 'google', utmMedium: 'organic' }),
+    ).toBe(false);
+  });
 });
 
 describe('extractWhatsAppAttributionRefCode', () => {

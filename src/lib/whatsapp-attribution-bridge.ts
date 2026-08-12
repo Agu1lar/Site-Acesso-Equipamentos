@@ -12,11 +12,7 @@ export function attributionQualifiesForWhatsAppBridge(attribution: AttributionIn
     return true;
   }
   const medium = attribution.utmMedium?.trim().toLowerCase();
-  const source = attribution.utmSource?.trim().toLowerCase();
   if (medium === 'cpc' || medium === 'ppc' || medium === 'paid') {
-    return true;
-  }
-  if (source?.includes('google') && medium) {
     return true;
   }
   return false;

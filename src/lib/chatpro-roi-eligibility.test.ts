@@ -36,6 +36,16 @@ describe('leadHasCampaignAttribution', () => {
     expect(leadHasCampaignAttribution({ ...baseLead, utmCampaign: 'plataformas-mg' })).toBe(false);
   });
 
+  it('ignores google source without paid medium', () => {
+    expect(
+      leadHasCampaignAttribution({
+        ...baseLead,
+        utmSource: 'google',
+        utmMedium: 'organic',
+      }),
+    ).toBe(false);
+  });
+
   it('returns false without attribution', () => {
     expect(leadHasCampaignAttribution(baseLead)).toBe(false);
   });

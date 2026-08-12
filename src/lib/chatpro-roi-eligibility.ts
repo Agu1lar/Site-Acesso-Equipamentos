@@ -30,11 +30,7 @@ export function leadHasCampaignAttribution(lead: CampaignLeadSnapshot) {
     return true;
   }
   const medium = lead.utmMedium?.trim().toLowerCase();
-  const source = lead.utmSource?.trim().toLowerCase();
   if (medium === 'cpc' || medium === 'ppc' || medium === 'paid') {
-    return true;
-  }
-  if (source?.includes('google') && medium) {
     return true;
   }
   return false;

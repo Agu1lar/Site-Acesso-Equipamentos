@@ -73,7 +73,10 @@ export class LocalQueue {
    * @param debounceMs Delay before analysis runs for this lead/phone.
    */
   enqueueRemoteEvent(event: RemoteOutboxEvent, debounceMs: number) {
-    const analyzeAfter = new Date(Date.now() + debounceMs).toISOString();
+    const analyzeAfter = new Date(Date.now() + debounceMs)
+      .toISOString()
+      .replace('T', ' ')
+      .replace(/\.\d{3}Z$/, '');
     const groupKey = event.leadId ? `lead:${event.leadId}` : `phone:${event.phoneKey}`;
 
     const insert = this.db.prepare(`
@@ -82,7 +85,7 @@ export class LocalQueue {
       ) VALUES (?, ?, ?, ?, ?, ?)
     `);
 
-    insert.run(
+    const insertResult = insert.run(
       event.externalId,
       event.outboxId,
       event.leadId,
@@ -91,13 +94,20 @@ export class LocalQueue {
       analyzeAfter,
     );
 
-    this.db.prepare(`
-      INSERT INTO lead_debounce (group_key, lead_id, phone_key, analyze_after, updated_at)
-      VALUES (?, ?, ?, ?, datetime('now'))
-      ON CONFLICT(group_key) DO UPDATE SET
-        analyze_after = excluded.analyze_after,
-        updated_at = datetime('now')
-    `).run(groupKey, event.leadId, event.phoneKey, analyzeAfter);
+    // Only (re)arm debounce when a new job was inserted — never on poll re-fetch of pending outbox.
+    if (insertResult.changes > 0) {
+      this.db.prepare(`
+        INSERT INTO lead_debounce (group_key, lead_id, phone_key, analyze_after, updated_at)
+        VALUES (?, ?, ?, ?, datetime('now'))
+        ON CONFLICT(group_key) DO UPDATE SET
+          analyze_after = excluded.analyze_after,
+          lead_id = excluded.lead_id,
+          phone_key = excluded.phone_key,
+          updated_at = datetime('now')
+      `).run(groupKey, event.leadId, event.phoneKey, analyzeAfter);
+    }
+
+    return { inserted: insertResult.changes > 0 };
   }
 
   /** Returns lead/phone groups ready for analysis after debounce. */
@@ -171,7 +181,10 @@ export class LocalQueue {
 
   /** Pushes back analysis for a failed group without dropping pending jobs. */
   rescheduleLeadDebounce(groupKey: string, delayMs: number) {
-    const analyzeAfter = new Date(Date.now() + delayMs).toISOString();
+    const analyzeAfter = new Date(Date.now() + delayMs)
+      .toISOString()
+      .replace('T', ' ')
+      .replace(/\.\d{3}Z$/, '');
     this.db.prepare(`
       UPDATE lead_debounce
       SET analyze_after = ?, updated_at = datetime('now')
