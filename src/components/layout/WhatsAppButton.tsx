@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
 import { usesMobileConversionDock } from '@/lib/mobile-conversion-dock';
-import { trackWhatsAppClick } from '@/lib/track-whatsapp-click';
+import { openTrackedWhatsApp } from '@/lib/track-whatsapp-click';
 
 type WhatsAppButtonProps = {
   equipmentName?: string;
@@ -29,8 +29,9 @@ export function WhatsAppButton(props: WhatsAppButtonProps) {
         hideOnMobileDock ? 'hidden md:flex' : ''
       }`}
       href={href}
-      onClick={() => {
-        trackWhatsAppClick({
+      onClick={(event) => {
+        event.preventDefault();
+        void openTrackedWhatsApp(href, {
           origin: 'site-flutuante',
           equipmentSlug: props.equipmentSlug,
           equipmentName: props.equipmentName,

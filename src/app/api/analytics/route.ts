@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import * as z from 'zod';
 import { recordAnalyticsEvent } from '@/lib/analytics-events';
+import { mintWhatsAppAttributionToken } from '@/lib/whatsapp-attribution-token';
 import { logger } from '@/libs/Logger';
 import { AnalyticsEventSchema } from '@/validations/analytics';
 
@@ -29,7 +30,19 @@ export const POST = async (request: Request) => {
       analyticsConsent: data.analyticsConsent,
     });
 
-    return NextResponse.json({ ok: true });
+    let refCode: string | null = null;
+    if (data.eventType === 'whatsapp_click') {
+      refCode = await mintWhatsAppAttributionToken({
+        origin: data.origin,
+        equipmentSlug: data.equipmentSlug,
+        equipmentName: data.equipmentName,
+        pathname: data.pathname,
+        device: data.device,
+        attribution: data.attribution,
+      });
+    }
+
+    return NextResponse.json({ ok: true, refCode });
   } catch (error) {
     logger.error('Failed to record analytics event', {
       message: error instanceof Error ? error.message : String(error),

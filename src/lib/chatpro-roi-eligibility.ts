@@ -4,6 +4,8 @@ export type CampaignLeadSnapshot = {
   id: number;
   status: string;
   gclid: string | null;
+  gbraid: string | null;
+  wbraid: string | null;
   utmSource: string | null;
   utmMedium: string | null;
   utmCampaign: string | null;
@@ -22,13 +24,9 @@ export type ChatProRoiWorkerOptions = {
 const DEFAULT_MAX_INACTIVE_DAYS = 60;
 const DEFAULT_MAX_LEAD_AGE_DAYS = 90;
 
-/** True when lead has paid-search or UTM campaign attribution. */
+/** True when lead has paid-search click ids or paid-medium attribution. */
 export function leadHasCampaignAttribution(lead: CampaignLeadSnapshot) {
-  if (lead.gclid?.trim()) {
-    return true;
-  }
-  const campaign = lead.utmCampaign?.trim().toLowerCase();
-  if (campaign) {
+  if (lead.gclid?.trim() || lead.gbraid?.trim() || lead.wbraid?.trim()) {
     return true;
   }
   const medium = lead.utmMedium?.trim().toLowerCase();

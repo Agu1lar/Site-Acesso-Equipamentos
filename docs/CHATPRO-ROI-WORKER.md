@@ -10,24 +10,44 @@ ChatPro → POST /api/webhooks/chatpro (Vercel)
             └─ chatpro_messages + outbox **somente leads de campanha**
 
 chatpro-local/ (sua máquina)
-            ├─ poll GET …/chatpro-roi/events?since=cursor
+            ├─ poll GET …/chatpro-roi/events?since=0
             ├─ fila SQLite (job_id = externalId, dedup)
-            ├─ POST …/events { outboxIds } — ack
             ├─ debounce 30 min por lead
             ├─ GET …/leads/{id}/context (403 se não for campanha)
-            └─ Claude → POST …/evaluations
+            ├─ Claude → POST …/evaluations
+            └─ POST …/events { outboxIds } — ack **após** análise
 ```
 
 ## Regra: Claude só lê campanhas
 
-O Claude **nunca** analisa conversas orgânicas ou sem atribuição. Mensagens entram no pipeline ROI apenas quando o lead tem:
+O Claude **nunca** analisa conversas orgânicas ou sem atribuição paga. Mensagens entram no pipeline ROI apenas quando o lead tem:
 
-- `gclid`, ou
-- `utm_campaign`, ou
+- `gclid`, `gbraid` ou `wbraid`, ou
 - `utm_medium` cpc/ppc/paid, ou
 - Google Ads (`utm_source` google + medium)
 
+`utm_campaign` sozinho **não** entra no pipeline.
+
 Leads orgânicos continuam marcando `whatsapp_replied_at` no CRM, mas **não** geram `chatpro_messages`, outbox nem evaluation.
+
+## Clique WhatsApp sem formulário (ponte por ref)
+
+Visitantes de campanha que clicam no botão WhatsApp **sem** preencher o orçamento recebem um código curto no texto do `wa.me`:
+
+```
+Olá! Tenho interesse… Origem: site-home. Cód. AB12CD34
+```
+
+Fluxo:
+
+1. Clique rastreado → `POST /api/analytics` grava `whatsapp_click` e devolve `refCode` (só com atribuição paga).
+2. Browser abre `wa.me` com o suufixo `Cód. …` no prefill.
+3. ChatPro recebe a 1ª mensagem → webhook extrai o código, cria lead `whatsapp_click` (ou enriquece lead existente pelo telefone) com gclid/UTM.
+4. Pipeline ROI segue igual ao lead de formulário.
+
+Tabela: `whatsapp_attribution_tokens` (`0039_whatsapp_attribution_tokens.sql`). Ref expira em 7 dias.
+
+Se o visitante apagar o código antes de enviar, volta ao comportamento antigo (só match por telefone de formulário).
 
 ## Migrações
 
@@ -37,6 +57,7 @@ npm run db:migrate
 
 - `0037_chatpro_roi_worker.sql` — messages + evaluations
 - `0038_chatpro_outbox.sql` — outbox pull
+- `0039_whatsapp_attribution_tokens.sql` — ponte clique WhatsApp → ChatPro
 
 ## API interna
 
@@ -73,7 +94,9 @@ npm start
 | Neon messages | `external_id` único |
 | Neon outbox | `external_id` único |
 | SQLite local | `job_id` (= externalId) UNIQUE |
-| Ack | Só marca `delivered_at` após enqueue local |
+| Ack | Só marca `delivered_at` após Claude (ou skip seguro) no consumer local |
+
+PDFs baixados para Claude usam allowlist de hosts (`chatpro.com.br`, etc.) + `CHATPRO_PDF_URL_ALLOWLIST` opcional. HTTP e IPs privados são bloqueados.
 
 ## Fase 2 (Claude local)
 

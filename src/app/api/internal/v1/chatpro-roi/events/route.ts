@@ -39,7 +39,7 @@ export async function GET(request: Request) {
   });
 }
 
-/** Acknowledges outbox rows after the local consumer enqueued them. */
+/** Acknowledges outbox rows after the local consumer finished Claude analysis. */
 export async function POST(request: Request) {
   const auth = authorizeInternalApi(request);
   if (!auth.ok) {

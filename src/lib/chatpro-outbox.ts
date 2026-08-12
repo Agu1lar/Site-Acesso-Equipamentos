@@ -120,7 +120,7 @@ export async function listPendingChatProOutboxEvents(since = 0, limit = 50) {
 }
 
 /**
- * Marks outbox rows as delivered after the local consumer persisted them.
+ * Marks outbox rows as delivered after the local consumer analyzed them (or skipped safely).
  * @param outboxIds Outbox primary keys to acknowledge.
  */
 export async function ackChatProOutboxEvents(outboxIds: number[]) {

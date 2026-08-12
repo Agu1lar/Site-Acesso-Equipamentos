@@ -43,6 +43,8 @@ export async function loadCampaignLeadSnapshot(leadId: number) {
       id: leadsSchema.id,
       status: leadsSchema.status,
       gclid: leadsSchema.gclid,
+      gbraid: leadsSchema.gbraid,
+      wbraid: leadsSchema.wbraid,
       utmSource: leadsSchema.utmSource,
       utmMedium: leadsSchema.utmMedium,
       utmCampaign: leadsSchema.utmCampaign,

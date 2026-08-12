@@ -1,7 +1,7 @@
 'use client';
 
 import type { ComponentPropsWithoutRef, MouseEvent } from 'react';
-import { trackWhatsAppClick } from '@/lib/track-whatsapp-click';
+import { openTrackedWhatsApp } from '@/lib/track-whatsapp-click';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'whatsapp' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -48,9 +48,10 @@ export function Button({
   const classes = `inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:pointer-events-none disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
 
   if (href) {
-    const handleAnchorClick = (_event: MouseEvent<HTMLAnchorElement>) => {
+    const handleAnchorClick = (event: MouseEvent<HTMLAnchorElement>) => {
       if (variant === 'whatsapp' && whatsappOrigin) {
-        trackWhatsAppClick({
+        event.preventDefault();
+        void openTrackedWhatsApp(href, {
           origin: whatsappOrigin,
           equipmentSlug,
           equipmentName,

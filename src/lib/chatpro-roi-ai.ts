@@ -5,6 +5,13 @@ import {
   type ChatProLeadContext,
 } from '@/lib/chatpro-roi-ai-core';
 
+function parsePdfHostAllowlist(raw: string | undefined) {
+  if (!raw?.trim()) {
+    return [];
+  }
+  return raw.split(',').map((entry) => entry.trim()).filter(Boolean);
+}
+
 export type {
   ChatProConversationMessage,
   ChatProLeadContext,
@@ -28,5 +35,6 @@ export async function evaluateChatProLeadWithClaude(
   return evaluateChatProLeadCore(lead, messages, {
     apiKey: Env.ANTHROPIC_API_KEY,
     model: Env.ANTHROPIC_MODEL,
+    pdfAllowedHostSuffixes: parsePdfHostAllowlist(Env.CHATPRO_PDF_URL_ALLOWLIST),
   });
 }

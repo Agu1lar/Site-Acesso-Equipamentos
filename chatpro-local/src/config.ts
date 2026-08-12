@@ -9,6 +9,7 @@ export type LocalConfig = {
   debounceMs: number;
   anthropicApiKey: string | null;
   anthropicModel: string;
+  pdfAllowedHostSuffixes: string[];
 };
 
 function readRequired(name: string) {
@@ -26,6 +27,8 @@ export function loadLocalConfig(): LocalConfig {
   );
   mkdirSync(dirname(sqlitePath), { recursive: true });
 
+  const pdfAllowlistRaw = process.env.CHATPRO_PDF_URL_ALLOWLIST?.trim();
+
   return {
     apiBaseUrl: readRequired('CHATPRO_LOCAL_API_URL').replace(/\/$/, ''),
     internalApiSecret: readRequired('INTERNAL_API_SECRET'),
@@ -34,5 +37,8 @@ export function loadLocalConfig(): LocalConfig {
     debounceMs: Number(process.env.CHATPRO_LOCAL_DEBOUNCE_MS ?? 1_800_000),
     anthropicApiKey: process.env.ANTHROPIC_API_KEY?.trim() || null,
     anthropicModel: process.env.ANTHROPIC_MODEL?.trim() || 'claude-haiku-4-5-20251001',
+    pdfAllowedHostSuffixes: pdfAllowlistRaw
+      ? pdfAllowlistRaw.split(',').map((entry) => entry.trim()).filter(Boolean)
+      : [],
   };
 }

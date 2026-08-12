@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { applyChatProReplyToLead } from '@/lib/chatpro-lead-match';
 import { persistChatProMessage } from '@/lib/chatpro-messages';
 import { parseChatProWebhookPayload } from '@/lib/chatpro-webhook';
+import { claimWhatsAppAttributionFromMessage } from '@/lib/whatsapp-attribution-token';
 import { Env } from '@/libs/Env';
 import { logger } from '@/libs/Logger';
 
@@ -72,10 +73,19 @@ export async function POST(request: Request) {
   }
 
   try {
+    let bridgeLeadId: number | null = null;
+    if (event.phoneKey && !event.fromMe) {
+      bridgeLeadId = await claimWhatsAppAttributionFromMessage(
+        event.phoneKey,
+        event.messagePreview,
+      );
+    }
+
     const persistResult = await persistChatProMessage(event, payload);
     const matchResult = await applyChatProReplyToLead(event);
     return NextResponse.json({
       event: event.event,
+      bridgeLeadId,
       message: persistResult,
       ...matchResult,
     });

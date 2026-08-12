@@ -7,9 +7,8 @@ export async function pollRemoteOutbox(
   queue: LocalQueue,
   debounceMs: number,
 ) {
-  let since = queue.getPollSince();
+  let since = 0;
   let total = 0;
-  const ackIds: number[] = [];
 
   for (;;) {
     const page = await api.fetchEvents(since, 50);
@@ -19,21 +18,14 @@ export async function pollRemoteOutbox(
 
     for (const event of page.events) {
       queue.enqueueRemoteEvent(event, debounceMs);
-      ackIds.push(event.outboxId);
       total += 1;
     }
 
     since = page.nextSince;
-    queue.setPollSince(since);
-
     if (page.count < 50) {
       break;
     }
   }
 
-  if (ackIds.length > 0) {
-    await api.ackEvents(ackIds);
-  }
-
-  return { fetched: total, acked: ackIds.length, cursor: since };
+  return { fetched: total, cursor: since };
 }

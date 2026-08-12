@@ -6,6 +6,8 @@ const baseLead: CampaignLeadSnapshot = {
   id: 1,
   status: 'contacted',
   gclid: null,
+  gbraid: null,
+  wbraid: null,
   utmSource: null,
   utmMedium: null,
   utmCampaign: null,
@@ -17,11 +19,14 @@ const baseLead: CampaignLeadSnapshot = {
 describe('isLeadEligibleForClaudeAnalysis', () => {
   it('allows campaign-attributed leads', () => {
     expect(isLeadEligibleForClaudeAnalysis({ ...baseLead, gclid: 'abc' })).toBe(true);
-    expect(isLeadEligibleForClaudeAnalysis({ ...baseLead, utmCampaign: 'nova_plataformas' })).toBe(true);
+    expect(isLeadEligibleForClaudeAnalysis({ ...baseLead, utmMedium: 'cpc' })).toBe(true);
   });
 
   it('blocks organic leads', () => {
     expect(isLeadEligibleForClaudeAnalysis(baseLead)).toBe(false);
     expect(isLeadEligibleForClaudeAnalysis({ ...baseLead, utmSource: 'direct' })).toBe(false);
+    expect(isLeadEligibleForClaudeAnalysis({ ...baseLead, utmCampaign: 'nova_plataformas' })).toBe(
+      false,
+    );
   });
 });

@@ -83,8 +83,10 @@ async function findCandidateLeadIds(options: WorkerOptions) {
         ne(leadsSchema.leadKind, 'cookie_consent'),
         or(
           isNotNull(leadsSchema.gclid),
-          isNotNull(leadsSchema.utmCampaign),
+          isNotNull(leadsSchema.gbraid),
+          isNotNull(leadsSchema.wbraid),
           sql`lower(coalesce(${leadsSchema.utmMedium}, '')) in ('cpc', 'ppc', 'paid')`,
+          sql`lower(coalesce(${leadsSchema.utmSource}, '')) like '%google%' and nullif(trim(${leadsSchema.utmMedium}), '') is not null`,
         ),
         or(isNotNull(leadsSchema.whatsappRepliedAt), isNotNull(chatproMessagesSchema.id)),
       ),

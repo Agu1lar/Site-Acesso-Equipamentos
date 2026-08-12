@@ -37,6 +37,7 @@ export async function analyzeLeadContext(context: RemoteLeadContext, config: Loc
   const evaluation = await evaluateChatProLeadWithClaude(lead, messages, {
     apiKey: config.anthropicApiKey,
     model: config.anthropicModel,
+    pdfAllowedHostSuffixes: config.pdfAllowedHostSuffixes,
   });
 
   return { lead, messages, evaluation };

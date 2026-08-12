@@ -113,6 +113,36 @@ export const chatproOutboxSchema = pgTable(
   (table) => [uniqueIndex('chatpro_outbox_external_id_uidx').on(table.externalId)],
 );
 
+/** Short-lived ref codes embedded in wa.me prefill — links campaign clicks to ChatPro inbound. */
+export const whatsappAttributionTokensSchema = pgTable(
+  'whatsapp_attribution_tokens',
+  {
+    id: serial('id').primaryKey(),
+    token: varchar('token', { length: 12 }).notNull(),
+    origin: varchar('origin', { length: 80 }).notNull(),
+    equipmentSlug: varchar('equipment_slug', { length: 120 }),
+    equipmentName: varchar('equipment_name', { length: 300 }),
+    pathname: varchar('pathname', { length: 500 }),
+    device: varchar('device', { length: 20 }),
+    utmSource: varchar('utm_source', { length: 120 }),
+    utmMedium: varchar('utm_medium', { length: 120 }),
+    utmCampaign: varchar('utm_campaign', { length: 200 }),
+    utmContent: varchar('utm_content', { length: 200 }),
+    utmTerm: varchar('utm_term', { length: 200 }),
+    gclid: varchar('gclid', { length: 255 }),
+    gbraid: varchar('gbraid', { length: 255 }),
+    wbraid: varchar('wbraid', { length: 255 }),
+    referrer: varchar('referrer', { length: 500 }),
+    landingPage: varchar('landing_page', { length: 500 }),
+    leadId: integer('lead_id'),
+    phoneKey: varchar('phone_key', { length: 20 }),
+    claimedAt: timestamp('claimed_at', { mode: 'date' }),
+    expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex('whatsapp_attribution_tokens_token_uidx').on(table.token)],
+);
+
 /** Unique contacts (deduplicated by e-mail, phone or Google account). */
 export const clientsSchema = pgTable('clients', {
   id: serial('id').primaryKey(),

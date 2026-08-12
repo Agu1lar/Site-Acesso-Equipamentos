@@ -12,6 +12,7 @@ import {
   syncGoogleAnalyticsConsentFromStorage,
 } from '@/lib/google-analytics';
 import { captureWhatsAppClick, type WhatsAppClickInput } from '@/lib/posthog-events';
+import { appendWhatsAppAttributionRefToUrl } from '@/lib/whatsapp-attribution-bridge';
 
 /**
  * Detects mobile vs desktop for analytics device breakdown.
@@ -80,15 +81,28 @@ export function buildWhatsAppClickAnalyticsPayload(options: {
   };
 }
 
+function buildWhatsAppClickRequestBody(input: WhatsAppClickInput) {
+  const analyticsConsent = isGoogleAnalyticsConsentGranted();
+  const attribution = readStoredAttribution();
+
+  return buildWhatsAppClickAnalyticsPayload({
+    origin: input.origin,
+    equipmentSlug: input.equipmentSlug,
+    equipmentName: input.equipmentName,
+    pathname: typeof window === 'undefined' ? '/' : window.location.pathname,
+    device: detectDevice(),
+    analyticsConsent,
+    attribution,
+    visitorGeo: analyticsConsent ? readStoredVisitorGeo() : null,
+  });
+}
+
 /**
- * Counts WhatsApp button clicks in Neon always (no cookie required).
- * Fires the Google Ads WhatsApp conversion without analytics cookies.
- * For paid search (gclid), restores click id + ad_storage so the Ads snippet attributes.
- * GA4 / PostHog still require analytics cookie consent.
+ * Records a WhatsApp click and returns a campaign ref code when minted.
+ * @param input PostHog origin and optional equipment context.
  */
-export function trackWhatsAppClick(input: WhatsAppClickInput) {
+export async function trackWhatsAppClickWithRef(input: WhatsAppClickInput) {
   syncGoogleAnalyticsConsentFromStorage();
-  // Paid search: put gclid back in the URL and grant ad_storage before the Ads snippet.
   preparePaidSearchAdsConversion();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
 
@@ -108,35 +122,48 @@ export function trackWhatsAppClick(input: WhatsAppClickInput) {
   }
 
   if (typeof window === 'undefined') {
-    return;
+    return null;
   }
 
-  const attribution = readStoredAttribution();
-  const body = JSON.stringify(
-    buildWhatsAppClickAnalyticsPayload({
-      origin: input.origin,
-      equipmentSlug: input.equipmentSlug,
-      equipmentName: input.equipmentName,
-      pathname: window.location.pathname,
-      device: detectDevice(),
-      analyticsConsent,
-      attribution,
-      visitorGeo: analyticsConsent ? readStoredVisitorGeo() : null,
-    }),
-  );
+  const body = JSON.stringify(buildWhatsAppClickRequestBody(input));
 
-  if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-    navigator.sendBeacon(
-      '/api/analytics',
-      new Blob([body], { type: 'application/json' }),
-    );
-    return;
+  try {
+    const response = await fetch('/api/analytics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+      signal: AbortSignal.timeout(3_000),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as { refCode?: string | null };
+    return payload.refCode?.trim() || null;
+  } catch {
+    return null;
   }
+}
 
-  void fetch('/api/analytics', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-    keepalive: true,
-  });
+/**
+ * Opens WhatsApp in a new tab with optional campaign ref code in the prefill.
+ * @param href Base wa.me URL.
+ * @param input Analytics origin context.
+ */
+export async function openTrackedWhatsApp(href: string, input: WhatsAppClickInput) {
+  const refCode = await trackWhatsAppClickWithRef(input);
+  const target = refCode ? appendWhatsAppAttributionRefToUrl(href, refCode) : href;
+  window.open(target, '_blank', 'noopener,noreferrer');
+}
+
+/**
+ * Counts WhatsApp button clicks in Neon always (no cookie required).
+ * Fires the Google Ads WhatsApp conversion without analytics cookies.
+ * For paid search (gclid), restores click id + ad_storage so the Ads snippet attributes.
+ * GA4 / PostHog still require analytics cookie consent.
+ */
+export function trackWhatsAppClick(input: WhatsAppClickInput) {
+  void trackWhatsAppClickWithRef(input);
 }

@@ -120,7 +120,16 @@ export class LocalQueue {
   listPendingJobsForGroup(leadId: number | null, phoneKey: string) {
     if (leadId) {
       return this.db.prepare(`
-        SELECT id, job_id, outbox_id, lead_id, phone_key, payload, status, attempts, scheduled_at
+        SELECT
+          id,
+          job_id AS jobId,
+          outbox_id AS outboxId,
+          lead_id AS leadId,
+          phone_key AS phoneKey,
+          payload,
+          status,
+          attempts,
+          scheduled_at AS scheduledAt
         FROM jobs
         WHERE lead_id = ? AND status = 'pending'
         ORDER BY id ASC
@@ -128,7 +137,16 @@ export class LocalQueue {
     }
 
     return this.db.prepare(`
-      SELECT id, job_id, outbox_id, lead_id, phone_key, payload, status, attempts, scheduled_at
+      SELECT
+        id,
+        job_id AS jobId,
+        outbox_id AS outboxId,
+        lead_id AS leadId,
+        phone_key AS phoneKey,
+        payload,
+        status,
+        attempts,
+        scheduled_at AS scheduledAt
       FROM jobs
       WHERE phone_key = ? AND status = 'pending'
       ORDER BY id ASC
@@ -151,10 +169,28 @@ export class LocalQueue {
     this.db.prepare('DELETE FROM lead_debounce WHERE group_key = ?').run(groupKey);
   }
 
+  /** Pushes back analysis for a failed group without dropping pending jobs. */
+  rescheduleLeadDebounce(groupKey: string, delayMs: number) {
+    const analyzeAfter = new Date(Date.now() + delayMs).toISOString();
+    this.db.prepare(`
+      UPDATE lead_debounce
+      SET analyze_after = ?, updated_at = datetime('now')
+      WHERE group_key = ?
+    `).run(analyzeAfter, groupKey);
+  }
+
   markJobFailed(jobId: number) {
     this.db.prepare(`
       UPDATE jobs
       SET status = 'failed', attempts = attempts + 1, updated_at = datetime('now')
+      WHERE id = ?
+    `).run(jobId);
+  }
+
+  incrementJobAttempts(jobId: number) {
+    this.db.prepare(`
+      UPDATE jobs
+      SET attempts = attempts + 1, updated_at = datetime('now')
       WHERE id = ?
     `).run(jobId);
   }

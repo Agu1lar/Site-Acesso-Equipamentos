@@ -3,6 +3,7 @@ import {
   ChatProRoiEvaluationSchema,
   type ChatProRoiEvaluation,
 } from '../validations/chatpro-roi';
+import { isAllowedPdfFetchUrl } from './chatpro-pdf-url';
 
 const ANTHROPIC_MESSAGES_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -11,6 +12,8 @@ const MAX_PDF_BYTES = 15 * 1024 * 1024;
 export type ChatProRoiAiConfig = {
   apiKey: string;
   model: string;
+  /** Extra PDF host suffixes (from CHATPRO_PDF_URL_ALLOWLIST). */
+  pdfAllowedHostSuffixes?: string[];
 };
 
 export type ChatProConversationMessage = {
@@ -78,8 +81,13 @@ function isPdfAttachment(message: ChatProConversationMessage) {
 /**
  * Downloads a PDF attachment for Claude document analysis.
  * @param url Remote file URL from ChatPro.
+ * @param allowedHostSuffixes Optional extra host suffixes from env.
  */
-export async function fetchPdfForAnalysis(url: string) {
+export async function fetchPdfForAnalysis(url: string, allowedHostSuffixes: string[] = []) {
+  if (!isAllowedPdfFetchUrl(url, allowedHostSuffixes)) {
+    throw new Error('pdf_url_not_allowed');
+  }
+
   const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
   if (!response.ok) {
     throw new Error('pdf_fetch_failed');
@@ -151,7 +159,10 @@ export async function evaluateChatProLeadWithClaude(
       continue;
     }
     try {
-      const base64 = await fetchPdfForAnalysis(pdfMessage.mediaUrl);
+      const base64 = await fetchPdfForAnalysis(
+        pdfMessage.mediaUrl,
+        config.pdfAllowedHostSuffixes ?? [],
+      );
       contentBlocks.push({
         type: 'document',
         source: {

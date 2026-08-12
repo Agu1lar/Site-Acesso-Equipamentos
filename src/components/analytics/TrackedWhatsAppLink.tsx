@@ -1,7 +1,7 @@
 'use client';
 
 import type { ComponentPropsWithoutRef, MouseEvent } from 'react';
-import { trackWhatsAppClick } from '@/lib/track-whatsapp-click';
+import { openTrackedWhatsApp } from '@/lib/track-whatsapp-click';
 
 type TrackedWhatsAppLinkProps = ComponentPropsWithoutRef<'a'> & {
   origin: string;
@@ -14,16 +14,22 @@ type TrackedWhatsAppLinkProps = ComponentPropsWithoutRef<'a'> & {
  * Ads conversion beacons are not cancelled by same-tab navigation to wa.me.
  */
 export function TrackedWhatsAppLink(props: TrackedWhatsAppLinkProps) {
-  const { origin, equipmentSlug, equipmentName, onClick, children, target, rel, ...rest } = props;
+  const { origin, equipmentSlug, equipmentName, onClick, children, target, rel, href, ...rest } = props;
 
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    trackWhatsAppClick({ origin, equipmentSlug, equipmentName });
     onClick?.(event);
+    if (event.defaultPrevented || !href) {
+      return;
+    }
+
+    event.preventDefault();
+    void openTrackedWhatsApp(href, { origin, equipmentSlug, equipmentName });
   };
 
   return (
     <a
       {...rest}
+      href={href}
       target={target ?? '_blank'}
       rel={rel ?? 'noopener noreferrer'}
       onClick={handleClick}
