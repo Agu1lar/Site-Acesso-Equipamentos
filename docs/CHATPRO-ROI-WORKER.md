@@ -106,6 +106,19 @@ O consumer em `chatpro-local/`:
 - Chama Claude (`chatpro-roi-ai-core.ts`) com PDFs de contrato
 - Grava via `POST /api/internal/v1/chatpro-roi/evaluations`
 
+## Sandbox Claude (local)
+
+Valida preflight + chamada Claude **sem gravar no banco**:
+
+```powershell
+npx dotenv-cli -e .env.local -o -- npx tsx scripts/chatpro-roi-sandbox.mjs
+npx dotenv-cli -e .env.local -o -- npx tsx scripts/chatpro-roi-sandbox.mjs --mock-only
+```
+
+Use `-o` para o `.env.local` sobrescrever uma `ANTHROPIC_API_KEY` antiga já presente no shell.
+
+Requer `ANTHROPIC_API_KEY` válida (`.env.local` e Vercel Production). Se retornar 401, gere nova chave em [console.anthropic.com](https://console.anthropic.com/).
+
 ## ROI Ads
 
 Relatório cruzando **won no CRM**, **sinais Claude** (`closed_won`, valor estimado) e **gasto Ads manual** por campanha.

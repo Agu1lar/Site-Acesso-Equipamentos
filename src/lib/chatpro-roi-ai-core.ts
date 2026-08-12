@@ -212,6 +212,9 @@ export async function evaluateChatProLeadWithClaude(
 
   const payload = (await response.json()) as ClaudeResponse;
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('anthropic_auth_invalid');
+    }
     throw new Error(payload.error?.message || 'anthropic_request_failed');
   }
   if (payload.stop_reason === 'max_tokens') {

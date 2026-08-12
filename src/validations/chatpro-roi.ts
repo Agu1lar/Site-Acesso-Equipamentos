@@ -64,8 +64,13 @@ export function buildChatProRoiOutputSchema() {
       },
       summary: { type: 'string' },
       suggestedStatus: {
-        type: ['string', 'null'],
-        enum: ['new', 'contacted', 'qualified', 'won', 'lost', null],
+        anyOf: [
+          {
+            type: 'string',
+            enum: ['new', 'contacted', 'qualified', 'won', 'lost'],
+          },
+          { type: 'null' },
+        ],
       },
       roiNotes: { type: 'string', description: 'Notas curtas para ROI / campanha Ads.' },
       followUpPriority: { type: 'string', enum: ['low', 'medium', 'high'] },
