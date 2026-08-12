@@ -1,5 +1,6 @@
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export type LocalConfig = {
   apiBaseUrl: string;
@@ -12,6 +13,35 @@ export type LocalConfig = {
   pdfAllowedHostSuffixes: string[];
 };
 
+/** Loads key=value pairs from chatpro-local/.env into process.env (no override). */
+function loadDotEnvFile() {
+  const envPath = resolve(dirname(fileURLToPath(import.meta.url)), '../.env');
+  if (!existsSync(envPath)) {
+    return;
+  }
+
+  for (const rawLine of readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) {
+      continue;
+    }
+    const eq = line.indexOf('=');
+    if (eq <= 0) {
+      continue;
+    }
+    const key = line.slice(0, eq).trim();
+    let value = line.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"'))
+      || (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    // Prefer chatpro-local/.env over a stale parent shell env.
+    process.env[key] = value;
+  }
+}
+
 function readRequired(name: string) {
   const value = process.env[name]?.trim();
   if (!value) {
@@ -22,6 +52,8 @@ function readRequired(name: string) {
 
 /** Loads environment for the local ChatPro ROI consumer. */
 export function loadLocalConfig(): LocalConfig {
+  loadDotEnvFile();
+
   const sqlitePath = resolve(
     process.env.CHATPRO_LOCAL_SQLITE_PATH?.trim() || './data/chatpro-local.db',
   );
