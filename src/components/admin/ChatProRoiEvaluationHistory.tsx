@@ -1,5 +1,5 @@
 import { formatDateTimeBrasilia } from '@/lib/app-datetime';
-import type { ChatProRoiDashboardEvaluation } from '@/lib/chatpro-roi-dashboard';
+import type { ChatProRoiDashboardEvaluation } from '@/lib/chatpro-roi-dashboard-types';
 
 type ChatProRoiEvaluationHistoryLabels = {
   title: string;

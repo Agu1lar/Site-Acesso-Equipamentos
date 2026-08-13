@@ -2,6 +2,11 @@ import 'server-only';
 
 import { count } from 'drizzle-orm';
 import { countPendingChatProOutboxEvents } from '@/lib/chatpro-outbox';
+import type { ChatProRoiDashboardEvaluation } from '@/lib/chatpro-roi-dashboard-types';
+import {
+  groupChatProRoiEvaluationsByLead,
+  type ChatProRoiLeadEvaluationGroup,
+} from '@/lib/chatpro-roi-group';
 import {
   countPendingChatProRoiEvaluations,
   listRecentChatProRoiEvaluations,
@@ -16,23 +21,9 @@ import {
   chatproMessagesSchema,
 } from '@/models/Schema';
 
-export type ChatProRoiDashboardEvaluation = {
-  id: number;
-  leadId: number;
-  leadName: string;
-  leadStatus: string;
-  utmCampaign: string | null;
-  evaluatedAt: Date;
-  messageCount: number;
-  trigger: string;
-  stage: ChatProRoiEvaluation['stage'];
-  dealLikelihood: number;
-  followUpPriority: ChatProRoiEvaluation['followUpPriority'];
-  suggestedStatus: ChatProRoiEvaluation['suggestedStatus'];
-  contractDetected: boolean;
-  estimatedMonthlyValueBrl: number | null;
-  summary: string;
-};
+export type { ChatProRoiDashboardEvaluation } from '@/lib/chatpro-roi-dashboard-types';
+export type { ChatProRoiLeadEvaluationGroup } from '@/lib/chatpro-roi-group';
+export { groupChatProRoiEvaluationsByLead } from '@/lib/chatpro-roi-group';
 
 export type ChatProRoiDashboardSummary = {
   pendingOutboxEvents: number;
@@ -40,7 +31,7 @@ export type ChatProRoiDashboardSummary = {
   totalMessages: number;
   totalEvaluations: number;
   closedWonSignals: number;
-  evaluations: ChatProRoiDashboardEvaluation[];
+  leadGroups: ChatProRoiLeadEvaluationGroup[];
   schemaIncomplete: boolean;
 };
 
@@ -50,7 +41,7 @@ const emptySummary: ChatProRoiDashboardSummary = {
   totalMessages: 0,
   totalEvaluations: 0,
   closedWonSignals: 0,
-  evaluations: [],
+  leadGroups: [],
   schemaIncomplete: true,
 };
 
@@ -59,7 +50,7 @@ function parseEvaluationResult(raw: unknown): ChatProRoiEvaluation | null {
   return parsed.success ? parsed.data : null;
 }
 
-function mapEvaluationRow(row: Awaited<ReturnType<typeof listRecentChatProRoiEvaluations>>[number]) {
+function mapEvaluationRow(row: Awaited<ReturnType<typeof listRecentChatProRoiEvaluations>>[number]): ChatProRoiDashboardEvaluation {
   const result = parseEvaluationResult(row.result);
 
   return {
@@ -87,7 +78,8 @@ function mapEvaluationRow(row: Awaited<ReturnType<typeof listRecentChatProRoiEva
 export async function getChatProRoiDashboardSummary(options?: {
   limit?: number;
 }): Promise<ChatProRoiDashboardSummary> {
-  const limit = Math.min(Math.max(options?.limit ?? 30, 1), 100);
+  const leadLimit = Math.min(Math.max(options?.limit ?? 30, 1), 100);
+  const fetchLimit = Math.min(leadLimit * 5, 200);
 
   try {
     const [
@@ -99,13 +91,16 @@ export async function getChatProRoiDashboardSummary(options?: {
     ] = await Promise.all([
       countPendingChatProOutboxEvents(),
       countPendingChatProRoiEvaluations(),
-      listRecentChatProRoiEvaluations(undefined, limit),
+      listRecentChatProRoiEvaluations(undefined, fetchLimit),
       db.select({ value: count() }).from(chatproMessagesSchema),
       db.select({ value: count() }).from(chatproLeadEvaluationsSchema),
     ]);
 
     const evaluations = evaluationRows.map(mapEvaluationRow);
-    const closedWonSignals = evaluations.filter((row) => row.stage === 'closed_won').length;
+    const leadGroups = groupChatProRoiEvaluationsByLead(evaluations, leadLimit);
+    const closedWonSignals = leadGroups.filter(
+      (group) => group.latest.stage === 'closed_won',
+    ).length;
 
     return {
       pendingOutboxEvents,
@@ -113,7 +108,7 @@ export async function getChatProRoiDashboardSummary(options?: {
       totalMessages: Number(messageCountRows[0]?.value ?? 0),
       totalEvaluations: Number(evaluationCountRows[0]?.value ?? 0),
       closedWonSignals,
-      evaluations,
+      leadGroups,
       schemaIncomplete: false,
     };
   } catch {
