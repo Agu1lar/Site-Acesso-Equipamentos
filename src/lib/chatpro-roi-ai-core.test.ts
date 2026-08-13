@@ -16,6 +16,8 @@ const sampleEvaluation = {
   summary:
     'Cliente de campanha pediu plataforma tesoura 12m por 30 dias em Contagem; comercial passou valor mensal e cliente sinalizou fechamento.',
   suggestedStatus: 'quoted',
+  detectedContactName: null,
+  detectedEmail: null,
   roiNotes: 'Lead quente com valor mensal informado; acompanhar envio de contrato.',
   followUpPriority: 'high',
 };

@@ -124,9 +124,13 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
             <div>
               <dt className="text-neutral-500">{t('field_email')}</dt>
               <dd>
-                <a className="text-primary hover:underline" href={`mailto:${lead.email}`}>
-                  {lead.email}
-                </a>
+                {lead.email ? (
+                  <a className="text-primary hover:underline" href={`mailto:${lead.email}`}>
+                    {lead.email}
+                  </a>
+                ) : (
+                  '—'
+                )}
               </dd>
             </div>
             <div>

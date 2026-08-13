@@ -7,6 +7,7 @@ import {
   leadHasCampaignAttribution,
   shouldEvaluateLeadForRoi,
 } from '@/lib/chatpro-roi-eligibility';
+import { applyChatProRoiLeadContactEnrichment } from '@/lib/chatpro-roi-lead-enrichment-apply';
 import { db } from '@/libs/DB';
 import { Env } from '@/libs/Env';
 import { logger } from '@/libs/Logger';
@@ -193,6 +194,8 @@ export async function runChatProRoiWorker(options: WorkerOptions = {}): Promise<
         trigger: options.leadId ? 'manual' : 'daily_worker',
         result: evaluation,
       });
+
+      await applyChatProRoiLeadContactEnrichment(leadId, evaluation);
 
       result.evaluated += 1;
       result.items.push({ leadId, status: 'evaluated', evaluation });

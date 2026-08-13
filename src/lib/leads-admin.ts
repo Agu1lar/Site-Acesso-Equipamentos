@@ -373,12 +373,18 @@ export async function getLeadById(id: number) {
  * Lists other leads that share email or phone with the reference row.
  */
 export async function listRelatedLeads(reference: LeadRecord) {
-  const email = normalizeLeadEmail(reference.email);
+  const email = reference.email?.trim() ? normalizeLeadEmail(reference.email) : null;
   const phoneDigits = normalizeLeadPhone(reference.phone);
-  const matchConditions = [eq(leadsSchema.email, email)];
+  const matchConditions = [];
 
+  if (email) {
+    matchConditions.push(eq(leadsSchema.email, email));
+  }
   if (phoneDigits) {
     matchConditions.push(sql`regexp_replace(${leadsSchema.phone}, '\\D', '', 'g') = ${phoneDigits}`);
+  }
+  if (matchConditions.length === 0) {
+    return [reference];
   }
 
   const rows = await db
@@ -399,14 +405,23 @@ export async function buildContactOrderCounts(leads: LeadRecord[]) {
     return counts;
   }
 
-  const emails = [...new Set(leads.map((row) => normalizeLeadEmail(row.email)))];
+  const emails = [
+    ...new Set(
+      leads
+        .map((row) => (row.email?.trim() ? normalizeLeadEmail(row.email) : null))
+        .filter((value): value is string => Boolean(value)),
+    ),
+  ];
   const phones = [
     ...new Set(
       leads.map((row) => normalizeLeadPhone(row.phone)).filter((value): value is string => Boolean(value)),
     ),
   ];
 
-  const matchConditions = [inArray(leadsSchema.email, emails)];
+  const matchConditions = [];
+  if (emails.length > 0) {
+    matchConditions.push(inArray(leadsSchema.email, emails));
+  }
   if (phones.length > 0) {
     matchConditions.push(
       sql`regexp_replace(${leadsSchema.phone}, '\\D', '', 'g') in (${sql.join(
@@ -414,6 +429,12 @@ export async function buildContactOrderCounts(leads: LeadRecord[]) {
         sql`, `,
       )})`,
     );
+  }
+  if (matchConditions.length === 0) {
+    for (const lead of leads) {
+      counts.set(lead.id, 1);
+    }
+    return counts;
   }
 
   const pool = await db
@@ -479,7 +500,7 @@ function leadToCsvRow(lead: LeadRecord): LeadCsvRow {
     id: String(lead.id),
     createdAt: formatDateTimeBrasiliaExport(lead.createdAt),
     name: lead.name,
-    email: lead.email,
+    email: lead.email ?? '',
     phone: lead.phone ?? '',
     company: lead.company ?? '',
     city: lead.city ?? '',

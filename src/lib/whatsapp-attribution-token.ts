@@ -4,6 +4,9 @@ import { randomBytes } from 'node:crypto';
 import { and, eq, gt, isNull } from 'drizzle-orm';
 import type { AttributionInput } from '@/lib/attribution';
 import { findLeadIdForChatProPhone, loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
+import {
+  WHATSAPP_CAMPAIGN_PLACEHOLDER_NAME,
+} from '@/lib/chatpro-roi-lead-enrichment';
 import { linkLeadToClient } from '@/lib/clients';
 import { leadHasCampaignAttribution } from '@/lib/chatpro-roi-eligibility';
 import {
@@ -27,10 +30,6 @@ export type MintWhatsAppAttributionTokenInput = {
 
 function generateRefCode() {
   return randomBytes(4).toString('hex').toUpperCase();
-}
-
-function inboundEmailForRef(refCode: string) {
-  return `wa+${refCode.toLowerCase()}@inbound.acessoequipamentos.com.br`;
 }
 
 function phoneDisplayFromKey(phoneKey: string) {
@@ -141,8 +140,8 @@ async function createWhatsAppClickLead(
   const [lead] = await db
     .insert(leadsSchema)
     .values({
-      name: 'Lead WhatsApp (campanha)',
-      email: inboundEmailForRef(tokenRow.token),
+      name: WHATSAPP_CAMPAIGN_PLACEHOLDER_NAME,
+      email: null,
       phone: phoneDisplayFromKey(phoneKey),
       equipmentSlug: tokenRow.equipmentSlug,
       equipmentName: tokenRow.equipmentName,

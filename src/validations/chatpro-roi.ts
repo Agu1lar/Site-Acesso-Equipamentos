@@ -25,6 +25,22 @@ export const ChatProRoiEvaluationSchema = z.object({
     (value) => (value === 'qualified' ? 'quoted' : value),
     z.enum(['new', 'contacted', 'quoted', 'won', 'lost']).nullable(),
   ),
+  detectedContactName: z
+    .string()
+    .trim()
+    .min(2)
+    .max(200)
+    .nullable()
+    .optional()
+    .transform((value) => value ?? null),
+  detectedEmail: z
+    .string()
+    .trim()
+    .email()
+    .max(320)
+    .nullable()
+    .optional()
+    .transform((value) => value ?? null),
   roiNotes: z.string().max(800),
   followUpPriority: z.enum(['low', 'medium', 'high']),
 });
@@ -75,6 +91,24 @@ export function buildChatProRoiOutputSchema() {
           { type: 'null' },
         ],
       },
+      detectedContactName: {
+        anyOf: [
+          {
+            type: 'string',
+            description: 'Nome real do cliente se ele se identificou claramente no chat; null se não houver.',
+          },
+          { type: 'null' },
+        ],
+      },
+      detectedEmail: {
+        anyOf: [
+          {
+            type: 'string',
+            description: 'E-mail explícito dito no chat; null se não houver. Nunca invente.',
+          },
+          { type: 'null' },
+        ],
+      },
       roiNotes: { type: 'string', description: 'Notas curtas para ROI / campanha Ads.' },
       followUpPriority: { type: 'string', enum: ['low', 'medium', 'high'] },
     },
@@ -89,6 +123,8 @@ export function buildChatProRoiOutputSchema() {
       'equipmentMentioned',
       'summary',
       'suggestedStatus',
+      'detectedContactName',
+      'detectedEmail',
       'roiNotes',
       'followUpPriority',
     ],

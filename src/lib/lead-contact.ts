@@ -43,7 +43,7 @@ export function phoneMatchKey(phone: string | null | undefined) {
 
 /** True when two lead rows likely belong to the same person. */
 export function leadsShareContact(a: Pick<LeadRecord, 'email' | 'phone'>, b: Pick<LeadRecord, 'email' | 'phone'>) {
-  if (normalizeLeadEmail(a.email) === normalizeLeadEmail(b.email)) {
+  if (a.email?.trim() && b.email?.trim() && normalizeLeadEmail(a.email) === normalizeLeadEmail(b.email)) {
     return true;
   }
 

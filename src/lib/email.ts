@@ -121,7 +121,7 @@ export async function notifyLeadByEmail(lead: LeadRecord) {
     '(Cliente envia a proposta pelo WhatsApp comercial; este e-mail é para controle da equipe.)',
     '',
     `Nome: ${lead.name}`,
-    `E-mail: ${lead.email}`,
+    `E-mail: ${lead.email ?? '—'}`,
     `Telefone: ${lead.phone}`,
     `Empresa: ${lead.company ?? '—'}`,
     `Cidade: ${lead.city}`,
@@ -149,7 +149,7 @@ export async function notifyLeadByEmail(lead: LeadRecord) {
     body: JSON.stringify({
       from,
       to,
-      reply_to: [lead.email],
+      ...(lead.email ? { reply_to: [lead.email] } : {}),
       subject,
       text,
       html,

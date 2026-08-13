@@ -208,6 +208,14 @@ function readEvaluationResult(raw: Record<string, unknown> | null | undefined): 
       || raw.suggestedStatus === 'lost'
         ? raw.suggestedStatus === 'qualified' ? 'quoted' : raw.suggestedStatus
         : null,
+    detectedContactName:
+      typeof raw.detectedContactName === 'string' && raw.detectedContactName.trim().length >= 2
+        ? raw.detectedContactName.trim().slice(0, 200)
+        : null,
+    detectedEmail:
+      typeof raw.detectedEmail === 'string' && raw.detectedEmail.includes('@')
+        ? raw.detectedEmail.trim().toLowerCase().slice(0, 320)
+        : null,
     roiNotes: typeof raw.roiNotes === 'string' ? raw.roiNotes : '',
     followUpPriority:
       raw.followUpPriority === 'low' || raw.followUpPriority === 'medium' || raw.followUpPriority === 'high'

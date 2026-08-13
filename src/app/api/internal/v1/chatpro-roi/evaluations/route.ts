@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
 import { isLeadEligibleForClaudeAnalysis } from '@/lib/chatpro-roi-context';
+import { applyChatProRoiLeadContactEnrichment } from '@/lib/chatpro-roi-lead-enrichment-apply';
 import { authorizeInternalApi } from '@/lib/internal-api-auth';
 import { db } from '@/libs/DB';
 import { chatproLeadEvaluationsSchema } from '@/models/Schema';
 import { ChatProRoiEvaluationSubmitSchema } from '@/validations/chatpro-outbox';
+import { ChatProRoiEvaluationSchema } from '@/validations/chatpro-roi';
 
 export const runtime = 'nodejs';
 
@@ -35,6 +37,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'not_campaign_lead' }, { status: 403 });
   }
 
+  const evaluationParsed = ChatProRoiEvaluationSchema.safeParse(parsed.data.result);
+  if (!evaluationParsed.success) {
+    return NextResponse.json({ error: 'invalid_evaluation' }, { status: 400 });
+  }
+
   const inserted = await db
     .insert(chatproLeadEvaluationsSchema)
     .values({
@@ -43,9 +50,18 @@ export async function POST(request: Request) {
       lastMessageId: parsed.data.lastMessageId,
       model: parsed.data.model,
       trigger: parsed.data.trigger,
-      result: parsed.data.result,
+      result: evaluationParsed.data,
     })
     .returning({ id: chatproLeadEvaluationsSchema.id });
 
-  return NextResponse.json({ ok: true, evaluationId: inserted[0]?.id });
+  const enrichment = await applyChatProRoiLeadContactEnrichment(
+    parsed.data.leadId,
+    evaluationParsed.data,
+  );
+
+  return NextResponse.json({
+    ok: true,
+    evaluationId: inserted[0]?.id,
+    contactEnriched: enrichment.updated,
+  });
 }

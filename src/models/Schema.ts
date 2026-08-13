@@ -28,7 +28,7 @@ export const counterSchema = pgTable('counter', {
 export const leadsSchema = pgTable('leads', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 200 }).notNull(),
-  email: varchar('email', { length: 320 }).notNull(),
+  email: varchar('email', { length: 320 }),
   phone: varchar('phone', { length: 40 }),
   company: varchar('company', { length: 200 }),
   equipmentSlug: varchar('equipment_slug', { length: 120 }),

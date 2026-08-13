@@ -245,6 +245,8 @@ const ROI_ANALYSIS_GUIDANCE = [
   '- Pergunta genérica sobre NF ("vocês emitem NF?") NÃO é fechamento — só curiosidade ou negociação.',
   'Valores: estimatedMonthlyValueBrl somente quando aparecerem na conversa, NF, contrato ou anexo legível. Não invente.',
   'suggestedStatus espelha o CRM (new, contacted, quoted, won, lost) — é sugestão, não altera o sistema.',
+  'Contato: detectedContactName só se o cliente se identificar claramente (ex.: "meu nome é João Silva"). Não use o placeholder do CRM como nome real.',
+  'detectedEmail só se um e-mail explícito aparecer na conversa. Nunca invente e-mail.',
 ].join('\n');
 
 /**
@@ -387,6 +389,7 @@ export async function evaluateChatProLeadWithClaude(
         'Avalie intenção, estágio do funil, probabilidade de fechamento e evidências de fechamento (contrato, NF, confirmação explícita).',
         'Quando houver contexto anterior da mesma conversa, atualize a partir dele e das mensagens novas.',
         'Menção clara de emissão/envio de NF pela empresa costuma indicar acordo fechado — trate como closed_won salvo contexto contrário.',
+        'Extraia detectedContactName e detectedEmail apenas com evidência explícita na conversa; caso contrário null.',
         'Seja conservador em closed_lost e em valores; não marque closed_won só por perguntas sobre NF.',
       ].join(' '),
       messages: [{ role: 'user', content: contentBlocks }],

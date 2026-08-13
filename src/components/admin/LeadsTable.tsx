@@ -90,7 +90,7 @@ export async function LeadsTable(props: LeadsTableProps) {
                         label={t('recurring_badge', { count: contactCount })}
                       />
                     </div>
-                    <p className="text-xs text-neutral-500">{lead.phone ?? lead.email}</p>
+                    <p className="text-xs text-neutral-500">{lead.phone ?? lead.email ?? '—'}</p>
                   </td>
                   <td className="px-4 py-3">
                     <LeadPriorityBadge
