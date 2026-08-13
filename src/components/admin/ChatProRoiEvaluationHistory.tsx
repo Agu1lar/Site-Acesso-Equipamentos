@@ -30,13 +30,13 @@ export function ChatProRoiEvaluationHistory(props: ChatProRoiEvaluationHistoryPr
   }
 
   return (
-    <section className="space-y-3 border-t border-neutral-100 pt-4">
+    <section className="space-y-2">
       <h3 className="text-sm font-semibold text-neutral-800">{props.labels.title}</h3>
       <ul className="space-y-2">
         {props.previous.map((row) => (
           <li key={row.id}>
-            <details className="rounded-lg border border-neutral-200 bg-neutral-50/80">
-              <summary className="cursor-pointer list-none px-4 py-3 text-sm marker:content-none [&::-webkit-details-marker]:hidden">
+            <details className="rounded-lg border border-neutral-200 bg-white">
+              <summary className="cursor-pointer list-none px-3 py-2 text-sm marker:content-none [&::-webkit-details-marker]:hidden">
                 <span className="font-medium text-neutral-900">
                   {formatDateTimeBrasilia(row.evaluatedAt)}
                 </span>
@@ -49,7 +49,7 @@ export function ChatProRoiEvaluationHistory(props: ChatProRoiEvaluationHistoryPr
                   {row.messageCount} {props.labels.colMessages.toLowerCase()}
                 </span>
               </summary>
-              <dl className="grid gap-2 border-t border-neutral-200 px-4 py-3 text-sm sm:grid-cols-2">
+              <dl className="grid gap-2 border-t border-neutral-200 px-3 py-3 text-sm sm:grid-cols-2">
                 <div>
                   <dt className="text-neutral-500">{props.labels.colStage}</dt>
                   <dd>{props.labels.stageLabels[row.stage]}</dd>

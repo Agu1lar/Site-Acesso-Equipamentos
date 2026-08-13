@@ -916,6 +916,7 @@
     "estimated_value_brl": "R$ {value}",
     "history_title": "Avaliações anteriores",
     "history_current_label": "Avaliação atual",
+    "history_toggle": "Ver {count} avaliações anteriores",
     "col_versions": "Versões",
     "versions_count": "{count}",
     "col_revision": "Versão",

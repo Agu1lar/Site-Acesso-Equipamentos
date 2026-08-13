@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Link } from '@/libs/I18nNavigation';
 import { formatDateTimeBrasilia } from '@/lib/app-datetime';
 import type { ChatProRoiLeadEvaluationGroup } from '@/lib/chatpro-roi-group';
@@ -21,6 +22,7 @@ type ChatProRoiEvaluationsTableProps = {
     colVersions: string;
     suggestedStatusHint: string;
     versionsCount: string;
+    historyToggle: string;
     historyTitle: string;
     colEstimatedValue: string;
     formatEstimatedValue: (value: number) => string;
@@ -31,8 +33,10 @@ type ChatProRoiEvaluationsTableProps = {
   };
 };
 
+const COLUMN_COUNT = 11;
+
 /**
- * Lists one row per lead with the latest Claude ROI evaluation and expandable history.
+ * Lists one compact row per lead; prior evaluations stay collapsed under a toggle.
  */
 export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProps) {
   return (
@@ -65,74 +69,88 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
               {props.groups.map((group) => {
                 const row = group.latest;
                 const versionTotal = group.previous.length + 1;
+                const previousCount = group.previous.length;
 
                 return (
-                  <tr className="border-b border-neutral-100 align-top last:border-0" key={group.leadId}>
-                    <td className="px-5 py-3">
-                      <p className="font-medium text-neutral-900">{row.leadName}</p>
-                      <p className="text-xs text-neutral-500">#{row.leadId}</p>
-                    </td>
-                    <td className="max-w-[10rem] truncate px-5 py-3 text-neutral-700">
-                      {row.utmCampaign?.trim() || '—'}
-                    </td>
-                    <td className="px-5 py-3 text-neutral-700">
-                      {props.labels.stageLabels[row.stage]}
-                    </td>
-                    <td className="px-5 py-3 tabular-nums text-neutral-700">{row.dealLikelihood}%</td>
-                    <td className="px-5 py-3 text-neutral-700">
-                      {props.labels.priorityLabels[row.followUpPriority]}
-                    </td>
-                    <td className="px-5 py-3 tabular-nums text-neutral-700">{row.messageCount}</td>
-                    <td className="px-5 py-3 text-neutral-700">
-                      {props.labels.versionsCount.replace('{count}', String(versionTotal))}
-                    </td>
-                    <td className="px-5 py-3 text-neutral-700">
-                      {row.suggestedStatus ? (
-                        <span title={props.labels.suggestedStatusHint}>
-                          {props.labels.statusLabels[row.suggestedStatus]}
-                        </span>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-neutral-700">
-                      {formatDateTimeBrasilia(row.evaluatedAt)}
-                    </td>
-                    <td className="max-w-sm px-5 py-3 text-neutral-600">
-                      <p className="line-clamp-3" title={row.summary}>
-                        {row.summary || '—'}
-                      </p>
-                      {group.previous.length > 0 ? (
-                        <div className="mt-3">
-                          <ChatProRoiEvaluationHistory
-                            labels={{
-                              title: props.labels.historyTitle,
-                              colStage: props.labels.colStage,
-                              colLikelihood: props.labels.colLikelihood,
-                              colMessages: props.labels.colMessages,
-                              colSummary: props.labels.colSummary,
-                              colSuggestedStatus: props.labels.colSuggestedStatus,
-                              colEvaluatedAt: props.labels.colEvaluatedAt,
-                              colEstimatedValue: props.labels.colEstimatedValue,
-                              suggestedStatusHint: props.labels.suggestedStatusHint,
-                              formatEstimatedValue: props.labels.formatEstimatedValue,
-                              stageLabels: props.labels.stageLabels,
-                              statusLabels: props.labels.statusLabels,
-                            }}
-                            previous={group.previous}
-                          />
-                        </div>
-                      ) : null}
-                    </td>
-                    <td className="px-5 py-3">
-                      <Link
-                        className="whitespace-nowrap font-medium text-primary hover:underline"
-                        href={`/dashboard/leads/${row.leadId}`}
-                      >
-                        {props.labels.viewLead}
-                      </Link>
-                    </td>
-                  </tr>
+                  <Fragment key={group.leadId}>
+                    <tr className="border-b border-neutral-100 align-top">
+                      <td className="px-5 py-3">
+                        <p className="font-medium text-neutral-900">{row.leadName}</p>
+                        <p className="text-xs text-neutral-500">#{row.leadId}</p>
+                      </td>
+                      <td className="max-w-[10rem] truncate px-5 py-3 text-neutral-700">
+                        {row.utmCampaign?.trim() || '—'}
+                      </td>
+                      <td className="px-5 py-3 text-neutral-700">
+                        {props.labels.stageLabels[row.stage]}
+                      </td>
+                      <td className="px-5 py-3 tabular-nums text-neutral-700">
+                        {row.dealLikelihood}%
+                      </td>
+                      <td className="px-5 py-3 text-neutral-700">
+                        {props.labels.priorityLabels[row.followUpPriority]}
+                      </td>
+                      <td className="px-5 py-3 tabular-nums text-neutral-700">{row.messageCount}</td>
+                      <td className="px-5 py-3 tabular-nums text-neutral-700">
+                        {props.labels.versionsCount.replace('{count}', String(versionTotal))}
+                      </td>
+                      <td className="px-5 py-3 text-neutral-700">
+                        {row.suggestedStatus ? (
+                          <span title={props.labels.suggestedStatusHint}>
+                            {props.labels.statusLabels[row.suggestedStatus]}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-5 py-3 text-neutral-700">
+                        {formatDateTimeBrasilia(row.evaluatedAt)}
+                      </td>
+                      <td className="max-w-sm px-5 py-3 text-neutral-600">
+                        <p className="line-clamp-3" title={row.summary}>
+                          {row.summary || '—'}
+                        </p>
+                      </td>
+                      <td className="px-5 py-3">
+                        <Link
+                          className="whitespace-nowrap font-medium text-primary hover:underline"
+                          href={`/dashboard/leads/${row.leadId}`}
+                        >
+                          {props.labels.viewLead}
+                        </Link>
+                      </td>
+                    </tr>
+                    {previousCount > 0 ? (
+                      <tr className="border-b border-neutral-100 bg-neutral-50/60 last:border-0">
+                        <td className="px-5 py-2" colSpan={COLUMN_COUNT}>
+                          <details className="group">
+                            <summary className="cursor-pointer list-none text-sm font-medium text-primary marker:content-none hover:underline [&::-webkit-details-marker]:hidden">
+                              {props.labels.historyToggle.replace('{count}', String(previousCount))}
+                            </summary>
+                            <div className="mt-3 max-w-3xl pb-2">
+                              <ChatProRoiEvaluationHistory
+                                labels={{
+                                  title: props.labels.historyTitle,
+                                  colStage: props.labels.colStage,
+                                  colLikelihood: props.labels.colLikelihood,
+                                  colMessages: props.labels.colMessages,
+                                  colSummary: props.labels.colSummary,
+                                  colSuggestedStatus: props.labels.colSuggestedStatus,
+                                  colEvaluatedAt: props.labels.colEvaluatedAt,
+                                  colEstimatedValue: props.labels.colEstimatedValue,
+                                  suggestedStatusHint: props.labels.suggestedStatusHint,
+                                  formatEstimatedValue: props.labels.formatEstimatedValue,
+                                  stageLabels: props.labels.stageLabels,
+                                  statusLabels: props.labels.statusLabels,
+                                }}
+                                previous={group.previous}
+                              />
+                            </div>
+                          </details>
+                        </td>
+                      </tr>
+                    ) : null}
+                  </Fragment>
                 );
               })}
             </tbody>
