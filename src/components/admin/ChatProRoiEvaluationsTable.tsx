@@ -4,6 +4,7 @@ import type { ChatProRoiDashboardEvaluation } from '@/lib/chatpro-roi-dashboard'
 
 type ChatProRoiEvaluationsTableProps = {
   rows: ChatProRoiDashboardEvaluation[];
+  latestEvaluationIdByLead: Record<number, number>;
   labels: {
     title: string;
     empty: string;
@@ -16,8 +17,12 @@ type ChatProRoiEvaluationsTableProps = {
     colEvaluatedAt: string;
     colMessages: string;
     colSuggestedStatus: string;
+    colRevision: string;
     suggestedStatusHint: string;
+    revisionCurrent: string;
+    revisionPrevious: string;
     viewLead: string;
+    viewHistory: string;
     stageLabels: Record<ChatProRoiDashboardEvaluation['stage'], string>;
     priorityLabels: Record<ChatProRoiDashboardEvaluation['followUpPriority'], string>;
     statusLabels: Record<NonNullable<ChatProRoiDashboardEvaluation['suggestedStatus']>, string>;
@@ -47,6 +52,7 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
                 <th className="px-5 py-3 font-medium">{props.labels.colLikelihood}</th>
                 <th className="px-5 py-3 font-medium">{props.labels.colPriority}</th>
                 <th className="px-5 py-3 font-medium">{props.labels.colMessages}</th>
+                <th className="px-5 py-3 font-medium">{props.labels.colRevision}</th>
                 <th className="px-5 py-3 font-medium">{props.labels.colSuggestedStatus}</th>
                 <th className="px-5 py-3 font-medium">{props.labels.colEvaluatedAt}</th>
                 <th className="px-5 py-3 font-medium">{props.labels.colSummary}</th>
@@ -54,7 +60,10 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
               </tr>
             </thead>
             <tbody>
-              {props.rows.map((row) => (
+              {props.rows.map((row) => {
+                const isLatest = props.latestEvaluationIdByLead[row.leadId] === row.id;
+
+                return (
                 <tr className="border-b border-neutral-100 align-top last:border-0" key={row.id}>
                   <td className="px-5 py-3">
                     <p className="font-medium text-neutral-900">{row.leadName}</p>
@@ -71,6 +80,17 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
                     {props.labels.priorityLabels[row.followUpPriority]}
                   </td>
                   <td className="px-5 py-3 tabular-nums text-neutral-700">{row.messageCount}</td>
+                  <td className="px-5 py-3">
+                    <span
+                      className={
+                        isLatest
+                          ? 'inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary'
+                          : 'inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600'
+                      }
+                    >
+                      {isLatest ? props.labels.revisionCurrent : props.labels.revisionPrevious}
+                    </span>
+                  </td>
                   <td className="px-5 py-3 text-neutral-700">
                     {row.suggestedStatus ? (
                       <span title={props.labels.suggestedStatusHint}>
@@ -93,11 +113,12 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
                       className="whitespace-nowrap font-medium text-primary hover:underline"
                       href={`/dashboard/leads/${row.leadId}`}
                     >
-                      {props.labels.viewLead}
+                      {isLatest ? props.labels.viewLead : props.labels.viewHistory}
                     </Link>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

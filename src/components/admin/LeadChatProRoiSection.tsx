@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { AdminCallout } from '@/components/admin/AdminCallout';
 import { AdminCard } from '@/components/admin/AdminCard';
+import { ChatProRoiEvaluationHistory } from '@/components/admin/ChatProRoiEvaluationHistory';
 import { formatDateTimeBrasilia } from '@/lib/app-datetime';
 import { listChatProRoiEvaluationsForLead } from '@/lib/chatpro-roi-dashboard';
 import { leadHasCampaignAttribution } from '@/lib/chatpro-roi-eligibility';
@@ -31,7 +32,7 @@ export async function LeadChatProRoiSection(props: LeadChatProRoiSectionProps) {
     createdAt: lead.createdAt,
   });
 
-  const evaluations = await listChatProRoiEvaluationsForLead(lead.id, 3);
+  const evaluations = await listChatProRoiEvaluationsForLead(lead.id, 10);
 
   if (!isCampaignLead && evaluations.length === 0) {
     return null;
@@ -72,7 +73,11 @@ export async function LeadChatProRoiSection(props: LeadChatProRoiSectionProps) {
         </AdminCallout>
 
         {latest ? (
-          <dl className="grid gap-3 text-sm sm:grid-cols-2">
+          <>
+            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+              {t('history_current_label')}
+            </p>
+            <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-neutral-500">{t('col_stage')}</dt>
               <dd className="font-medium text-neutral-900">{stageLabels[latest.stage]}</dd>
@@ -127,7 +132,25 @@ export async function LeadChatProRoiSection(props: LeadChatProRoiSectionProps) {
               <dt className="text-neutral-500">{t('col_summary')}</dt>
               <dd className="mt-1 whitespace-pre-wrap text-neutral-700">{latest.summary || '—'}</dd>
             </div>
-          </dl>
+            </dl>
+            <ChatProRoiEvaluationHistory
+              labels={{
+                title: t('history_title'),
+                colStage: t('col_stage'),
+                colLikelihood: t('col_likelihood'),
+                colMessages: t('col_messages'),
+                colSummary: t('col_summary'),
+                colSuggestedStatus: t('col_suggested_status'),
+                colEvaluatedAt: t('col_evaluated_at'),
+                colEstimatedValue: t('col_estimated_value'),
+                suggestedStatusHint: t('suggested_status_hint'),
+                formatEstimatedValue: (value) => t('estimated_value_brl', { value }),
+                stageLabels,
+                statusLabels,
+              }}
+              previous={evaluations.slice(1)}
+            />
+          </>
         ) : (
           <p className="text-sm text-neutral-600">{tLead('chatpro_roi_pending')}</p>
         )}

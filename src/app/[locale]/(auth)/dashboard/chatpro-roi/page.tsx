@@ -38,6 +38,13 @@ export default async function ChatProRoiAdminPage(props: ChatProRoiPageProps) {
 
   const summary = await getChatProRoiDashboardSummary({ limit: 30 });
 
+  const latestEvaluationIdByLead: Record<number, number> = {};
+  for (const row of summary.evaluations) {
+    if (latestEvaluationIdByLead[row.leadId] === undefined) {
+      latestEvaluationIdByLead[row.leadId] = row.id;
+    }
+  }
+
   const statusLabels = {
     new: tLead('status_new'),
     contacted: tLead('status_contacted'),
@@ -111,6 +118,7 @@ export default async function ChatProRoiAdminPage(props: ChatProRoiPageProps) {
       </div>
 
       <ChatProRoiEvaluationsTable
+        latestEvaluationIdByLead={latestEvaluationIdByLead}
         labels={{
           title: t('table_title'),
           empty: t('table_empty'),
@@ -123,8 +131,12 @@ export default async function ChatProRoiAdminPage(props: ChatProRoiPageProps) {
           colEvaluatedAt: t('col_evaluated_at'),
           colMessages: t('col_messages'),
           colSuggestedStatus: t('col_suggested_status'),
+          colRevision: t('col_revision'),
           suggestedStatusHint: t('suggested_status_hint'),
+          revisionCurrent: t('revision_current'),
+          revisionPrevious: t('revision_previous'),
           viewLead: t('view_lead'),
+          viewHistory: t('view_history'),
           stageLabels,
           priorityLabels,
           statusLabels,
