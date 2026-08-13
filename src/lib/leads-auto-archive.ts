@@ -1,4 +1,4 @@
-import { and, eq, lt, sql } from 'drizzle-orm';
+import { and, count, eq, lt, sql } from 'drizzle-orm';
 import { brasiliaDayStartUtc } from '@/lib/app-datetime';
 import { currentWeekRange } from '@/lib/leads-date-presets';
 import { db } from '@/libs/DB';
@@ -27,4 +27,18 @@ export async function archiveStaleCommercialLeads(reference = new Date()) {
     .returning({ id: leadsSchema.id });
 
   return archived.length;
+}
+
+/**
+ * Counts new leads with activity before the current week (candidates for manual archive).
+ */
+export async function countArchivableCommercialLeads(reference = new Date()) {
+  const weekStart = currentWeekStartUtc(reference);
+
+  const [row] = await db
+    .select({ count: count() })
+    .from(leadsSchema)
+    .where(and(eq(leadsSchema.status, 'new'), lt(leadActivityOrder, weekStart)));
+
+  return row?.count ?? 0;
 }

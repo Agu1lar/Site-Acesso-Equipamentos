@@ -148,6 +148,7 @@ export default async function ClientDetailPage(props: ClientDetailPageProps) {
           statusLabels,
           statusFieldLabel: tLeads('field_status'),
           statusSaveLabel: tLeads('status_save'),
+          statusSavedLabel: tLeads('save_success'),
           statusErrorMessage: tLeads('status_update_error'),
         }}
       />

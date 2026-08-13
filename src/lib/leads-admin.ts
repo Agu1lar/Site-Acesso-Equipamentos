@@ -436,9 +436,10 @@ export async function buildContactOrderCounts(leads: LeadRecord[]) {
  * @returns Updated lead row when found.
  */
 export async function updateLeadStatus(id: number, status: LeadStatus) {
+  const now = new Date();
   const [lead] = await db
     .update(leadsSchema)
-    .set({ status })
+    .set({ status, lastActivityAt: now })
     .where(eq(leadsSchema.id, id))
     .returning();
 
@@ -453,9 +454,13 @@ export async function updateLeadStatus(id: number, status: LeadStatus) {
  * @returns Updated lead row when found.
  */
 export async function updateLeadInternalNotes(id: number, internalNotes: string) {
+  const now = new Date();
   const [lead] = await db
     .update(leadsSchema)
-    .set({ internalNotes: internalNotes.trim() || null })
+    .set({
+      internalNotes: internalNotes.trim() || null,
+      lastActivityAt: now,
+    })
     .where(eq(leadsSchema.id, id))
     .returning();
 

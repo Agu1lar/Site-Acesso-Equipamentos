@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { AdminCallout } from '@/components/admin/AdminCallout';
 import { LeadPriorityBadge } from '@/components/admin/LeadPriorityBadge';
-import { hoursSinceLeadCreated } from '@/lib/equipment-conversion-analytics';
+import { hoursSinceLeadActivity } from '@/lib/leads-stale-alert';
 import type { LeadIntentTier } from '@/lib/lead-intent-score';
 import type { StaleLeadsSummary } from '@/lib/leads-stale-alert';
 import { Link } from '@/libs/I18nNavigation';
@@ -49,7 +49,7 @@ export async function StaleLeadsAlert(props: StaleLeadsAlertProps) {
                 tier={lead.tier}
               />
               <span className="text-sm text-amber-900/80">
-                {t('stale_alert_waiting', { hours: hoursSinceLeadCreated(lead.createdAt) })}
+                {t('stale_alert_waiting', { hours: hoursSinceLeadActivity(lead) })}
               </span>
             </div>
             <Link

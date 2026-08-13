@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { ArchiveStaleLeadsButton } from '@/components/admin/ArchiveStaleLeadsButton';
 import { AnalyticsWhatsappWeekStrip } from '@/components/admin/AnalyticsWhatsappWeekStrip';
 import { CommercialQueueSection } from '@/components/admin/CommercialQueueSection';
 import { LeadsTable } from '@/components/admin/LeadsTable';
 import { StaleLeadsAlert } from '@/components/admin/StaleLeadsAlert';
-import { AdminCallout } from '@/components/admin/AdminCallout';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
-import { archiveStaleCommercialLeads } from '@/lib/leads-auto-archive';
+import { countArchivableCommercialLeads } from '@/lib/leads-auto-archive';
 import { getOperationalDashboard } from '@/lib/analytics-admin';
 import { Button } from '@/components/ui/Button';
 import {
@@ -49,10 +49,10 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
     namespace: 'AnalyticsAdminPage',
   });
 
-  const archivedCount = await archiveStaleCommercialLeads();
   const weekRange = currentWeekRange();
 
-  const [queueResult, weekResult, staleLeads, weekMetrics, weekWhatsAppOpened] = await Promise.all([
+  const [queueResult, weekResult, staleLeads, weekMetrics, weekWhatsAppOpened, archivableCount] =
+    await Promise.all([
     listCommercialQueue(),
     listWeekOperationalLeads(),
     listStaleNewLeads(),
@@ -61,6 +61,7 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
       dateTo: weekRange.dateTo,
     }),
     countWeekWhatsAppOpenedLeads(),
+    countArchivableCommercialLeads(),
   ]);
   const contactOrderCounts = await buildContactOrderCounts(weekResult.leads);
   const weekLabel = formatWeekRangeLabel(weekResult.weekRange);
@@ -81,6 +82,8 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
         title={t('title_week')}
       />
 
+      <ArchiveStaleLeadsButton pendingCount={archivableCount} />
+
       <AnalyticsWhatsappWeekStrip
         clicks={weekMetrics.whatsappClicks}
         clicksLabel={tAnalytics('whatsapp_hero_clicks_label', {
@@ -95,12 +98,6 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
       />
 
       <StaleLeadsAlert summary={staleLeads} />
-
-      {archivedCount > 0 ? (
-        <AdminCallout variant="tip">
-          {t('auto_archive_notice', { count: archivedCount })}
-        </AdminCallout>
-      ) : null}
 
       <CommercialQueueSection
         leads={queueResult.leads}

@@ -102,3 +102,16 @@ export function IconSearch({ className = 'h-5 w-5' }: IconProps) {
     </svg>
   );
 }
+
+export function IconChatPro({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg aria-hidden className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        d="M8 10h8M8 14h5M21 12c0 3.866-3.582 7-8 7-.873 0-1.713-.13-2.5-.37L5 21l1.37-3.5A7.7 7.7 0 015 12c0-3.866 3.582-7 8-7s8 3.134 8 7z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.75"
+      />
+    </svg>
+  );
+}

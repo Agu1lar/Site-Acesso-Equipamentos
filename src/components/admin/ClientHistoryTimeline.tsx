@@ -14,6 +14,7 @@ type ClientHistoryTimelineProps = {
     statusLabels: Record<string, string>;
     statusFieldLabel: string;
     statusSaveLabel: string;
+    statusSavedLabel: string;
     statusErrorMessage: string;
   };
 };

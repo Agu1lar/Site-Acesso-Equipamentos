@@ -15,7 +15,7 @@ const sampleEvaluation = {
   equipmentMentioned: ['plataforma tesoura 12m'],
   summary:
     'Cliente de campanha pediu plataforma tesoura 12m por 30 dias em Contagem; comercial passou valor mensal e cliente sinalizou fechamento.',
-  suggestedStatus: 'qualified',
+  suggestedStatus: 'quoted',
   roiNotes: 'Lead quente com valor mensal informado; acompanhar envio de contrato.',
   followUpPriority: 'high',
 };
@@ -64,6 +64,25 @@ describe('selectMessagesForClaudeAnalysis', () => {
     const selected = selectMessagesForClaudeAnalysis(messages, 1);
     expect(selected.mode).toBe('incremental');
     expect(selected.messages.map((message) => message.id)).toEqual([2, 3]);
+  });
+
+  it('reprocesses full thread when incremental batch has media', () => {
+    const withImage = [
+      ...messages,
+      {
+        id: 4,
+        fromMe: true,
+        messageText: 'Segue NF',
+        mediaType: 'image',
+        mediaFilename: 'nf.jpg',
+        mediaMimetype: 'image/jpeg',
+        mediaUrl: 'https://cdn.chatpro.com.br/nf.jpg',
+        eventAt: new Date('2026-08-12T14:03:00.000Z'),
+      },
+    ];
+    const selected = selectMessagesForClaudeAnalysis(withImage, 3);
+    expect(selected.mode).toBe('full');
+    expect(selected.messages).toHaveLength(4);
   });
 });
 

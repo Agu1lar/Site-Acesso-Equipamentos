@@ -26,6 +26,7 @@ type ClientHistoryItemProps = {
     statusLabels: Record<string, string>;
     statusFieldLabel: string;
     statusSaveLabel: string;
+    statusSavedLabel: string;
     statusErrorMessage: string;
   };
 };
@@ -67,6 +68,7 @@ export function ClientHistoryItem(props: ClientHistoryItemProps) {
           labels={labels.statusLabels as Record<LeadStatus, string>}
           leadId={lead.id}
           saveLabel={labels.statusSaveLabel}
+          savedLabel={labels.statusSavedLabel}
         />
       </div>
       <Link

@@ -4,9 +4,11 @@ import { Link } from '@/libs/I18nNavigation';
 import { AnalyticsBarTable } from '@/components/admin/AnalyticsBarTable';
 import { AnalyticsConversionFunnel } from '@/components/admin/AnalyticsConversionFunnel';
 import { AnalyticsDailySeriesTable } from '@/components/admin/AnalyticsDailySeriesTable';
+import { AnalyticsEquipmentConversionTable } from '@/components/admin/AnalyticsEquipmentConversionTable';
 import { AnalyticsMetricSection } from '@/components/admin/AnalyticsMetricSection';
 import { AnalyticsTopPagesTable } from '@/components/admin/AnalyticsTopPagesTable';
 import { AnalyticsWhatsappHero } from '@/components/admin/AnalyticsWhatsappHero';
+import { CampaignPerformanceSection } from '@/components/admin/CampaignPerformanceSection';
 import { AdminCallout } from '@/components/admin/AdminCallout';
 import { AdminKpiCard } from '@/components/admin/AdminKpiCard';
 import type { OperationalDashboard } from '@/lib/analytics-admin-types';
@@ -110,6 +112,43 @@ export type AnalyticsDashboardLabels = {
   executive_export_title: string;
   executive_export_body: string;
   executive_export_button: string;
+  campaign: {
+    title: string;
+    hint: string;
+    dailyTitle: string;
+    dailyHint: string;
+    empty: string;
+    colCampaign: string;
+    colSource: string;
+    colMedium: string;
+    colWhatsapp: string;
+    colWhatsappReplied: string;
+    colTotalLeads: string;
+    colQuoteLeads: string;
+    colGoogleLeads: string;
+    colGclid: string;
+    colDate: string;
+    colLeads: string;
+    viewLeads: string;
+    comparePrevious: string;
+    statusNew: string;
+    statusContacted: string;
+    statusQuoted: string;
+    statusWon: string;
+    statusLost: string;
+    statusArchived: string;
+    statusOther: string;
+  };
+  equipmentConversion: {
+    title: string;
+    hint: string;
+    colEquipment: string;
+    colViews: string;
+    colWhatsapp: string;
+    colLeads: string;
+    colLeadRate: string;
+    colEngagementRate: string;
+  };
 };
 
 type AnalyticsDashboardProps = {
@@ -382,11 +421,36 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
             title={t.chart_category_filters}
             {...metricUi}
           />
+
+          <AnalyticsEquipmentConversionTable
+            colEngagementRate={t.equipmentConversion.colEngagementRate}
+            colEquipment={t.equipmentConversion.colEquipment}
+            colLeadRate={t.equipmentConversion.colLeadRate}
+            colLeads={t.equipmentConversion.colLeads}
+            colViews={t.equipmentConversion.colViews}
+            colWhatsapp={t.equipmentConversion.colWhatsapp}
+            dataType="table"
+            dataTypeLabel={dataTypes.table}
+            emptyLabel={t.empty_data}
+            meaning={t.equipmentConversion.hint}
+            meaningHideLabel={t.meaning_hide}
+            meaningToggleLabel={t.meaning_toggle}
+            rows={d.equipmentConversion}
+            title={t.equipmentConversion.title}
+          />
         </div>
       ) : null}
 
       {activeSection === 'trafego' ? (
         <div className="space-y-6">
+          <CampaignPerformanceSection
+            campaigns={d.campaignPerformance}
+            dailyLeads={d.campaignDailyLeads}
+            dateFrom={d.period.dateFrom}
+            dateTo={d.period.dateTo}
+            labels={t.campaign}
+          />
+
           <AnalyticsTopPagesTable
             colAvgTime={t.col_avg_active_time}
             colPage={t.col_page}

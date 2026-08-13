@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { brasiliaDayStartUtc } from '@/lib/app-datetime';
 import {
   calendarMonthRange,
   currentCalendarMonthRange,
@@ -34,7 +35,7 @@ describe('previous period range', () => {
   it('returns a range immediately before the current period', () => {
     const previous = previousPeriodRange('2026-02-01', '2026-02-07');
     expect(previous.to.getTime()).toBeLessThan(
-      new Date('2026-02-01T00:00:00.000Z').getTime(),
+      brasiliaDayStartUtc('2026-02-01').getTime(),
     );
     expect(previous.dateFrom).toBe('2026-01-25');
     expect(previous.dateTo).toBe('2026-01-31');

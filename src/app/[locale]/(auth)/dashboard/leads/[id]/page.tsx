@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { LeadChatProRoiSection } from '@/components/admin/LeadChatProRoiSection';
 import { LeadCartItemsList } from '@/components/admin/LeadCartItemsList';
 import { LeadContactHistory } from '@/components/admin/LeadContactHistory';
 import { LeadWhatsAppBadge } from '@/components/admin/LeadWhatsAppBadge';
@@ -188,6 +189,7 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
                 labels={statusLabels}
                 leadId={lead.id}
                 saveLabel={t('status_save')}
+                savedLabel={t('save_success')}
               />
             </div>
             {lead.equipmentName ? (
@@ -276,6 +278,8 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
         </AdminCard>
       ) : null}
 
+      <LeadChatProRoiSection lead={lead} />
+
       <LeadContactHistory currentLeadId={lead.id} relatedLeads={relatedLeads} />
 
       {lead.message ? (
@@ -295,6 +299,7 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
           leadId={lead.id}
           placeholder={t('internal_notes_placeholder')}
           saveLabel={t('notes_save')}
+          savedLabel={t('save_success')}
         />
       </AdminCard>
     </div>

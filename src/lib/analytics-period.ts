@@ -1,7 +1,11 @@
-import { formatBrasiliaDateOnly } from '@/lib/app-datetime';
+import {
+  brasiliaDayEndUtc,
+  brasiliaDayStartUtc,
+  formatBrasiliaDateOnly,
+} from '@/lib/app-datetime';
 
 /**
- * Resolves inclusive UTC date range from filter strings or defaults to current month (day 1 → today, Brasília).
+ * Resolves inclusive date range from filter strings or defaults to current month (day 1 → today, Brasília).
  */
 export function resolveAnalyticsPeriod(filters: { dateFrom?: string; dateTo?: string }) {
   const defaultRange = currentMonthToDateRange();
@@ -11,8 +15,8 @@ export function resolveAnalyticsPeriod(filters: { dateFrom?: string; dateTo?: st
   return {
     dateFrom,
     dateTo,
-    from: startOfDayUtc(dateFrom),
-    to: endOfDayUtc(dateTo),
+    from: brasiliaDayStartUtc(dateFrom),
+    to: brasiliaDayEndUtc(dateTo),
   };
 }
 
@@ -39,8 +43,8 @@ export function resolveComparisonPeriod(
       comparisonMode: 'custom',
       dateFrom: compareFrom,
       dateTo: compareTo,
-      from: startOfDayUtc(compareFrom),
-      to: endOfDayUtc(compareTo),
+      from: brasiliaDayStartUtc(compareFrom),
+      to: brasiliaDayEndUtc(compareTo),
     };
   }
 
@@ -55,22 +59,25 @@ export function resolveComparisonPeriod(
 }
 
 /**
- * Returns the inclusive UTC range for a calendar month (month 1 = January).
+ * Returns the inclusive date range for a calendar month (month 1 = January, Brasília labels).
  */
 export function calendarMonthRange(year: number, month: number) {
-  const from = new Date(Date.UTC(year, month - 1, 1));
-  const to = new Date(Date.UTC(year, month, 0));
+  const pad = (value: number) => String(value).padStart(2, '0');
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
   return {
-    dateFrom: formatDateOnly(from),
-    dateTo: formatDateOnly(to),
+    dateFrom: `${year}-${pad(month)}-01`,
+    dateTo: `${year}-${pad(month)}-${pad(lastDay)}`,
   };
 }
 
 /**
- * Returns the current calendar month range (UTC date parts).
+ * Returns the current calendar month range (America/Sao_Paulo).
  */
 export function currentCalendarMonthRange(reference = new Date()) {
-  return calendarMonthRange(reference.getUTCFullYear(), reference.getUTCMonth() + 1);
+  const dateStr = formatBrasiliaDateOnly(reference);
+  const year = Number(dateStr.slice(0, 4));
+  const month = Number(dateStr.slice(5, 7));
+  return calendarMonthRange(year, month);
 }
 
 /**
@@ -109,24 +116,29 @@ export function previousMonthToDateRange(reference = new Date()) {
  * Returns the calendar month immediately before the month of `reference`.
  */
 export function previousCalendarMonthRange(reference = new Date()) {
-  const anchor = new Date(Date.UTC(reference.getUTCFullYear(), reference.getUTCMonth(), 1));
-  anchor.setUTCMonth(anchor.getUTCMonth() - 1);
-  return calendarMonthRange(anchor.getUTCFullYear(), anchor.getUTCMonth() + 1);
+  const dateStr = formatBrasiliaDateOnly(reference);
+  let year = Number(dateStr.slice(0, 4));
+  let month = Number(dateStr.slice(5, 7)) - 1;
+  if (month < 1) {
+    month = 12;
+    year -= 1;
+  }
+  return calendarMonthRange(year, month);
 }
 
 /**
  * Returns the previous period of equal length immediately before the current range.
  */
 export function previousPeriodRange(dateFrom: string, dateTo: string) {
-  const from = startOfDayUtc(dateFrom);
-  const to = endOfDayUtc(dateTo);
+  const from = brasiliaDayStartUtc(dateFrom);
+  const to = brasiliaDayEndUtc(dateTo);
   const lengthMs = to.getTime() - from.getTime() + 1;
   const prevTo = new Date(from.getTime() - 1);
   const prevFrom = new Date(prevTo.getTime() - lengthMs + 1);
 
   return {
-    dateFrom: formatDateOnly(prevFrom),
-    dateTo: formatDateOnly(prevTo),
+    dateFrom: formatBrasiliaDateOnly(prevFrom),
+    dateTo: formatBrasiliaDateOnly(prevTo),
     from: prevFrom,
     to: prevTo,
   };
@@ -160,16 +172,4 @@ export function buildAnalyticsFilterQuery(filters: {
   }
   const query = params.toString();
   return query ? `?${query}` : '';
-}
-
-function formatDateOnly(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
-function startOfDayUtc(dateStr: string) {
-  return new Date(`${dateStr}T00:00:00.000Z`);
-}
-
-function endOfDayUtc(dateStr: string) {
-  return new Date(`${dateStr}T23:59:59.999Z`);
 }

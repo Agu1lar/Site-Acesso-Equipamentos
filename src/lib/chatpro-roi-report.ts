@@ -202,10 +202,11 @@ function readEvaluationResult(raw: Record<string, unknown> | null | undefined): 
     suggestedStatus:
       raw.suggestedStatus === 'new'
       || raw.suggestedStatus === 'contacted'
+      || raw.suggestedStatus === 'quoted'
       || raw.suggestedStatus === 'qualified'
       || raw.suggestedStatus === 'won'
       || raw.suggestedStatus === 'lost'
-        ? raw.suggestedStatus
+        ? raw.suggestedStatus === 'qualified' ? 'quoted' : raw.suggestedStatus
         : null,
     roiNotes: typeof raw.roiNotes === 'string' ? raw.roiNotes : '',
     followUpPriority:

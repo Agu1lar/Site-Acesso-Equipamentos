@@ -12,6 +12,7 @@ type LeadStatusFormProps = {
   labels: Record<LeadStatus, string>;
   fieldLabel: string;
   saveLabel: string;
+  savedLabel: string;
   errorMessage: string;
   compact?: boolean;
 };
@@ -26,6 +27,7 @@ export function LeadStatusForm(props: LeadStatusFormProps) {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   return (
     <form
@@ -37,6 +39,7 @@ export function LeadStatusForm(props: LeadStatusFormProps) {
       onSubmit={async (event) => {
         event.preventDefault();
         setError(null);
+        setSaved(false);
         setIsSaving(true);
 
         const response = await fetch(`/api/admin/leads/${props.leadId}/status`, {
@@ -54,6 +57,7 @@ export function LeadStatusForm(props: LeadStatusFormProps) {
         }
 
         router.refresh();
+        setSaved(true);
         setIsSaving(false);
       }}
     >
@@ -74,6 +78,7 @@ export function LeadStatusForm(props: LeadStatusFormProps) {
           id={selectId}
           onChange={(event) => {
             setStatus(event.target.value as LeadStatus);
+            setSaved(false);
           }}
           value={status}
         >
@@ -88,6 +93,7 @@ export function LeadStatusForm(props: LeadStatusFormProps) {
         {props.saveLabel}
       </Button>
       {error ? <p className="w-full text-sm text-red-600">{error}</p> : null}
+      {saved ? <p className="w-full text-sm text-emerald-700">{props.savedLabel}</p> : null}
     </form>
   );
 }

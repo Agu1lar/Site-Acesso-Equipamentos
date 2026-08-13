@@ -23,6 +23,11 @@ import {
   formatWhatsAppOrigin,
   formatPhoneOrigin,
 } from '@/lib/analytics-display-labels';
+import {
+  getCampaignPerformanceReport,
+  mergeCampaignPerformanceComparison,
+} from '@/lib/campaign-analytics';
+import { mergeEquipmentConversionRows } from '@/lib/equipment-conversion-analytics';
 import { resolveAnalyticsPeriod, resolveComparisonPeriod } from '@/lib/analytics-period';
 import type {
   AnalyticsDashboardFilters,
@@ -281,6 +286,91 @@ async function topTermsByEvent(eventType: string, from: Date, to: Date, limit = 
     .limit(limit);
 
   return rows.map((row) => ({ label: row.label, count: row.count }));
+}
+
+type SlugMetricRow = { slug: string; name: string; count: number };
+
+async function equipmentEventCountsBySlug(
+  eventType: 'equipment_view' | 'whatsapp_click',
+  from: Date,
+  to: Date,
+): Promise<SlugMetricRow[]> {
+  const slugExpr = sql<string>`coalesce(nullif(trim(${analyticsEventsSchema.equipmentSlug}), ''), '—')`;
+  const nameExpr = sql<string>`max(coalesce(nullif(trim(${analyticsEventsSchema.equipmentName}), ''), nullif(trim(${analyticsEventsSchema.equipmentSlug}), ''), '—'))`;
+
+  const rows = await db
+    .select({
+      slug: slugExpr,
+      name: nameExpr,
+      count: count(),
+    })
+    .from(analyticsEventsSchema)
+    .where(
+      and(
+        eq(analyticsEventsSchema.eventType, eventType),
+        gte(analyticsEventsSchema.createdAt, from),
+        lte(analyticsEventsSchema.createdAt, to),
+      ),
+    )
+    .groupBy(slugExpr)
+    .orderBy(desc(count()));
+
+  return rows
+    .filter((row) => row.slug !== '—')
+    .map((row) => ({ slug: row.slug, name: row.name, count: row.count }));
+}
+
+async function equipmentLeadCountsBySlug(from: Date, to: Date): Promise<SlugMetricRow[]> {
+  const slugExpr = sql<string>`coalesce(nullif(trim(${leadsSchema.equipmentSlug}), ''), '—')`;
+  const nameExpr = sql<string>`max(coalesce(nullif(trim(${leadsSchema.equipmentName}), ''), nullif(trim(${leadsSchema.equipmentSlug}), ''), '—'))`;
+
+  const rows = await db
+    .select({
+      slug: slugExpr,
+      name: nameExpr,
+      count: count(),
+    })
+    .from(leadsSchema)
+    .where(
+      and(
+        eq(leadsSchema.leadKind, 'quote'),
+        gte(leadsSchema.createdAt, from),
+        lte(leadsSchema.createdAt, to),
+      ),
+    )
+    .groupBy(slugExpr)
+    .orderBy(desc(count()));
+
+  return rows
+    .filter((row) => row.slug !== '—')
+    .map((row) => ({ slug: row.slug, name: row.name, count: row.count }));
+}
+
+async function loadEquipmentConversion(from: Date, to: Date) {
+  const [pageViews, whatsapp, leads] = await Promise.all([
+    equipmentEventCountsBySlug('equipment_view', from, to),
+    equipmentEventCountsBySlug('whatsapp_click', from, to),
+    equipmentLeadCountsBySlug(from, to),
+  ]);
+
+  return mergeEquipmentConversionRows({ pageViews, whatsapp, leads, limit: 15 });
+}
+
+async function loadCampaignPerformance(
+  from: Date,
+  to: Date,
+  compareFrom: Date,
+  compareTo: Date,
+) {
+  const [current, previous] = await Promise.all([
+    getCampaignPerformanceReport(from, to),
+    getCampaignPerformanceReport(compareFrom, compareTo),
+  ]);
+
+  return {
+    campaigns: mergeCampaignPerformanceComparison(current.campaigns, previous.campaigns),
+    dailyLeads: current.dailyLeads,
+  };
 }
 
 async function topEquipmentViews(from: Date, to: Date) {
@@ -595,6 +685,8 @@ async function loadOperationalDashboard(
     topCategoryFiltersRows,
     executiveSummary,
     leadReplyFunnelCounts,
+    campaignPerformanceResult,
+    equipmentConversionRows,
   ] = await Promise.all([
     runAnalyticsDashboardStep('daily_current', 'Agregados diários (período)', () =>
       withAnalyticsSchema(EMPTY_DAILY_SUM, () => sumAnalyticsDailyForPeriod(period.dateFrom, period.dateTo)),
@@ -693,6 +785,12 @@ async function loadOperationalDashboard(
     runAnalyticsDashboardStep('lead_reply_funnel', 'Funil lead → respondeu WhatsApp → ganho', () =>
       countLeadReplyFunnel(period.from, period.to),
     ),
+    runAnalyticsDashboardStep('campaign_performance', 'Performance por campanha UTM', () =>
+      loadCampaignPerformance(period.from, period.to, comparison.from, comparison.to),
+    ),
+    runAnalyticsDashboardStep('equipment_conversion', 'Conversão por equipamento', () =>
+      withAnalyticsSchema([], () => loadEquipmentConversion(period.from, period.to)),
+    ),
   ]);
 
   const pageViews = engagementCurrent.views || dailyCurrent.pageViews;
@@ -723,8 +821,8 @@ async function loadOperationalDashboard(
     whatsappByOrigin: humanizeCountRows(whatsappByOriginRows, formatWhatsAppOrigin),
     phoneByOrigin: humanizeCountRows(phoneByOriginRows, formatPhoneOrigin),
     trafficBySource: humanizeCountRows(trafficBySource, formatTrafficSource),
-    campaignPerformance: [],
-    campaignDailyLeads: [],
+    campaignPerformance: campaignPerformanceResult.campaigns,
+    campaignDailyLeads: campaignPerformanceResult.dailyLeads,
     topEquipmentWhatsapp: humanizeCountRows(topEquipmentWhatsapp, (label) =>
       formatEquipmentAnalyticsLabel(label, 'whatsapp'),
     ),
@@ -739,7 +837,7 @@ async function loadOperationalDashboard(
         pathnameDetail: formatted !== row.pathname ? row.pathname : undefined,
       };
     }),
-    equipmentConversion: [],
+    equipmentConversion: equipmentConversionRows,
     landingPages: humanizeCountRows(landingPages, formatSitePath),
     deviceSplit: humanizeCountRows(deviceSplitRows, formatDevice),
     conversionFunnel: buildConversionFunnel({

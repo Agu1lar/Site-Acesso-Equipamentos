@@ -1,53 +1,74 @@
+import {
+  APP_TIMEZONE,
+  brasiliaDayStartUtc,
+  formatBrasiliaDateOnly,
+} from '@/lib/app-datetime';
+
+const WEEKDAY_MAP: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
+
 /**
  * Formats a date as YYYY-MM-DD for HTML date inputs and filter query params.
  */
 export function toIsoDateInput(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return formatBrasiliaDateOnly(date);
+}
+
+function brasiliaWeekday(dateStr: string) {
+  const instant = brasiliaDayStartUtc(dateStr);
+  const short = new Intl.DateTimeFormat('en-US', {
+    timeZone: APP_TIMEZONE,
+    weekday: 'short',
+  }).format(instant);
+  return WEEKDAY_MAP[short] ?? 0;
+}
+
+function shiftBrasiliaDate(dateStr: string, days: number) {
+  const instant = brasiliaDayStartUtc(dateStr);
+  return formatBrasiliaDateOnly(new Date(instant.getTime() + days * 86_400_000));
 }
 
 /**
- * Returns dateFrom/dateTo for the last N calendar days (UTC date parts).
+ * Returns dateFrom/dateTo for the last N calendar days in America/Sao_Paulo (inclusive).
  */
 export function lastDaysRange(days: number) {
-  const to = new Date();
-  const from = new Date();
-  from.setUTCDate(from.getUTCDate() - days);
-  return {
-    dateFrom: toIsoDateInput(from),
-    dateTo: toIsoDateInput(to),
-  };
+  const dateTo = formatBrasiliaDateOnly(new Date());
+  const dateFrom = shiftBrasiliaDate(dateTo, -(days - 1));
+  return { dateFrom, dateTo };
 }
 
-/** Monday–Sunday range for the week containing `reference` (UTC date parts). */
+/** Monday–Sunday range for the week containing `reference` (America/Sao_Paulo). */
 export function currentWeekRange(reference = new Date()) {
-  const date = new Date(reference);
-  const weekday = date.getUTCDay();
+  const today = formatBrasiliaDateOnly(reference);
+  const weekday = brasiliaWeekday(today);
   const daysFromMonday = weekday === 0 ? 6 : weekday - 1;
+  const dateFrom = shiftBrasiliaDate(today, -daysFromMonday);
+  const dateTo = shiftBrasiliaDate(dateFrom, 6);
 
-  const monday = new Date(date);
-  monday.setUTCDate(date.getUTCDate() - daysFromMonday);
-  monday.setUTCHours(0, 0, 0, 0);
-
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
-
-  return {
-    dateFrom: toIsoDateInput(monday),
-    dateTo: toIsoDateInput(sunday),
-  };
+  return { dateFrom, dateTo };
 }
 
 /** Monday–Sunday range for the week before the week containing `reference`. */
 export function previousWeekRange(reference = new Date()) {
-  const anchor = new Date(reference);
-  anchor.setUTCDate(anchor.getUTCDate() - 7);
-  return currentWeekRange(anchor);
+  const current = currentWeekRange(reference);
+  const anchor = shiftBrasiliaDate(current.dateFrom, -7);
+  return currentWeekRange(new Date(brasiliaDayStartUtc(anchor).getTime() + 12 * 60 * 60 * 1000));
 }
 
 /** Human-readable week label for admin headers (pt-BR). */
 export function formatWeekRangeLabel(range: { dateFrom: string; dateTo: string }) {
-  const from = new Date(`${range.dateFrom}T12:00:00.000Z`);
-  const to = new Date(`${range.dateTo}T12:00:00.000Z`);
-  const formatter = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' });
+  const formatter = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: APP_TIMEZONE,
+    dateStyle: 'short',
+  });
+  const from = brasiliaDayStartUtc(range.dateFrom);
+  const to = brasiliaDayStartUtc(range.dateTo);
   return `${formatter.format(from)} – ${formatter.format(to)}`;
 }

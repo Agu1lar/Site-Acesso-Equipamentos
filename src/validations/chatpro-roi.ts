@@ -21,7 +21,10 @@ export const ChatProRoiEvaluationSchema = z.object({
   contractNotes: z.string().nullable(),
   equipmentMentioned: z.array(z.string()).max(8),
   summary: z.string().min(20).max(1200),
-  suggestedStatus: z.enum(['new', 'contacted', 'qualified', 'won', 'lost']).nullable(),
+  suggestedStatus: z.preprocess(
+    (value) => (value === 'qualified' ? 'quoted' : value),
+    z.enum(['new', 'contacted', 'quoted', 'won', 'lost']).nullable(),
+  ),
   roiNotes: z.string().max(800),
   followUpPriority: z.enum(['low', 'medium', 'high']),
 });
@@ -67,7 +70,7 @@ export function buildChatProRoiOutputSchema() {
         anyOf: [
           {
             type: 'string',
-            enum: ['new', 'contacted', 'qualified', 'won', 'lost'],
+            enum: ['new', 'contacted', 'quoted', 'won', 'lost'],
           },
           { type: 'null' },
         ],

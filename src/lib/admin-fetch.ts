@@ -1,6 +1,7 @@
 type AdminJsonBody = {
   error?: string;
   deletedCount?: number;
+  archivedCount?: number;
   primaryClientId?: number;
   ok?: boolean;
 };

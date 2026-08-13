@@ -43,19 +43,29 @@ export function ClientDeleteButton(props: ClientDeleteButtonProps) {
     setIsDeleting(true);
     setError(null);
 
-    hideClients([clientPreview]);
-    setOpen(false);
-    setIsDeleting(false);
-    router.replace('/dashboard/clientes');
-
     try {
-      await fetch('/api/admin/clients/delete', {
+      const response = await fetch('/api/admin/clients/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientIds: [props.clientId] }),
-      }).then(parseAdminJsonResponse);
+      });
+
+      const body = await parseAdminJsonResponse(response);
+
+      if (!response.ok && response.status !== 404) {
+        setError(body.error ?? t('delete_error'));
+        setIsDeleting(false);
+        return;
+      }
+
+      hideClients([clientPreview]);
+      setOpen(false);
+      setIsDeleting(false);
+      router.replace('/dashboard/clientes');
+      router.refresh();
     } catch {
-      // Lista já foi atualizada no navegador; API é best-effort.
+      setError(t('delete_error'));
+      setIsDeleting(false);
     }
   };
 

@@ -8,6 +8,8 @@ import { isAllowedPdfFetchUrl } from './chatpro-pdf-url';
 const ANTHROPIC_MESSAGES_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
 const MAX_PDF_BYTES = 15 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_MEDIA_ATTACHMENTS = 3;
 
 export type ChatProRoiAiConfig = {
   apiKey: string;
@@ -53,11 +55,17 @@ type ClaudeResponse = {
   error?: { message?: string };
 };
 
+type AnthropicImageMediaType = 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+
 type AnthropicContentBlock =
   | { type: 'text'; text: string }
   | {
       type: 'document';
       source: { type: 'base64'; media_type: 'application/pdf'; data: string };
+    }
+  | {
+      type: 'image';
+      source: { type: 'base64'; media_type: AnthropicImageMediaType; data: string };
     };
 
 function formatConversation(messages: ChatProConversationMessage[]) {
@@ -85,10 +93,46 @@ function isPdfAttachment(message: ChatProConversationMessage) {
   );
 }
 
+function isImageAttachment(message: ChatProConversationMessage) {
+  if (isPdfAttachment(message)) {
+    return false;
+  }
+
+  const mimetype = message.mediaMimetype?.toLowerCase() ?? '';
+  const filename = message.mediaFilename?.toLowerCase() ?? '';
+  const mediaType = message.mediaType?.toLowerCase() ?? '';
+
+  return (
+    mimetype.startsWith('image/')
+    || mediaType === 'image'
+    || /\.(jpe?g|png|gif|webp)$/u.test(filename)
+  );
+}
+
+function resolveImageMediaType(
+  mimetype: string | null | undefined,
+  filename: string | null | undefined,
+): AnthropicImageMediaType {
+  const hint = `${mimetype ?? ''} ${filename ?? ''}`.toLowerCase();
+  if (hint.includes('png')) {
+    return 'image/png';
+  }
+  if (hint.includes('webp')) {
+    return 'image/webp';
+  }
+  if (hint.includes('gif')) {
+    return 'image/gif';
+  }
+  return 'image/jpeg';
+}
+
+function messageHasMediaAttachment(message: ChatProConversationMessage) {
+  return Boolean(message.mediaUrl && (isPdfAttachment(message) || isImageAttachment(message)));
+}
+
 /**
  * Picks messages Claude should read: full thread on first run, only new ones after that.
- * @param messages Chronological ChatPro messages for the lead.
- * @param priorLastMessageId Last message id already covered by a previous evaluation.
+ * Re-processes the full thread when new messages include PDF/image attachments.
  */
 export function selectMessagesForClaudeAnalysis(
   messages: ChatProConversationMessage[],
@@ -101,6 +145,10 @@ export function selectMessagesForClaudeAnalysis(
   const incremental = messages.filter((message) => message.id > priorLastMessageId);
   if (incremental.length === 0) {
     return { mode: 'full' as const, messages };
+  }
+
+  if (incremental.some(messageHasMediaAttachment)) {
+    return { mode: 'full' as const, messages, reason: 'new_media' as const };
   }
 
   return { mode: 'incremental' as const, messages: incremental };
@@ -128,41 +176,79 @@ function formatPriorEvaluationBlock(prior: ChatProPriorEvaluation) {
   ].join('\n');
 }
 
-/**
- * Downloads a PDF attachment for Claude document analysis.
- * @param url Remote file URL from ChatPro.
- * @param allowedHostSuffixes Optional extra host suffixes from env.
- */
-export async function fetchPdfForAnalysis(url: string, allowedHostSuffixes: string[] = []) {
+async function fetchRemoteMediaBase64(
+  url: string,
+  allowedHostSuffixes: string[],
+  maxBytes: number,
+  allowedContentHint: RegExp,
+) {
   if (!isAllowedPdfFetchUrl(url, allowedHostSuffixes)) {
-    throw new Error('pdf_url_not_allowed');
+    throw new Error('media_url_not_allowed');
   }
 
   const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
   if (!response.ok) {
-    throw new Error('pdf_fetch_failed');
+    throw new Error('media_fetch_failed');
   }
 
   const buffer = Buffer.from(await response.arrayBuffer());
-  if (buffer.byteLength > MAX_PDF_BYTES) {
-    throw new Error('pdf_too_large');
+  if (buffer.byteLength > maxBytes) {
+    throw new Error('media_too_large');
   }
 
   const contentType = response.headers.get('content-type')?.toLowerCase() ?? '';
-  if (contentType && !contentType.includes('pdf') && !contentType.includes('octet-stream')) {
-    throw new Error('pdf_invalid_mimetype');
+  if (contentType && !allowedContentHint.test(contentType) && !contentType.includes('octet-stream')) {
+    throw new Error('media_invalid_mimetype');
   }
 
   return buffer.toString('base64');
 }
 
 /**
- * Evaluates a ChatPro conversation (+ optional contract PDFs) with Claude.
- * Reuses prior evaluation context so Claude only reads new messages when possible.
- * @param lead Lead attribution and form context.
- * @param messages Chronological ChatPro messages (full thread).
- * @param config Anthropic credentials and model.
- * @param priorEvaluation Last saved evaluation for this lead, if any.
+ * Downloads a PDF attachment for Claude document analysis.
+ */
+export async function fetchPdfForAnalysis(url: string, allowedHostSuffixes: string[] = []) {
+  return fetchRemoteMediaBase64(
+    url,
+    allowedHostSuffixes,
+    MAX_PDF_BYTES,
+    /pdf/u,
+  );
+}
+
+/**
+ * Downloads an image attachment for Claude vision analysis.
+ */
+export async function fetchImageForAnalysis(
+  url: string,
+  allowedHostSuffixes: string[] = [],
+  mediaTypeHint?: AnthropicImageMediaType,
+) {
+  const base64 = await fetchRemoteMediaBase64(
+    url,
+    allowedHostSuffixes,
+    MAX_IMAGE_BYTES,
+    /image\/(jpeg|jpg|png|gif|webp)|octet-stream/u,
+  );
+
+  return {
+    base64,
+    mediaType: mediaTypeHint ?? 'image/jpeg' as AnthropicImageMediaType,
+  };
+}
+
+const ROI_ANALYSIS_GUIDANCE = [
+  'Sinais de fechamento (locação):',
+  '- Contrato PDF coerente com a conversa.',
+  '- Comentário explícito sobre emissão/envio de nota fiscal (NF) — ex.: "vou emitir a NF", "segue a NF", "nota fiscal emitida". Isso costuma indicar acordo fechado, mesmo sem anexo.',
+  '- Nem todo fechamento inclui NF; não exija NF para marcar closed_won se houver outra evidência clara (contrato assinado, confirmação explícita de locação com valor).',
+  '- Pergunta genérica sobre NF ("vocês emitem NF?") NÃO é fechamento — só curiosidade ou negociação.',
+  'Valores: estimatedMonthlyValueBrl somente quando aparecerem na conversa, NF, contrato ou anexo legível. Não invente.',
+  'suggestedStatus espelha o CRM (new, contacted, quoted, won, lost) — é sugestão, não altera o sistema.',
+].join('\n');
+
+/**
+ * Evaluates a ChatPro conversation (+ optional contract PDFs and images) with Claude.
  */
 export async function evaluateChatProLeadWithClaude(
   lead: ChatProLeadContext,
@@ -185,7 +271,11 @@ export async function evaluateChatProLeadWithClaude(
   const pdfMessages = selected.messages.filter(
     (message) => message.mediaUrl && isPdfAttachment(message),
   );
+  const imageMessages = selected.messages.filter(
+    (message) => message.mediaUrl && isImageAttachment(message),
+  );
   const isIncremental = selected.mode === 'incremental' && priorEvaluation;
+  const allowedHosts = config.pdfAllowedHostSuffixes ?? [];
 
   const contentBlocks: AnthropicContentBlock[] = [
     {
@@ -203,31 +293,36 @@ export async function evaluateChatProLeadWithClaude(
         `- Campanha UTM: ${lead.utmCampaign ?? '—'} | Source: ${lead.utmSource ?? '—'} | Medium: ${lead.utmMedium ?? '—'}`,
         `- gclid: ${lead.gclid ? 'sim' : 'não'}`,
         '',
+        ROI_ANALYSIS_GUIDANCE,
+        '',
         isIncremental && priorEvaluation ? formatPriorEvaluationBlock(priorEvaluation) : '',
         isIncremental ? 'Mensagens NOVAS desde a última análise:' : 'Conversa WhatsApp (ordem cronológica):',
         conversation,
         '',
         pdfMessages.length > 0
-          ? 'Há PDF(s) anexados abaixo — verifique se parecem contrato de locação e se batem com a conversa.'
+          ? 'Há PDF(s) anexados abaixo — podem ser contrato de locação ou NF em PDF.'
           : isIncremental
             ? 'Nenhum PDF novo nestas mensagens.'
             : 'Nenhum PDF anexado nesta conversa.',
+        imageMessages.length > 0
+          ? 'Há imagem(ns) anexada(s) abaixo — podem ser NF, contrato escaneado ou foto do equipamento.'
+          : isIncremental
+            ? 'Nenhuma imagem nova nestas mensagens.'
+            : 'Nenhuma imagem anexada nesta conversa.',
         '',
-        'Responda em português do Brasil. Não invente valores — use null se não houver base na conversa ou no PDF.',
-        'Fechamento real em locação costuma envolver contrato PDF; priorize evidências explícitas.',
+        'Responda em português do Brasil.',
       ].filter(Boolean).join('\n'),
     },
   ];
 
-  for (const pdfMessage of pdfMessages.slice(0, 2)) {
-    if (!pdfMessage.mediaUrl) {
+  let attachmentsAdded = 0;
+
+  for (const pdfMessage of pdfMessages) {
+    if (!pdfMessage.mediaUrl || attachmentsAdded >= MAX_MEDIA_ATTACHMENTS) {
       continue;
     }
     try {
-      const base64 = await fetchPdfForAnalysis(
-        pdfMessage.mediaUrl,
-        config.pdfAllowedHostSuffixes ?? [],
-      );
+      const base64 = await fetchPdfForAnalysis(pdfMessage.mediaUrl, allowedHosts);
       contentBlocks.push({
         type: 'document',
         source: {
@@ -238,12 +333,41 @@ export async function evaluateChatProLeadWithClaude(
       });
       contentBlocks.push({
         type: 'text',
-        text: `PDF acima enviado em ${pdfMessage.eventAt?.toISOString() ?? 'data desconhecida'} (${pdfMessage.mediaFilename ?? 'contrato'}).`,
+        text: `PDF acima (${pdfMessage.fromMe ? 'Empresa' : 'Cliente'}) em ${pdfMessage.eventAt?.toISOString() ?? 'data desconhecida'} — ${pdfMessage.mediaFilename ?? 'anexo'}.`,
       });
+      attachmentsAdded += 1;
     } catch {
       contentBlocks.push({
         type: 'text',
-        text: `Não foi possível baixar o PDF ${pdfMessage.mediaFilename ?? pdfMessage.mediaUrl} — analise só pelo histórico textual.`,
+        text: `Não foi possível baixar o PDF ${pdfMessage.mediaFilename ?? pdfMessage.mediaUrl} — analise pelo texto da conversa.`,
+      });
+    }
+  }
+
+  for (const imageMessage of imageMessages) {
+    if (!imageMessage.mediaUrl || attachmentsAdded >= MAX_MEDIA_ATTACHMENTS) {
+      continue;
+    }
+    const mediaType = resolveImageMediaType(imageMessage.mediaMimetype, imageMessage.mediaFilename);
+    try {
+      const image = await fetchImageForAnalysis(imageMessage.mediaUrl, allowedHosts, mediaType);
+      contentBlocks.push({
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: image.mediaType,
+          data: image.base64,
+        },
+      });
+      contentBlocks.push({
+        type: 'text',
+        text: `Imagem acima (${imageMessage.fromMe ? 'Empresa' : 'Cliente'}) em ${imageMessage.eventAt?.toISOString() ?? 'data desconhecida'} — ${imageMessage.mediaFilename ?? 'anexo'}. Pode ser NF ou documento.`,
+      });
+      attachmentsAdded += 1;
+    } catch {
+      contentBlocks.push({
+        type: 'text',
+        text: `Não foi possível baixar a imagem ${imageMessage.mediaFilename ?? imageMessage.mediaUrl} — analise pelo texto da conversa.`,
       });
     }
   }
@@ -260,10 +384,10 @@ export async function evaluateChatProLeadWithClaude(
       max_tokens: 2000,
       system: [
         'Você é analista comercial da Acesso Equipamentos (locação de equipamentos para construção civil, MG).',
-        'Avalie intenção, estágio do funil, probabilidade de fechamento e consistência de contratos PDF com a conversa.',
-        'Quando houver contexto anterior da mesma conversa, atualize a partir dele e das mensagens novas — não ignore evidências já registradas sem motivo.',
-        'Seja conservador: só marque closed_won ou contractDetected quando houver evidência clara.',
-        'estimatedMonthlyValueBrl só quando valores aparecerem na conversa ou contrato.',
+        'Avalie intenção, estágio do funil, probabilidade de fechamento e evidências de fechamento (contrato, NF, confirmação explícita).',
+        'Quando houver contexto anterior da mesma conversa, atualize a partir dele e das mensagens novas.',
+        'Menção clara de emissão/envio de NF pela empresa costuma indicar acordo fechado — trate como closed_won salvo contexto contrário.',
+        'Seja conservador em closed_lost e em valores; não marque closed_won só por perguntas sobre NF.',
       ].join(' '),
       messages: [{ role: 'user', content: contentBlocks }],
       output_config: {

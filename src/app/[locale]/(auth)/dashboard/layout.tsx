@@ -48,6 +48,7 @@ export default async function DashboardLayout(props: DashboardLayoutProps) {
         leadsConsultaLink: t('leads_consulta_link'),
         clientsLink: t('clients_link'),
         analyticsLink: t('analytics_link'),
+        chatproRoiLink: t('chatpro_roi_link'),
         blogLink: t('blog_link'),
         blogNewLink: t('blog_new_link'),
         equipmentLink: t('equipment_link'),

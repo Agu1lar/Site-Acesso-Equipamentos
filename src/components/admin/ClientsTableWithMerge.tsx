@@ -137,13 +137,6 @@ export function ClientsTableWithMerge(props: ClientsTableWithMergeProps) {
     setIsDeleting(true);
     setError(null);
 
-    dismissFromList(deleteTargets);
-    setDeleteDialogOpen(false);
-    setSelectedIds([]);
-    setDeleteSuccess(deleteTargets.length);
-    setMergeSuccess(null);
-    setIsDeleting(false);
-
     try {
       const response = await fetch('/api/admin/clients/delete', {
         method: 'POST',
@@ -155,9 +148,20 @@ export function ClientsTableWithMerge(props: ClientsTableWithMergeProps) {
 
       if (!response.ok && response.status !== 404) {
         setError(body.error ?? t('delete_error'));
+        setIsDeleting(false);
+        return;
       }
+
+      dismissFromList(deleteTargets);
+      setDeleteDialogOpen(false);
+      setSelectedIds([]);
+      setDeleteSuccess(deleteTargets.length);
+      setMergeSuccess(null);
+      setIsDeleting(false);
+      router.refresh();
     } catch {
-      // Mantém oculto na lista mesmo se a API falhar.
+      setError(t('delete_error'));
+      setIsDeleting(false);
     }
   };
 

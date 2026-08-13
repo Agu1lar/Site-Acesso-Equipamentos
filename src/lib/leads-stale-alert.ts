@@ -26,13 +26,24 @@ export type StaleLeadsSummary = {
 };
 
 /**
+ * Returns how many whole hours have passed since the lead's last activity.
+ */
+export function hoursSinceLeadActivity(
+  lead: Pick<LeadWithIntent, 'createdAt' | 'lastActivityAt'>,
+  now = Date.now(),
+) {
+  const reference = lead.lastActivityAt ?? lead.createdAt;
+  return Math.floor((now - reference.getTime()) / (60 * 60 * 1000));
+}
+
+/**
  * Lists new leads older than the stale threshold without contact.
  */
 export async function listStaleNewLeads(limit = 10): Promise<StaleLeadsSummary> {
   const cutoff = new Date(Date.now() - STALE_LEAD_HOURS * 60 * 60 * 1000);
   const where = and(
     eq(leadsSchema.status, 'new'),
-    lte(leadsSchema.createdAt, cutoff),
+    lte(leadActivityOrder, cutoff),
     buildCurrentWeekActivityWhere(),
   );
 
@@ -41,7 +52,7 @@ export async function listStaleNewLeads(limit = 10): Promise<StaleLeadsSummary> 
       .select()
       .from(leadsSchema)
       .where(where)
-      .orderBy(asc(leadsSchema.createdAt))
+      .orderBy(asc(leadActivityOrder))
       .limit(limit),
     db.select({ count: count() }).from(leadsSchema).where(where),
   ]);

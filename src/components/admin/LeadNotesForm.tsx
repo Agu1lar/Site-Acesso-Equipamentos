@@ -10,6 +10,7 @@ type LeadNotesFormProps = {
   initialNotes: string;
   fieldLabel: string;
   saveLabel: string;
+  savedLabel: string;
   errorMessage: string;
   placeholder: string;
 };
@@ -22,6 +23,7 @@ export function LeadNotesForm(props: LeadNotesFormProps) {
   const [notes, setNotes] = useState(props.initialNotes);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   return (
     <form
@@ -29,6 +31,7 @@ export function LeadNotesForm(props: LeadNotesFormProps) {
       onSubmit={async (event) => {
         event.preventDefault();
         setError(null);
+        setSaved(false);
         setIsSaving(true);
 
         const response = await fetch(`/api/admin/leads/${props.leadId}/notes`, {
@@ -46,6 +49,7 @@ export function LeadNotesForm(props: LeadNotesFormProps) {
         }
 
         router.refresh();
+        setSaved(true);
         setIsSaving(false);
       }}
     >
@@ -55,6 +59,7 @@ export function LeadNotesForm(props: LeadNotesFormProps) {
         label={props.fieldLabel}
         onChange={(event) => {
           setNotes(event.target.value);
+          setSaved(false);
         }}
         placeholder={props.placeholder}
         rows={4}
@@ -64,6 +69,7 @@ export function LeadNotesForm(props: LeadNotesFormProps) {
         {props.saveLabel}
       </Button>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {saved ? <p className="text-sm text-emerald-700">{props.savedLabel}</p> : null}
     </form>
   );
 }
