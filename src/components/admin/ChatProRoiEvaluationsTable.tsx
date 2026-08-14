@@ -3,6 +3,8 @@ import { Link } from '@/libs/I18nNavigation';
 import { formatDateTimeBrasilia } from '@/lib/app-datetime';
 import type { ChatProRoiLeadEvaluationGroup } from '@/lib/chatpro-roi-group';
 import { ChatProRoiEvaluationHistory } from '@/components/admin/ChatProRoiEvaluationHistory';
+import { ChatProRoiFrozenBadge } from '@/components/admin/ChatProRoiFrozenBadge';
+import { isRoiJourneyFrozen } from '@/lib/chatpro-roi-eligibility';
 import type { ChatProRoiDashboardEvaluation } from '@/lib/chatpro-roi-dashboard-types';
 
 type ChatProRoiEvaluationsTableProps = {
@@ -24,6 +26,8 @@ type ChatProRoiEvaluationsTableProps = {
     versionsCount: string;
     historyToggle: string;
     historyTitle: string;
+    frozenBadge: string;
+    frozenHint: string;
     colEstimatedValue: string;
     formatEstimatedValue: (value: number) => string;
     viewLead: string;
@@ -70,6 +74,10 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
                 const row = group.latest;
                 const versionTotal = group.previous.length + 1;
                 const previousCount = group.previous.length;
+                const frozen = isRoiJourneyFrozen({
+                  status: row.leadStatus,
+                  lastEvaluationStage: row.stage,
+                });
 
                 return (
                   <Fragment key={group.leadId}>
@@ -77,6 +85,14 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
                       <td className="px-5 py-3">
                         <p className="font-medium text-neutral-900">{row.leadName}</p>
                         <p className="text-xs text-neutral-500">#{row.leadId}</p>
+                        {frozen ? (
+                          <p className="mt-1">
+                            <ChatProRoiFrozenBadge
+                              hint={props.labels.frozenHint}
+                              label={props.labels.frozenBadge}
+                            />
+                          </p>
+                        ) : null}
                       </td>
                       <td className="max-w-[10rem] truncate px-5 py-3 text-neutral-700">
                         {row.utmCampaign?.trim() || '—'}

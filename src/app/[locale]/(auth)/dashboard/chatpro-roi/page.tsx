@@ -129,6 +129,8 @@ export default async function ChatProRoiAdminPage(props: ChatProRoiPageProps) {
           versionsCount: t('versions_count'),
           historyToggle: t('history_toggle'),
           historyTitle: t('history_title'),
+          frozenBadge: t('frozen_badge'),
+          frozenHint: t('frozen_hint'),
           colEstimatedValue: t('col_estimated_value'),
           formatEstimatedValue: (value) => t('estimated_value_brl', { value }),
           viewLead: t('view_lead'),

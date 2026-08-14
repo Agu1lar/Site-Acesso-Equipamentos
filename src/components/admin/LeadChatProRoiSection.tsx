@@ -2,9 +2,10 @@ import { getTranslations } from 'next-intl/server';
 import { AdminCallout } from '@/components/admin/AdminCallout';
 import { AdminCard } from '@/components/admin/AdminCard';
 import { ChatProRoiEvaluationHistory } from '@/components/admin/ChatProRoiEvaluationHistory';
+import { ChatProRoiFrozenBadge } from '@/components/admin/ChatProRoiFrozenBadge';
 import { formatDateTimeBrasilia } from '@/lib/app-datetime';
 import { listChatProRoiEvaluationsForLead } from '@/lib/chatpro-roi-dashboard';
-import { leadHasCampaignAttribution } from '@/lib/chatpro-roi-eligibility';
+import { isRoiJourneyFrozen, leadHasCampaignAttribution } from '@/lib/chatpro-roi-eligibility';
 import type { LeadRecord } from '@/lib/leads-admin';
 import { LEAD_STATUSES, type LeadStatus } from '@/lib/lead-status';
 import { Link } from '@/libs/I18nNavigation';
@@ -64,6 +65,10 @@ export async function LeadChatProRoiSection(props: LeadChatProRoiSectionProps) {
   ) as Record<LeadStatus, string>;
 
   const crmStatusLabel = statusLabels[lead.status as LeadStatus] ?? lead.status;
+  const frozen = isRoiJourneyFrozen({
+    status: lead.status,
+    lastEvaluationStage: latest?.stage,
+  });
 
   return (
     <AdminCard title={tLead('section_chatpro_roi')}>
@@ -71,6 +76,13 @@ export async function LeadChatProRoiSection(props: LeadChatProRoiSectionProps) {
         <AdminCallout title={t('beta_title')} variant="warning">
           <p className="text-sm">{tLead('chatpro_roi_detail_hint')}</p>
         </AdminCallout>
+
+        {frozen ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <ChatProRoiFrozenBadge hint={t('frozen_hint')} label={t('frozen_badge')} />
+            <p className="text-sm text-neutral-600">{t('frozen_hint')}</p>
+          </div>
+        ) : null}
 
         {latest ? (
           <>
