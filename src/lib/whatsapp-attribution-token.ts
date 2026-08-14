@@ -8,7 +8,11 @@ import {
   WHATSAPP_CAMPAIGN_PLACEHOLDER_NAME,
 } from '@/lib/chatpro-roi-lead-enrichment';
 import { linkLeadToClient } from '@/lib/clients';
-import { leadHasCampaignAttribution } from '@/lib/chatpro-roi-eligibility';
+import {
+  isRoiJourneyFrozen,
+  leadHasCampaignAttribution,
+} from '@/lib/chatpro-roi-eligibility';
+import { loadLastRoiEvaluationStage } from '@/lib/chatpro-roi-last-evaluation';
 import {
   attributionQualifiesForWhatsAppBridge,
   extractWhatsAppAttributionRefCode,
@@ -202,7 +206,14 @@ export async function claimWhatsAppAttributionToken(refCode: string, phoneKey: s
 
   if (leadId) {
     const snapshot = await loadCampaignLeadSnapshot(leadId);
-    if (snapshot && !leadHasCampaignAttribution(snapshot)) {
+    const lastEvaluationStage = await loadLastRoiEvaluationStage(leadId);
+    const journeyFrozen = snapshot
+      ? isRoiJourneyFrozen({ status: snapshot.status, lastEvaluationStage })
+      : false;
+
+    if (journeyFrozen) {
+      leadId = null;
+    } else if (snapshot && !leadHasCampaignAttribution(snapshot)) {
       const merged = mergeLeadAttribution(snapshot, tokenRowToAttributionFields(tokenRow));
       await db
         .update(leadsSchema)
@@ -213,7 +224,9 @@ export async function claimWhatsAppAttributionToken(refCode: string, phoneKey: s
         })
         .where(eq(leadsSchema.id, leadId));
     }
-  } else {
+  }
+
+  if (!leadId) {
     const lead = await createWhatsAppClickLead(phoneKey, tokenRow);
     leadId = lead?.id ?? null;
   }

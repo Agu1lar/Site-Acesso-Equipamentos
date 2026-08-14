@@ -3,6 +3,7 @@ import 'server-only';
 import { asc, desc, eq } from 'drizzle-orm';
 import { loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
 import {
+  isRoiJourneyFrozen,
   leadHasCampaignAttribution,
   type CampaignLeadSnapshot,
 } from '@/lib/chatpro-roi-eligibility';
@@ -23,11 +24,20 @@ export type ChatProLeadAnalysisContext = {
 
 export type ChatProLeadAnalysisGateResult =
   | { ok: true; context: ChatProLeadAnalysisContext }
-  | { ok: false; reason: 'lead_not_found' | 'not_campaign_lead' };
+  | { ok: false; reason: 'lead_not_found' | 'not_campaign_lead' | 'roi_journey_frozen' };
 
 /** True when Claude ROI may read this lead's ChatPro messages. */
-export function isLeadEligibleForClaudeAnalysis(snapshot: CampaignLeadSnapshot) {
-  return leadHasCampaignAttribution(snapshot);
+export function isLeadEligibleForClaudeAnalysis(
+  snapshot: CampaignLeadSnapshot,
+  lastEvaluationStage?: string | null,
+) {
+  if (!leadHasCampaignAttribution(snapshot)) {
+    return false;
+  }
+  return !isRoiJourneyFrozen({
+    status: snapshot.status,
+    lastEvaluationStage,
+  });
 }
 
 function snapshotToLeadContext(snapshot: NonNullable<Awaited<ReturnType<typeof loadCampaignLeadSnapshot>>>): ChatProLeadContext {
@@ -87,27 +97,31 @@ export async function resolveChatProLeadAnalysisContext(
   if (!snapshot) {
     return { ok: false, reason: 'lead_not_found' };
   }
-  if (!isLeadEligibleForClaudeAnalysis(snapshot)) {
-    return { ok: false, reason: 'not_campaign_lead' };
+
+  const priorEvaluation = await loadPriorEvaluation(leadId);
+  const lastEvaluationStage = priorEvaluation?.result.stage ?? null;
+
+  if (!isLeadEligibleForClaudeAnalysis(snapshot, lastEvaluationStage)) {
+    if (!leadHasCampaignAttribution(snapshot)) {
+      return { ok: false, reason: 'not_campaign_lead' };
+    }
+    return { ok: false, reason: 'roi_journey_frozen' };
   }
 
-  const [rows, priorEvaluation] = await Promise.all([
-    db
-      .select({
-        id: chatproMessagesSchema.id,
-        fromMe: chatproMessagesSchema.fromMe,
-        messageText: chatproMessagesSchema.messageText,
-        mediaType: chatproMessagesSchema.mediaType,
-        mediaFilename: chatproMessagesSchema.mediaFilename,
-        mediaMimetype: chatproMessagesSchema.mediaMimetype,
-        mediaUrl: chatproMessagesSchema.mediaUrl,
-        eventAt: chatproMessagesSchema.eventAt,
-      })
-      .from(chatproMessagesSchema)
-      .where(eq(chatproMessagesSchema.leadId, leadId))
-      .orderBy(asc(chatproMessagesSchema.eventAt), asc(chatproMessagesSchema.id)),
-    loadPriorEvaluation(leadId),
-  ]);
+  const rows = await db
+    .select({
+      id: chatproMessagesSchema.id,
+      fromMe: chatproMessagesSchema.fromMe,
+      messageText: chatproMessagesSchema.messageText,
+      mediaType: chatproMessagesSchema.mediaType,
+      mediaFilename: chatproMessagesSchema.mediaFilename,
+      mediaMimetype: chatproMessagesSchema.mediaMimetype,
+      mediaUrl: chatproMessagesSchema.mediaUrl,
+      eventAt: chatproMessagesSchema.eventAt,
+    })
+    .from(chatproMessagesSchema)
+    .where(eq(chatproMessagesSchema.leadId, leadId))
+    .orderBy(asc(chatproMessagesSchema.eventAt), asc(chatproMessagesSchema.id));
 
   return {
     ok: true,

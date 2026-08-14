@@ -147,8 +147,15 @@ export async function runChatProRoiWorker(options: WorkerOptions = {}): Promise<
         continue;
       }
 
+      const lastEvalStage = lastEval
+        ? (() => {
+            const parsed = ChatProRoiEvaluationSchema.safeParse(lastEval.result);
+            return parsed.success ? parsed.data.stage : null;
+          })()
+        : null;
+
       if (
-        !shouldEvaluateLeadForRoi(lead, messages.length, hasNewMessages)
+        !shouldEvaluateLeadForRoi(lead, messages.length, hasNewMessages, {}, lastEvalStage)
       ) {
         result.skipped += 1;
         result.items.push({ leadId, status: 'skipped', reason: 'not_eligible' });
@@ -273,7 +280,14 @@ export async function countPendingChatProRoiEvaluations() {
       || messages.length > lastEval.messageCount
       || (lastMessageId !== null && lastMessageId !== lastEval.lastMessageId);
 
-    if (shouldEvaluateLeadForRoi(lead, messages.length, hasNewMessages)) {
+    const lastEvalStage = lastEval
+      ? (() => {
+          const parsed = ChatProRoiEvaluationSchema.safeParse(lastEval.result);
+          return parsed.success ? parsed.data.stage : null;
+        })()
+      : null;
+
+    if (shouldEvaluateLeadForRoi(lead, messages.length, hasNewMessages, {}, lastEvalStage)) {
       pending += 1;
     }
   }

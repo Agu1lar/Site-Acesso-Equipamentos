@@ -29,4 +29,16 @@ describe('isLeadEligibleForClaudeAnalysis', () => {
       false,
     );
   });
+
+  it('blocks frozen acquisition journeys', () => {
+    expect(
+      isLeadEligibleForClaudeAnalysis({ ...baseLead, gclid: 'abc', status: 'won' }),
+    ).toBe(false);
+    expect(
+      isLeadEligibleForClaudeAnalysis(
+        { ...baseLead, gclid: 'abc', status: 'contacted' },
+        'closed_won',
+      ),
+    ).toBe(false);
+  });
 });

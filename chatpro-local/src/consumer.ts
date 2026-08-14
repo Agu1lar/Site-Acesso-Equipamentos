@@ -99,7 +99,7 @@ export async function consumeReadyLeadGroups(
       failed += 1;
       const reason = error instanceof Error ? error.message : String(error);
       if (reason.includes('fetch_lead_context_failed:403')) {
-        console.warn('[chatpro-local] skip — not a campaign lead', { leadId: group.lead_id });
+        console.warn('[chatpro-local] skip — lead not eligible for ROI', { leadId: group.lead_id, reason });
         await ackJobsOutbox(api, jobs);
         queue.markJobsDone(jobs.map((job) => job.id));
         queue.clearLeadDebounce(group.group_key);

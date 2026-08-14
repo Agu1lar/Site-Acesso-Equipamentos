@@ -21,7 +21,9 @@ export async function GET(request: Request, context: RouteContext) {
 
   const resolved = await resolveChatProLeadAnalysisContext(leadId);
   if (!resolved.ok) {
-    const status = resolved.reason === 'not_campaign_lead' ? 403 : 404;
+    const status = resolved.reason === 'not_campaign_lead' || resolved.reason === 'roi_journey_frozen'
+      ? 403
+      : 404;
     return NextResponse.json({ error: resolved.reason }, { status });
   }
 

@@ -8,13 +8,23 @@ import {
 } from '@/lib/chatpro-webhook';
 import { findLeadIdForChatProPhone, loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
 import { isLeadEligibleForClaudeAnalysis } from '@/lib/chatpro-roi-context';
+import { leadHasCampaignAttribution } from '@/lib/chatpro-roi-eligibility';
+import { loadLastRoiEvaluationStage } from '@/lib/chatpro-roi-last-evaluation';
 import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { chatproMessagesSchema } from '@/models/Schema';
 
 export type PersistChatProMessageResult =
   | { ok: true; inserted: true; messageId: number; leadId: number }
-  | { ok: true; inserted: false; reason: 'duplicate' | 'missing_phone' | 'no_lead_match' | 'not_campaign_lead' };
+  | {
+    ok: true;
+    inserted: false;
+    reason: 'duplicate' | 'missing_phone' | 'no_lead_match' | 'not_campaign_lead' | 'roi_journey_frozen';
+  };
+
+async function loadLastEvaluationStage(leadId: number) {
+  return loadLastRoiEvaluationStage(leadId);
+}
 
 /**
  * Persists ChatPro events for Claude ROI — campaign-attributed leads only.
@@ -48,9 +58,13 @@ export async function persistChatProMessage(
   }
 
   const snapshot = await loadCampaignLeadSnapshot(leadId);
-  if (!snapshot || !isLeadEligibleForClaudeAnalysis(snapshot)) {
-    logger.info('ChatPro ROI: skip message — not a campaign lead', { leadId, phoneKey: event.phoneKey });
-    return { ok: true, inserted: false, reason: 'not_campaign_lead' };
+  const lastEvaluationStage = await loadLastEvaluationStage(leadId);
+  if (!snapshot || !isLeadEligibleForClaudeAnalysis(snapshot, lastEvaluationStage)) {
+    const reason = snapshot && leadHasCampaignAttribution(snapshot)
+      ? 'roi_journey_frozen'
+      : 'not_campaign_lead';
+    logger.info('ChatPro ROI: skip message — lead not eligible', { leadId, phoneKey: event.phoneKey, reason });
+    return { ok: true, inserted: false, reason };
   }
 
   const inserted = await db
@@ -77,13 +91,6 @@ export async function persistChatProMessage(
   }
 
   await enqueueChatProOutboxEvent(messageId, externalId, leadId, event);
-
-  logger.info('ChatPro message persisted (campaign lead)', {
-    messageId,
-    leadId,
-    phoneKey: event.phoneKey,
-    event: event.event,
-  });
 
   return { ok: true, inserted: true, messageId, leadId };
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isRoiJourneyFrozen,
   leadHasCampaignAttribution,
   shouldEvaluateLeadForRoi,
 } from '@/lib/chatpro-roi-eligibility';
@@ -51,6 +52,22 @@ describe('leadHasCampaignAttribution', () => {
   });
 });
 
+describe('isRoiJourneyFrozen', () => {
+  it('freezes after CRM won or lost', () => {
+    expect(isRoiJourneyFrozen({ status: 'won' })).toBe(true);
+    expect(isRoiJourneyFrozen({ status: 'lost' })).toBe(true);
+  });
+
+  it('freezes after Claude closed_won or closed_lost', () => {
+    expect(isRoiJourneyFrozen({ status: 'contacted', lastEvaluationStage: 'closed_won' })).toBe(true);
+    expect(isRoiJourneyFrozen({ status: 'quoted', lastEvaluationStage: 'closed_lost' })).toBe(true);
+  });
+
+  it('stays open while journey is active', () => {
+    expect(isRoiJourneyFrozen({ status: 'contacted', lastEvaluationStage: 'negotiation' })).toBe(false);
+  });
+});
+
 describe('shouldEvaluateLeadForRoi', () => {
   it('evaluates campaign lead with new messages', () => {
     expect(
@@ -64,6 +81,25 @@ describe('shouldEvaluateLeadForRoi', () => {
 
   it('skips lead without campaign', () => {
     expect(shouldEvaluateLeadForRoi(baseLead, 2, true)).toBe(false);
+  });
+
+  it('skips frozen journey even with new messages', () => {
+    expect(
+      shouldEvaluateLeadForRoi(
+        { ...baseLead, gclid: 'x', status: 'won' },
+        5,
+        true,
+      ),
+    ).toBe(false);
+    expect(
+      shouldEvaluateLeadForRoi(
+        { ...baseLead, gclid: 'x', status: 'contacted' },
+        5,
+        true,
+        {},
+        'closed_won',
+      ),
+    ).toBe(false);
   });
 
   it('skips terminal lead without new messages', () => {

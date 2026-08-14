@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
 import { isLeadEligibleForClaudeAnalysis } from '@/lib/chatpro-roi-context';
+import { leadHasCampaignAttribution } from '@/lib/chatpro-roi-eligibility';
 import { applyChatProRoiLeadContactEnrichment } from '@/lib/chatpro-roi-lead-enrichment-apply';
+import { loadLastRoiEvaluationStage } from '@/lib/chatpro-roi-last-evaluation';
 import { authorizeInternalApi } from '@/lib/internal-api-auth';
 import { db } from '@/libs/DB';
 import { chatproLeadEvaluationsSchema } from '@/models/Schema';
@@ -33,8 +35,12 @@ export async function POST(request: Request) {
   if (!snapshot) {
     return NextResponse.json({ error: 'lead_not_found' }, { status: 404 });
   }
-  if (!isLeadEligibleForClaudeAnalysis(snapshot)) {
-    return NextResponse.json({ error: 'not_campaign_lead' }, { status: 403 });
+  const lastEvaluationStage = await loadLastRoiEvaluationStage(parsed.data.leadId);
+  if (!isLeadEligibleForClaudeAnalysis(snapshot, lastEvaluationStage)) {
+    return NextResponse.json(
+      { error: leadHasCampaignAttribution(snapshot) ? 'roi_journey_frozen' : 'not_campaign_lead' },
+      { status: 403 },
+    );
   }
 
   const evaluationParsed = ChatProRoiEvaluationSchema.safeParse(parsed.data.result);

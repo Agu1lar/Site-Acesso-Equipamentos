@@ -41,9 +41,28 @@ export function leadHasChatProActivity(lead: CampaignLeadSnapshot, messageCount:
   return Boolean(lead.whatsappRepliedAt) || messageCount > 0;
 }
 
-/** Terminal statuses — worker stops daily re-evaluation after these. */
+/** Terminal CRM statuses — acquisition journey is done for Ads ROI. */
 export function isTerminalLeadStatus(status: string) {
   return status === 'won' || status === 'lost';
+}
+
+/** Claude stages that close the paid-acquisition ROI journey. */
+export function isTerminalRoiStage(stage: string | null | undefined) {
+  return stage === 'closed_won' || stage === 'closed_lost';
+}
+
+/**
+ * True when this lead should no longer receive ChatPro ROI analysis.
+ * Organic follow-ups after close stay in CRM only; a new gclid creates a new journey.
+ */
+export function isRoiJourneyFrozen(options: {
+  status: string;
+  lastEvaluationStage?: string | null;
+}) {
+  if (isTerminalLeadStatus(options.status)) {
+    return true;
+  }
+  return isTerminalRoiStage(options.lastEvaluationStage);
 }
 
 /**
@@ -52,12 +71,14 @@ export function isTerminalLeadStatus(status: string) {
  * @param messageCount Total ChatPro messages linked to the lead.
  * @param hasNewMessagesSinceLastEval Whether new messages arrived since last Claude run.
  * @param options Worker tuning options.
+ * @param lastEvaluationStage Latest Claude stage for this lead, when known.
  */
 export function shouldEvaluateLeadForRoi(
   lead: CampaignLeadSnapshot,
   messageCount: number,
   hasNewMessagesSinceLastEval: boolean,
   options: ChatProRoiWorkerOptions = {},
+  lastEvaluationStage?: string | null,
 ) {
   const maxInactiveDays = options.maxInactiveDays ?? DEFAULT_MAX_INACTIVE_DAYS;
   const maxLeadAgeDays = options.maxLeadAgeDays ?? DEFAULT_MAX_LEAD_AGE_DAYS;
@@ -65,10 +86,10 @@ export function shouldEvaluateLeadForRoi(
   if (!leadHasCampaignAttribution(lead)) {
     return false;
   }
-  if (!leadHasChatProActivity(lead, messageCount)) {
+  if (isRoiJourneyFrozen({ status: lead.status, lastEvaluationStage })) {
     return false;
   }
-  if (isTerminalLeadStatus(lead.status) && !hasNewMessagesSinceLastEval) {
+  if (!leadHasChatProActivity(lead, messageCount)) {
     return false;
   }
 
