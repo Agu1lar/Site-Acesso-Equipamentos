@@ -133,6 +133,8 @@ export async function mergeClientsByIds(clientIds: number[]) {
         .where(eq(leadsSchema.clientId, duplicateId));
     }
 
+    await tx.delete(clientAliasesSchema).where(inArray(clientAliasesSchema.clientId, uniqueIds));
+
     // Remove duplicates before updating unique fields on the primary row.
     await tx.delete(clientsSchema).where(inArray(clientsSchema.id, duplicateIds));
 
@@ -193,7 +195,11 @@ export async function deleteClientsByIds(clientIds: number[]) {
     throw new Error('Um ou mais clientes selecionados não foram encontrados.');
   }
 
-  await db.delete(clientsSchema).where(inArray(clientsSchema.id, uniqueIds));
+  await db.transaction(async (tx) => {
+    await tx.update(leadsSchema).set({ clientId: null }).where(inArray(leadsSchema.clientId, uniqueIds));
+    await tx.delete(clientAliasesSchema).where(inArray(clientAliasesSchema.clientId, uniqueIds));
+    await tx.delete(clientsSchema).where(inArray(clientsSchema.id, uniqueIds));
+  });
 
   logger.info(`Deleted ${uniqueIds.length} client(s): #${uniqueIds.join(', #')}`);
 

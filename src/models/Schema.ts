@@ -58,7 +58,7 @@ export const leadsSchema = pgTable('leads', {
   /** Set when ChatPro reports an inbound WhatsApp message from this phone. */
   whatsappRepliedAt: timestamp('whatsapp_replied_at', { mode: 'date' }),
   lastActivityAt: timestamp('last_activity_at', { mode: 'date' }),
-  clientId: integer('client_id'),
+  clientId: integer('client_id').references(() => clientsSchema.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
 
@@ -166,7 +166,9 @@ export const clientAliasesSchema = pgTable(
   'client_aliases',
   {
     id: serial('id').primaryKey(),
-    clientId: integer('client_id').notNull(),
+    clientId: integer('client_id')
+      .notNull()
+      .references(() => clientsSchema.id, { onDelete: 'cascade' }),
     kind: varchar('kind', { length: 20 }).notNull(),
     value: varchar('value', { length: 320 }).notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
