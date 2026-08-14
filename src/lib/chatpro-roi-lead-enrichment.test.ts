@@ -9,6 +9,7 @@ import {
 describe('chatpro-roi-lead-enrichment', () => {
   it('detects placeholder name and synthetic inbound email', () => {
     expect(isWhatsAppCampaignPlaceholderName(WHATSAPP_CAMPAIGN_PLACEHOLDER_NAME)).toBe(true);
+    expect(isWhatsAppCampaignPlaceholderName('Lead WhatsApp (campanha)')).toBe(true);
     expect(isWhatsAppCampaignPlaceholderName('João Silva')).toBe(false);
     expect(isMissingOrSyntheticLeadEmail(null)).toBe(true);
     expect(isMissingOrSyntheticLeadEmail('wa+9089973b@inbound.acessoequipamentos.com.br')).toBe(true);

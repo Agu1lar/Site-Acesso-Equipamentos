@@ -1,6 +1,11 @@
 import { normalizeLeadEmail } from '@/lib/lead-contact';
 
-export const WHATSAPP_CAMPAIGN_PLACEHOLDER_NAME = 'Lead WhatsApp (campanha)';
+export const WHATSAPP_CAMPAIGN_PLACEHOLDER_NAME = 'Lead ainda não identificado';
+
+const LEGACY_WHATSAPP_CAMPAIGN_PLACEHOLDER_NAMES = new Set([
+  'Lead WhatsApp (campanha)',
+  WHATSAPP_CAMPAIGN_PLACEHOLDER_NAME,
+]);
 
 const SYNTHETIC_INBOUND_EMAIL_RE = /^wa\+.+@inbound\.acessoequipamentos\.com\.br$/iu;
 const BASIC_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
@@ -9,7 +14,7 @@ const BASIC_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
  * True when the stored name is the WhatsApp-click placeholder (safe to replace).
  */
 export function isWhatsAppCampaignPlaceholderName(name: string | null | undefined) {
-  return (name?.trim() || '') === WHATSAPP_CAMPAIGN_PLACEHOLDER_NAME;
+  return LEGACY_WHATSAPP_CAMPAIGN_PLACEHOLDER_NAMES.has(name?.trim() || '');
 }
 
 /**
