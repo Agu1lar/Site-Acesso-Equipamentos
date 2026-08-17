@@ -7,6 +7,7 @@ import {
   isGoogleAnalyticsConsentGranted,
   syncGoogleAnalyticsConsentFromStorage,
 } from '@/lib/google-analytics';
+import { fireAdsContactConversion } from '@/lib/ads-contact-conversion';
 
 type TrackPhoneClickInput = {
   origin: string;
@@ -22,11 +23,17 @@ function detectDevice() {
 
 /**
  * Counts phone clicks in Neon always (no cookie required).
+ * Fires the shared Ads contact conversion (once per session) without analytics cookies.
  * GA4 / PostHog only run after analytics consent.
  */
 export function trackPhoneClick(input: TrackPhoneClickInput) {
   syncGoogleAnalyticsConsentFromStorage();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
+
+  fireAdsContactConversion({
+    source: 'phone',
+    origin: input.origin,
+  });
 
   if (analyticsConsent) {
     capturePhoneClick(input);

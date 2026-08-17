@@ -45,6 +45,41 @@ Regras atuais:
 
 ---
 
+## Conversão única do Google Ads (tag direta)
+
+Independente do GA4, o site dispara **uma única ação de conversão** do Ads para os três CTAs de contato: botão WhatsApp, envio do orçamento e clique em `tel:`.
+
+```env
+NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_CONTACT=AW-XXXXXXXXX/RotuloDaAcao
+```
+
+Enquanto essa variável não existir, o código usa `NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LEAD` e depois `NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_WHATSAPP` como fallback.
+
+### Por que uma ação só
+
+Antes havia duas ações (`LEAD` e `WHATSAPP`). Enviar o orçamento disparava as duas — conversão primária no envio e conversão de WhatsApp logo depois, quando o app abria. Um lead contava como dois no painel do Ads.
+
+### Como a duplicata é evitada
+
+Duas camadas:
+
+1. **No código** — `src/lib/ads-contact-conversion.ts` grava uma trava em `sessionStorage` (`acesso_ads_contact_conversion`) no primeiro disparo. Qualquer CTA seguinte na mesma sessão do navegador é ignorado. Cada disparo leva um `transaction_id` único, que o Google também usa para deduplicar.
+2. **No painel do Ads** — a ação de conversão deve estar com **Contagem = “Uma”**. Assim o Google conta uma conversão por clique no anúncio mesmo que a tag dispare novamente em outra sessão.
+
+### Consentimento
+
+A conversão não exige o cookie de analytics — é medição essencial de clique, sem PII, e segue o Consent Mode (`ad_storage`). Para visitas pagas o `gclid` é restaurado na URL antes do disparo. GA4 e PostHog continuam bloqueados até o aceite.
+
+### Configuração no Google Ads
+
+1. **Ferramentas** → **Conversões** → **Nova ação de conversão** → **Site** → **Adicionar manualmente**
+2. Categoria: **Contato** (ou **Enviar formulário de lead**)
+3. **Contagem**: **Uma**
+4. Copie o `AW-…/rótulo` para `NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_CONTACT` na Vercel e faça redeploy
+5. Marque como conversão **primária** e deixe as ações antigas (`LEAD`, `WHATSAPP`) como **secundárias** para não somar duas vezes no período de transição
+
+---
+
 ## Passo 1 — Criar propriedade GA4 (manual)
 
 1. Acesse [Google Analytics](https://analytics.google.com/)

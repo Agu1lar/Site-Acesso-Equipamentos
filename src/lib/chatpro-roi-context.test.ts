@@ -30,15 +30,22 @@ describe('isLeadEligibleForClaudeAnalysis', () => {
     );
   });
 
-  it('blocks frozen acquisition journeys', () => {
-    expect(
-      isLeadEligibleForClaudeAnalysis({ ...baseLead, gclid: 'abc', status: 'won' }),
-    ).toBe(false);
+  it('blocks journeys closed by Claude', () => {
     expect(
       isLeadEligibleForClaudeAnalysis(
         { ...baseLead, gclid: 'abc', status: 'contacted' },
         'closed_won',
       ),
     ).toBe(false);
+    expect(
+      isLeadEligibleForClaudeAnalysis(
+        { ...baseLead, gclid: 'abc', status: 'contacted' },
+        'closed_lost',
+      ),
+    ).toBe(false);
+  });
+
+  it('keeps analysing when only the CRM status is terminal', () => {
+    expect(isLeadEligibleForClaudeAnalysis({ ...baseLead, gclid: 'abc', status: 'won' })).toBe(true);
   });
 });

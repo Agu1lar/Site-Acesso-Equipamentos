@@ -73,7 +73,7 @@ describe('google analytics consent sync', () => {
     expect(GA_CONVERSION_EVENTS.whatsappClick).toBe('whatsapp_click');
   });
 
-  it('fires WhatsApp Ads conversion without analytics cookie consent', async () => {
+  it('fires the contact Ads conversion without analytics cookie consent', async () => {
     const dataLayer: unknown[] = [];
     vi.stubGlobal('window', {
       localStorage: {
@@ -88,11 +88,11 @@ describe('google analytics consent sync', () => {
       },
     });
 
-    const { captureGoogleAdsWhatsAppConversion, isGoogleAnalyticsConsentGranted } =
-      await import('@/lib/google-analytics');
+    const { isGoogleAnalyticsConsentGranted } = await import('@/lib/google-analytics');
+    const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
 
     expect(isGoogleAnalyticsConsentGranted()).toBe(false);
-    captureGoogleAdsWhatsAppConversion({ origin: 'site-home' });
+    fireAdsContactConversion({ source: 'whatsapp', origin: 'site-home' });
 
     const conversion = dataLayer.find(
       (entry) =>
@@ -148,7 +148,7 @@ describe('google analytics consent sync', () => {
     ).toBeUndefined();
   });
 
-  it('restores gclid and fires WhatsApp Ads conversion without analytics consent', async () => {
+  it('restores gclid and fires the contact Ads conversion without analytics consent', async () => {
     const dataLayer: unknown[] = [];
     const replaceState = vi.fn();
     vi.stubGlobal('window', {
@@ -177,13 +177,11 @@ describe('google analytics consent sync', () => {
       },
     });
 
-    const {
-      captureGoogleAdsWhatsAppConversion,
-      isGoogleAnalyticsConsentGranted,
-    } = await import('@/lib/google-analytics');
+    const { isGoogleAnalyticsConsentGranted } = await import('@/lib/google-analytics');
+    const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
 
     expect(isGoogleAnalyticsConsentGranted()).toBe(false);
-    captureGoogleAdsWhatsAppConversion({ origin: 'site-home' });
+    fireAdsContactConversion({ source: 'whatsapp', origin: 'site-home' });
 
     expect(replaceState).toHaveBeenCalled();
     expect(String(replaceState.mock.calls[0]?.[2] ?? '')).toContain('gclid=CjwKCAiApaid');

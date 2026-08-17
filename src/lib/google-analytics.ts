@@ -2,7 +2,8 @@
  * Google Analytics 4 + Google Ads (gtag) with Consent Mode v2.
  * GA4: NEXT_PUBLIC_GA_MEASUREMENT_ID (G-…)
  * Ads: NEXT_PUBLIC_GOOGLE_ADS_ID (AW-…)
- * Optional conversion labels (full send_to): NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LEAD / _WHATSAPP
+ * Conversion label (full send_to): NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_CONTACT,
+ * with legacy fallback to NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LEAD / _WHATSAPP.
  */
 
 import { COOKIE_CONSENT_STORAGE_KEY, parseConsentValue } from '@/lib/cookie-consent';
@@ -36,6 +37,18 @@ export function getGoogleAdsLeadConversionSendTo() {
 
 export function getGoogleAdsWhatsAppConversionSendTo() {
   return process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_WHATSAPP?.trim() || null;
+}
+
+/**
+ * Unified contact conversion shared by the WhatsApp, quote and phone CTAs.
+ * Falls back to the legacy lead/WhatsApp labels while the new action is not configured.
+ */
+export function getGoogleAdsContactConversionSendTo() {
+  return (
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_CONTACT?.trim()
+    || getGoogleAdsLeadConversionSendTo()
+    || getGoogleAdsWhatsAppConversionSendTo()
+  );
 }
 
 export function isGoogleAnalyticsConfigured() {
@@ -279,28 +292,6 @@ export function captureGoogleAdsConversion(
   }
 
   gtag('event', 'conversion', cleaned);
-}
-
-export function captureGoogleAdsLeadConversion(params?: GaEventParams) {
-  captureGoogleAdsConversion(getGoogleAdsLeadConversionSendTo(), params);
-}
-
-/**
- * WhatsApp button conversion for Ads (especially paid search / gclid).
- * Does not require analytics cookies — only essential ad click measurement.
- */
-export function captureGoogleAdsWhatsAppConversion(params?: GaEventParams) {
-  preparePaidSearchAdsConversion();
-
-  captureGoogleAdsConversion(
-    getGoogleAdsWhatsAppConversionSendTo(),
-    {
-      value: 1.0,
-      currency: 'BRL',
-      ...params,
-    },
-    { requireAnalyticsConsent: false },
-  );
 }
 
 /**

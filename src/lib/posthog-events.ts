@@ -1,5 +1,6 @@
 import { getPostHog } from '@/lib/posthog-client';
-import { GA_CONVERSION_EVENTS, captureGaEvent, captureGoogleAdsLeadConversion } from '@/lib/google-analytics';
+import { GA_CONVERSION_EVENTS, captureGaEvent } from '@/lib/google-analytics';
+import { fireAdsContactConversion } from '@/lib/ads-contact-conversion';
 
 export type WhatsAppClickInput = {
   origin: string;
@@ -146,11 +147,10 @@ export function captureQuoteSubmit(input: QuoteSubmitEventInput) {
   });
 
   // Ads conversion must not depend on PostHog being ready.
-  captureGoogleAdsLeadConversion({
-    value: 1.0,
-    currency: 'BRL',
+  fireAdsContactConversion({
+    source: 'quote',
     origin: input.origin,
-    lead_id: input.leadId,
-    cart_line_count: input.cartLineCount,
+    equipmentSlug: input.equipmentSlug,
+    leadId: input.leadId,
   });
 }

@@ -6,11 +6,11 @@ import type { VisitorGeoInput } from '@/lib/visitor-geo';
 import {
   GA_CONVERSION_EVENTS,
   captureGaEvent,
-  captureGoogleAdsWhatsAppConversion,
   preparePaidSearchAdsConversion,
   isGoogleAnalyticsConsentGranted,
   syncGoogleAnalyticsConsentFromStorage,
 } from '@/lib/google-analytics';
+import { fireAdsContactConversion } from '@/lib/ads-contact-conversion';
 import { captureWhatsAppClick, type WhatsAppClickInput } from '@/lib/posthog-events';
 import { appendWhatsAppAttributionRefToUrl } from '@/lib/whatsapp-attribution-bridge';
 
@@ -106,9 +106,10 @@ export async function trackWhatsAppClickWithRef(input: WhatsAppClickInput) {
   preparePaidSearchAdsConversion();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
 
-  captureGoogleAdsWhatsAppConversion({
+  fireAdsContactConversion({
+    source: 'whatsapp',
     origin: input.origin,
-    equipment_slug: input.equipmentSlug,
+    equipmentSlug: input.equipmentSlug,
   });
 
   if (analyticsConsent) {
@@ -160,7 +161,7 @@ export async function openTrackedWhatsApp(href: string, input: WhatsAppClickInpu
 
 /**
  * Counts WhatsApp button clicks in Neon always (no cookie required).
- * Fires the Google Ads WhatsApp conversion without analytics cookies.
+ * Fires the shared Ads contact conversion (once per session) without analytics cookies.
  * For paid search (gclid), restores click id + ad_storage so the Ads snippet attributes.
  * GA4 / PostHog still require analytics cookie consent.
  */
