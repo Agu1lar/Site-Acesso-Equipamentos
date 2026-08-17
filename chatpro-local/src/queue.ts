@@ -1,4 +1,6 @@
 import Database from 'better-sqlite3';
+import { randomBytes } from 'node:crypto';
+import { hostname } from 'node:os';
 import type { RemoteOutboxEvent } from './api-client.js';
 
 export type QueuedJob = {
@@ -52,8 +54,29 @@ export class LocalQueue {
         updated_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
 
+      CREATE TABLE IF NOT EXISTS consumer_meta (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+
       CREATE INDEX IF NOT EXISTS jobs_status_scheduled_idx ON jobs(status, scheduled_at);
     `);
+  }
+
+  /** Stable id used to claim outbox leases on the remote API. */
+  getOrCreateConsumerId() {
+    const existing = this.db
+      .prepare(`SELECT value FROM consumer_meta WHERE key = 'consumer_id'`)
+      .get() as { value: string } | undefined;
+    if (existing?.value) {
+      return existing.value;
+    }
+
+    const consumerId = `local-${hostname()}-${randomBytes(4).toString('hex')}`.slice(0, 120);
+    this.db
+      .prepare(`INSERT INTO consumer_meta (key, value) VALUES ('consumer_id', ?)`)
+      .run(consumerId);
+    return consumerId;
   }
 
   getPollSince() {

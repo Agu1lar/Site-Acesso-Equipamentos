@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, asc, gt, inArray, isNull } from 'drizzle-orm';
+import { and, asc, count, gt, inArray, isNull, sql } from 'drizzle-orm';
 import type { ChatProInboundEvent } from '@/lib/chatpro-webhook';
 import { db } from '@/libs/DB';
 import { chatproOutboxSchema } from '@/models/Schema';
@@ -29,6 +29,8 @@ export type ChatProOutboxEvent = {
   payload: ChatProOutboxPayload;
   createdAt: Date;
 };
+
+const DEFAULT_OUTBOX_LEASE_MS = 15 * 60 * 1000;
 
 /** Builds the normalized payload stored in the outbox for the local consumer. */
 export function buildChatProOutboxPayload(
@@ -80,8 +82,28 @@ export async function enqueueChatProOutboxEvent(
     .onConflictDoNothing({ target: chatproOutboxSchema.externalId });
 }
 
+function mapOutboxRow(row: {
+  outboxId: number;
+  messageId: number;
+  externalId: string;
+  leadId: number | null;
+  phoneKey: string;
+  payload: unknown;
+  createdAt: Date;
+}): ChatProOutboxEvent {
+  return {
+    outboxId: row.outboxId,
+    messageId: row.messageId,
+    externalId: row.externalId,
+    leadId: row.leadId,
+    phoneKey: row.phoneKey,
+    payload: row.payload as ChatProOutboxPayload,
+    createdAt: row.createdAt,
+  };
+}
+
 /**
- * Lists undelivered outbox events for the local consumer (pull model).
+ * Lists undelivered outbox events (read-only — prefer claim for consumers).
  * @param since Return rows with id greater than this cursor (exclusive).
  * @param limit Max rows (1–100).
  */
@@ -108,15 +130,77 @@ export async function listPendingChatProOutboxEvents(since = 0, limit = 50) {
     .orderBy(asc(chatproOutboxSchema.id))
     .limit(cappedLimit);
 
-  return rows.map((row) => ({
-    outboxId: row.outboxId,
-    messageId: row.messageId,
-    externalId: row.externalId,
-    leadId: row.leadId,
-    phoneKey: row.phoneKey,
-    payload: row.payload as ChatProOutboxPayload,
-    createdAt: row.createdAt,
-  }));
+  return rows.map(mapOutboxRow);
+}
+
+/**
+ * Atomically claims undelivered outbox rows for one consumer (lease + SKIP LOCKED).
+ * @param options Consumer id, cursor, limit and lease duration.
+ */
+export async function claimChatProOutboxEvents(options: {
+  consumerId: string;
+  since?: number;
+  limit?: number;
+  leaseMs?: number;
+}) {
+  const since = options.since ?? 0;
+  const cappedLimit = Math.min(Math.max(options.limit ?? 50, 1), 100);
+  const leaseMs = options.leaseMs ?? DEFAULT_OUTBOX_LEASE_MS;
+  const consumerId = options.consumerId.trim().slice(0, 120);
+  if (!consumerId) {
+    throw new Error('consumer_id_required');
+  }
+
+  const leaseCutoff = new Date(Date.now() - leaseMs);
+
+  return db.transaction(async (tx) => {
+    const result = await tx.execute(sql`
+      WITH candidates AS (
+        SELECT id
+        FROM chatpro_outbox
+        WHERE delivered_at IS NULL
+          AND id > ${since}
+          AND (
+            locked_at IS NULL
+            OR locked_at < ${leaseCutoff}
+          )
+        ORDER BY id
+        LIMIT ${cappedLimit}
+        FOR UPDATE SKIP LOCKED
+      )
+      UPDATE chatpro_outbox AS o
+      SET
+        locked_at = NOW(),
+        locked_by = ${consumerId}
+      FROM candidates
+      WHERE o.id = candidates.id
+      RETURNING
+        o.id AS "outboxId",
+        o.message_id AS "messageId",
+        o.external_id AS "externalId",
+        o.lead_id AS "leadId",
+        o.phone_key AS "phoneKey",
+        o.payload,
+        o.created_at AS "createdAt"
+    `);
+
+    const rows = (Array.isArray(result) ? result : []) as Array<{
+      outboxId: number;
+      messageId: number;
+      externalId: string;
+      leadId: number | null;
+      phoneKey: string;
+      payload: unknown;
+      createdAt: Date | string;
+    }>;
+
+    return rows.map((row) =>
+      mapOutboxRow({
+        ...row,
+        createdAt: row.createdAt instanceof Date ? row.createdAt : new Date(row.createdAt),
+      }),
+    );
+  });
 }
 
 /**
@@ -131,7 +215,11 @@ export async function ackChatProOutboxEvents(outboxIds: number[]) {
   const uniqueIds = [...new Set(outboxIds)];
   const updated = await db
     .update(chatproOutboxSchema)
-    .set({ deliveredAt: new Date() })
+    .set({
+      deliveredAt: new Date(),
+      lockedAt: null,
+      lockedBy: null,
+    })
     .where(
       and(
         inArray(chatproOutboxSchema.id, uniqueIds),
@@ -146,10 +234,9 @@ export async function ackChatProOutboxEvents(outboxIds: number[]) {
 /** Counts rows still waiting for the local consumer. */
 export async function countPendingChatProOutboxEvents() {
   const rows = await db
-    .select({ id: chatproOutboxSchema.id })
+    .select({ value: count() })
     .from(chatproOutboxSchema)
-    .where(isNull(chatproOutboxSchema.deliveredAt))
-    .limit(1000);
+    .where(isNull(chatproOutboxSchema.deliveredAt));
 
-  return rows.length;
+  return Number(rows[0]?.value ?? 0);
 }

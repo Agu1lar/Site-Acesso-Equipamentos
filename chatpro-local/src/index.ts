@@ -48,6 +48,7 @@ async function runConsumeCycle() {
 console.log('[chatpro-local] started', {
   apiBaseUrl: config.apiBaseUrl,
   sqlitePath: config.sqlitePath,
+  consumerId: queue.getOrCreateConsumerId(),
   pollIntervalMs: config.pollIntervalMs,
   debounceMs: config.debounceMs,
   anthropicModel: config.anthropicModel,

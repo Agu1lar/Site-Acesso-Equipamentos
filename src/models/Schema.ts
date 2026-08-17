@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { boolean, date, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 import type { EquipmentSpec } from '@/types/equipment';
 
@@ -85,17 +86,25 @@ export const chatproMessagesSchema = pgTable(
 );
 
 /** Claude ROI evaluations for campaign-attributed leads (local worker, not dashboard UI). */
-export const chatproLeadEvaluationsSchema = pgTable('chatpro_lead_evaluations', {
-  id: serial('id').primaryKey(),
-  leadId: integer('lead_id').notNull(),
-  evaluatedAt: timestamp('evaluated_at', { mode: 'date' }).defaultNow().notNull(),
-  messageCount: integer('message_count').notNull().default(0),
-  lastMessageId: integer('last_message_id'),
-  model: varchar('model', { length: 80 }).notNull(),
-  trigger: varchar('trigger', { length: 40 }).notNull().default('daily_worker'),
-  result: jsonb('result').$type<Record<string, unknown>>().notNull(),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-});
+export const chatproLeadEvaluationsSchema = pgTable(
+  'chatpro_lead_evaluations',
+  {
+    id: serial('id').primaryKey(),
+    leadId: integer('lead_id').notNull(),
+    evaluatedAt: timestamp('evaluated_at', { mode: 'date' }).defaultNow().notNull(),
+    messageCount: integer('message_count').notNull().default(0),
+    lastMessageId: integer('last_message_id'),
+    model: varchar('model', { length: 80 }).notNull(),
+    trigger: varchar('trigger', { length: 40 }).notNull().default('daily_worker'),
+    result: jsonb('result').$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('chatpro_lead_evaluations_lead_last_message_uidx')
+      .on(table.leadId, table.lastMessageId)
+      .where(sql`${table.lastMessageId} is not null`),
+  ],
+);
 
 /** Outbox for pull-based delivery to the local ChatPro ROI consumer. */
 export const chatproOutboxSchema = pgTable(
@@ -109,6 +118,8 @@ export const chatproOutboxSchema = pgTable(
     payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
     deliveredAt: timestamp('delivered_at', { mode: 'date' }),
+    lockedAt: timestamp('locked_at', { mode: 'date' }),
+    lockedBy: varchar('locked_by', { length: 120 }),
   },
   (table) => [uniqueIndex('chatpro_outbox_external_id_uidx').on(table.externalId)],
 );

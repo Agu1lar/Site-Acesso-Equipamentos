@@ -111,4 +111,14 @@ describe('shouldEvaluateLeadForRoi', () => {
       ),
     ).toBe(false);
   });
+
+  it('skips open campaign lead without new messages', () => {
+    expect(
+      shouldEvaluateLeadForRoi(
+        { ...baseLead, gclid: 'x', status: 'contacted' },
+        5,
+        false,
+      ),
+    ).toBe(false);
+  });
 });

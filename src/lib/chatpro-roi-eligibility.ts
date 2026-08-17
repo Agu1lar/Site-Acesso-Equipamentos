@@ -105,5 +105,6 @@ export function shouldEvaluateLeadForRoi(
     return false;
   }
 
-  return hasNewMessagesSinceLastEval || !isTerminalLeadStatus(lead.status);
+  // Event-driven only: never re-call Claude without new ChatPro messages.
+  return hasNewMessagesSinceLastEval;
 }

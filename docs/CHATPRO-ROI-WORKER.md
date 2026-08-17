@@ -64,7 +64,7 @@ Todas exigem `Authorization: Bearer INTERNAL_API_SECRET`.
 
 | Método | Rota | Função |
 |--------|------|--------|
-| GET | `/api/internal/v1/chatpro-roi/events?since=0&limit=50` | Poll outbox |
+| GET | `/api/internal/v1/chatpro-roi/events?since=0&limit=50&consumerId=…` | Claim/lease outbox rows for one consumer |
 | POST | `/api/internal/v1/chatpro-roi/events` | Ack `{ "outboxIds": [1,2] }` |
 | POST | `/api/internal/v1/chatpro-roi/evaluations` | Grava resultado Claude |
 | GET | `/api/internal/v1/chatpro-roi/leads/{id}/context` | Lead + mensagens para Claude |
@@ -82,16 +82,18 @@ npm install
 npm start
 ```
 
-## Worker legado (opcional)
+## Worker legado (opcional / deprecated)
 
-`scripts/chatpro-roi-worker.mjs` ainda funciona (lê Neon direto). Preferir `chatpro-local` para fila + idempotência.
+`scripts/chatpro-roi-worker.mjs` exige `--lead=…` ou `--force`. Preferir `chatpro-local`.
+Ele **não** reavalia leads sem mensagens novas (exceto `--lead=… --force`).
 
 ## Idempotência
 
 | Camada | Chave |
 |--------|-------|
 | Neon messages | `external_id` único |
-| Neon outbox | `external_id` único |
+| Neon outbox | `external_id` único + lease `locked_by`/`locked_at` |
+| Neon evaluations | único `(lead_id, last_message_id)` |
 | SQLite local | `job_id` (= externalId) UNIQUE |
 | Ack | Só marca `delivered_at` após Claude (ou skip seguro) no consumer local |
 

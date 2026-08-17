@@ -82,6 +82,7 @@ export async function consumeReadyLeadGroups(
       console.log('[chatpro-local] evaluation saved', {
         leadId: group.lead_id,
         evaluationId: submitResult.evaluationId,
+        duplicate: Boolean(submitResult.duplicate),
         analysisMode,
         analyzedMessageCount,
         totalMessages: context.messageCount,

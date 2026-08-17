@@ -12,6 +12,7 @@ export type RemoteEventsResponse = {
   since: number;
   nextSince: number;
   count: number;
+  claimed?: boolean;
   events: RemoteOutboxEvent[];
 };
 
@@ -61,11 +62,14 @@ export class ChatProRemoteApi {
     };
   }
 
-  /** Pulls pending outbox events from production. */
-  async fetchEvents(since: number, limit = 50) {
+  /** Pulls pending outbox events from production (claims a lease when consumerId is set). */
+  async fetchEvents(since: number, limit = 50, consumerId?: string) {
     const url = new URL('/api/internal/v1/chatpro-roi/events', this.baseUrl);
     url.searchParams.set('since', String(since));
     url.searchParams.set('limit', String(limit));
+    if (consumerId) {
+      url.searchParams.set('consumerId', consumerId);
+    }
 
     const response = await fetch(url, {
       headers: this.headers(),
@@ -114,7 +118,7 @@ export class ChatProRemoteApi {
       throw new Error(`submit_evaluation_failed:${response.status}`);
     }
 
-    return (await response.json()) as { ok: boolean; evaluationId?: number };
+    return (await response.json()) as { ok: boolean; evaluationId?: number; duplicate?: boolean };
   }
 
   /** Loads full lead + ChatPro thread for Claude analysis. */

@@ -1,17 +1,18 @@
 import type { ChatProRemoteApi } from './api-client.js';
 import type { LocalQueue } from './queue.js';
 
-/** Pulls remote outbox events and enqueues them locally with idempotency. */
+/** Pulls remote outbox events (with lease claim) and enqueues them locally with idempotency. */
 export async function pollRemoteOutbox(
   api: ChatProRemoteApi,
   queue: LocalQueue,
   debounceMs: number,
 ) {
+  const consumerId = queue.getOrCreateConsumerId();
   let since = 0;
   let total = 0;
 
   for (;;) {
-    const page = await api.fetchEvents(since, 50);
+    const page = await api.fetchEvents(since, 50, consumerId);
     if (page.events.length === 0) {
       break;
     }
@@ -27,5 +28,5 @@ export async function pollRemoteOutbox(
     }
   }
 
-  return { fetched: total, cursor: since };
+  return { fetched: total, cursor: since, consumerId };
 }

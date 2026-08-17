@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 import { loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
 import { isLeadEligibleForClaudeAnalysis } from '@/lib/chatpro-roi-context';
+import { saveChatProRoiEvaluation } from '@/lib/chatpro-roi-evaluation-save';
 import { leadHasCampaignAttribution } from '@/lib/chatpro-roi-eligibility';
 import { applyChatProRoiLeadContactEnrichment } from '@/lib/chatpro-roi-lead-enrichment-apply';
 import { loadLastRoiEvaluationStage } from '@/lib/chatpro-roi-last-evaluation';
 import { authorizeInternalApi } from '@/lib/internal-api-auth';
-import { db } from '@/libs/DB';
-import { chatproLeadEvaluationsSchema } from '@/models/Schema';
 import { ChatProRoiEvaluationSubmitSchema } from '@/validations/chatpro-outbox';
 import { ChatProRoiEvaluationSchema } from '@/validations/chatpro-roi';
 
@@ -48,26 +47,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'invalid_evaluation' }, { status: 400 });
   }
 
-  const inserted = await db
-    .insert(chatproLeadEvaluationsSchema)
-    .values({
-      leadId: parsed.data.leadId,
-      messageCount: parsed.data.messageCount,
-      lastMessageId: parsed.data.lastMessageId,
-      model: parsed.data.model,
-      trigger: parsed.data.trigger,
-      result: evaluationParsed.data,
-    })
-    .returning({ id: chatproLeadEvaluationsSchema.id });
+  const saved = await saveChatProRoiEvaluation({
+    leadId: parsed.data.leadId,
+    messageCount: parsed.data.messageCount,
+    lastMessageId: parsed.data.lastMessageId,
+    model: parsed.data.model,
+    trigger: parsed.data.trigger,
+    result: evaluationParsed.data,
+  });
 
-  const enrichment = await applyChatProRoiLeadContactEnrichment(
-    parsed.data.leadId,
-    evaluationParsed.data,
-  );
+  const enrichment = saved.duplicate
+    ? { updated: false }
+    : await applyChatProRoiLeadContactEnrichment(
+        parsed.data.leadId,
+        evaluationParsed.data,
+      );
 
   return NextResponse.json({
     ok: true,
-    evaluationId: inserted[0]?.id,
+    evaluationId: saved.evaluationId,
+    duplicate: saved.duplicate,
     contactEnriched: enrichment.updated,
   });
 }

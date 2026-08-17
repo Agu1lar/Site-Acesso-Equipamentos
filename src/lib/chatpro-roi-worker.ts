@@ -3,6 +3,7 @@ import 'server-only';
 import { and, asc, desc, eq, inArray, isNotNull, ne, or, sql } from 'drizzle-orm';
 import { evaluateChatProLeadWithClaude } from '@/lib/chatpro-roi-ai';
 import { loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
+import { saveChatProRoiEvaluation } from '@/lib/chatpro-roi-evaluation-save';
 import {
   leadHasCampaignAttribution,
   shouldEvaluateLeadForRoi,
@@ -38,6 +39,8 @@ type WorkerOptions = {
   leadId?: number;
   dryRun?: boolean;
   limit?: number;
+  /** Allow re-analysis of a single lead even without new messages (manual only). */
+  force?: boolean;
 };
 
 async function loadLastEvaluation(leadId: number) {
@@ -140,6 +143,7 @@ export async function runChatProRoiWorker(options: WorkerOptions = {}): Promise<
         !lastEval
         || messages.length > lastEval.messageCount
         || (lastMessageId !== null && lastMessageId !== lastEval.lastMessageId);
+      const force = Boolean(options.force && options.leadId);
 
       if (!leadHasCampaignAttribution(lead)) {
         result.skipped += 1;
@@ -155,10 +159,22 @@ export async function runChatProRoiWorker(options: WorkerOptions = {}): Promise<
         : null;
 
       if (
-        !shouldEvaluateLeadForRoi(lead, messages.length, hasNewMessages, {}, lastEvalStage)
+        !shouldEvaluateLeadForRoi(
+          lead,
+          messages.length,
+          hasNewMessages || force,
+          {},
+          lastEvalStage,
+        )
       ) {
         result.skipped += 1;
         result.items.push({ leadId, status: 'skipped', reason: 'not_eligible' });
+        continue;
+      }
+
+      if (!hasNewMessages && !force) {
+        result.skipped += 1;
+        result.items.push({ leadId, status: 'skipped', reason: 'no_new_messages' });
         continue;
       }
 
@@ -193,7 +209,7 @@ export async function runChatProRoiWorker(options: WorkerOptions = {}): Promise<
           : null,
       );
 
-      await db.insert(chatproLeadEvaluationsSchema).values({
+      const saved = await saveChatProRoiEvaluation({
         leadId,
         messageCount: messages.length,
         lastMessageId,
@@ -202,13 +218,17 @@ export async function runChatProRoiWorker(options: WorkerOptions = {}): Promise<
         result: evaluation,
       });
 
-      await applyChatProRoiLeadContactEnrichment(leadId, evaluation);
+      if (!saved.duplicate) {
+        await applyChatProRoiLeadContactEnrichment(leadId, evaluation);
+      }
 
       result.evaluated += 1;
       result.items.push({ leadId, status: 'evaluated', evaluation });
 
       logger.info('ChatPro ROI evaluation saved', {
         leadId,
+        evaluationId: saved.evaluationId,
+        duplicate: saved.duplicate,
         stage: evaluation.stage,
         dealLikelihood: evaluation.dealLikelihood,
       });
