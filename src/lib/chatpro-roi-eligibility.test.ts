@@ -53,17 +53,17 @@ describe('leadHasCampaignAttribution', () => {
 });
 
 describe('isRoiJourneyFrozen', () => {
-  it('freezes after CRM won or lost', () => {
-    expect(isRoiJourneyFrozen({ status: 'won' })).toBe(true);
-    expect(isRoiJourneyFrozen({ status: 'lost' })).toBe(true);
+  it('freezes only after Claude closed_won or closed_lost', () => {
+    expect(isRoiJourneyFrozen({ lastEvaluationStage: 'closed_won' })).toBe(true);
+    expect(isRoiJourneyFrozen({ lastEvaluationStage: 'closed_lost' })).toBe(true);
   });
 
-  it('freezes after Claude closed_won or closed_lost', () => {
-    expect(isRoiJourneyFrozen({ status: 'contacted', lastEvaluationStage: 'closed_won' })).toBe(true);
-    expect(isRoiJourneyFrozen({ status: 'quoted', lastEvaluationStage: 'closed_lost' })).toBe(true);
+  it('ignores CRM won or lost status', () => {
+    expect(isRoiJourneyFrozen({ status: 'won' })).toBe(false);
+    expect(isRoiJourneyFrozen({ status: 'lost', lastEvaluationStage: 'negotiation' })).toBe(false);
   });
 
-  it('stays open while journey is active', () => {
+  it('stays open while Claude journey is active', () => {
     expect(isRoiJourneyFrozen({ status: 'contacted', lastEvaluationStage: 'negotiation' })).toBe(false);
   });
 });
@@ -83,14 +83,7 @@ describe('shouldEvaluateLeadForRoi', () => {
     expect(shouldEvaluateLeadForRoi(baseLead, 2, true)).toBe(false);
   });
 
-  it('skips frozen journey even with new messages', () => {
-    expect(
-      shouldEvaluateLeadForRoi(
-        { ...baseLead, gclid: 'x', status: 'won' },
-        5,
-        true,
-      ),
-    ).toBe(false);
+  it('skips journey frozen by Claude even with new messages', () => {
     expect(
       shouldEvaluateLeadForRoi(
         { ...baseLead, gclid: 'x', status: 'contacted' },
@@ -102,7 +95,19 @@ describe('shouldEvaluateLeadForRoi', () => {
     ).toBe(false);
   });
 
-  it('skips terminal lead without new messages', () => {
+  it('keeps evaluating CRM won lead while Claude has not closed', () => {
+    expect(
+      shouldEvaluateLeadForRoi(
+        { ...baseLead, gclid: 'x', status: 'won' },
+        5,
+        true,
+        {},
+        'negotiation',
+      ),
+    ).toBe(true);
+  });
+
+  it('skips lead without new messages regardless of CRM status', () => {
     expect(
       shouldEvaluateLeadForRoi(
         { ...baseLead, gclid: 'x', status: 'won' },

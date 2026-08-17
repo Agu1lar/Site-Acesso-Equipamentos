@@ -41,7 +41,7 @@ export function leadHasChatProActivity(lead: CampaignLeadSnapshot, messageCount:
   return Boolean(lead.whatsappRepliedAt) || messageCount > 0;
 }
 
-/** Terminal CRM statuses — acquisition journey is done for Ads ROI. */
+/** Terminal CRM statuses — kept for reference; CRM no longer drives ROI freeze. */
 export function isTerminalLeadStatus(status: string) {
   return status === 'won' || status === 'lost';
 }
@@ -53,15 +53,14 @@ export function isTerminalRoiStage(stage: string | null | undefined) {
 
 /**
  * True when this lead should no longer receive ChatPro ROI analysis.
- * Organic follow-ups after close stay in CRM only; a new gclid creates a new journey.
+ * Claude is the source of truth: the journey freezes only when the last Claude
+ * stage is closed_won/closed_lost. The CRM status is ignored (nobody maintains it).
+ * A new paid click creates a separate journey.
  */
 export function isRoiJourneyFrozen(options: {
-  status: string;
+  status?: string;
   lastEvaluationStage?: string | null;
 }) {
-  if (isTerminalLeadStatus(options.status)) {
-    return true;
-  }
   return isTerminalRoiStage(options.lastEvaluationStage);
 }
 
