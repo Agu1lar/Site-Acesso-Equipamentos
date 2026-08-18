@@ -10,7 +10,10 @@ async function ackJobsOutbox(api: ChatProRemoteApi, jobs: QueuedJob[]) {
   if (outboxIds.length === 0) {
     return;
   }
-  await api.ackEvents(outboxIds);
+  const result = await api.ackEvents(outboxIds);
+  if (result.acked !== new Set(outboxIds).size) {
+    throw new Error(`ack_events_incomplete:${result.acked}/${new Set(outboxIds).size}`);
+  }
 }
 
 /**
@@ -33,7 +36,7 @@ export async function consumeReadyLeadGroups(
   for (const group of groups) {
     const jobs = queue.listPendingJobsForGroup(group.lead_id, group.phone_key);
     if (jobs.length === 0) {
-      queue.clearLeadDebounce(group.group_key);
+      queue.reconcileLeadDebounce(group.group_key);
       continue;
     }
 
@@ -41,16 +44,15 @@ export async function consumeReadyLeadGroups(
       console.warn('[chatpro-local] skip — no lead_id for phone', group.phone_key);
       await ackJobsOutbox(api, jobs);
       queue.markJobsDone(jobs.map((job) => job.id));
-      queue.clearLeadDebounce(group.group_key);
+      queue.reconcileLeadDebounce(group.group_key);
       acked += jobs.length;
       skipped += 1;
       continue;
     }
 
     if (!config.anthropicApiKey) {
-      console.warn('[chatpro-local] skip — ANTHROPIC_API_KEY not set', { leadId: group.lead_id });
-      skipped += 1;
-      continue;
+      console.error('[chatpro-local] consumer paused — ANTHROPIC_API_KEY not set');
+      return { processed, skipped, failed, acked, blocked: 'anthropic_not_configured' };
     }
 
     try {
@@ -59,7 +61,7 @@ export async function consumeReadyLeadGroups(
         console.warn('[chatpro-local] skip — no messages in Neon', { leadId: group.lead_id });
         await ackJobsOutbox(api, jobs);
         queue.markJobsDone(jobs.map((job) => job.id));
-        queue.clearLeadDebounce(group.group_key);
+        queue.reconcileLeadDebounce(group.group_key);
         acked += jobs.length;
         skipped += 1;
         continue;
@@ -79,6 +81,10 @@ export async function consumeReadyLeadGroups(
         result: evaluation,
       });
 
+      if (!submitResult.ok) {
+        throw new Error('submit_evaluation_rejected');
+      }
+
       console.log('[chatpro-local] evaluation saved', {
         leadId: group.lead_id,
         evaluationId: submitResult.evaluationId,
@@ -93,21 +99,25 @@ export async function consumeReadyLeadGroups(
 
       await ackJobsOutbox(api, jobs);
       queue.markJobsDone(jobs.map((job) => job.id));
-      queue.clearLeadDebounce(group.group_key);
+      queue.reconcileLeadDebounce(group.group_key);
       acked += jobs.length;
       processed += 1;
     } catch (error) {
-      failed += 1;
       const reason = error instanceof Error ? error.message : String(error);
+      if (reason === 'anthropic_auth_invalid') {
+        console.error('[chatpro-local] consumer paused — invalid Anthropic API key');
+        return { processed, skipped, failed, acked, blocked: reason };
+      }
       if (reason.includes('fetch_lead_context_failed:403')) {
         console.warn('[chatpro-local] skip — lead not eligible for ROI', { leadId: group.lead_id, reason });
         await ackJobsOutbox(api, jobs);
         queue.markJobsDone(jobs.map((job) => job.id));
-        queue.clearLeadDebounce(group.group_key);
+        queue.reconcileLeadDebounce(group.group_key);
         acked += jobs.length;
         skipped += 1;
         continue;
       }
+      failed += 1;
       console.error('[chatpro-local] analysis failed', { leadId: group.lead_id, reason });
       for (const job of jobs) {
         queue.incrementJobAttempts(job.id);
@@ -116,5 +126,5 @@ export async function consumeReadyLeadGroups(
     }
   }
 
-  return { processed, skipped, failed, acked };
+  return { processed, skipped, failed, acked, blocked: null };
 }

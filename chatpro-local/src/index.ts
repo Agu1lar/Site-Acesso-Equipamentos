@@ -10,6 +10,7 @@ const queue = new LocalQueue(config.sqlitePath);
 
 let polling = false;
 let consuming = false;
+let consumeBlockedReason: string | null = null;
 
 async function runPollCycle() {
   if (polling) {
@@ -29,12 +30,18 @@ async function runPollCycle() {
 }
 
 async function runConsumeCycle() {
-  if (consuming) {
+  if (consuming || consumeBlockedReason) {
     return;
   }
   consuming = true;
   try {
     const result = await consumeReadyLeadGroups(queue, config, api);
+    if (result.blocked) {
+      consumeBlockedReason = result.blocked;
+      console.error('[chatpro-local] consumption disabled until restart', {
+        reason: consumeBlockedReason,
+      });
+    }
     if (result.processed > 0) {
       console.log('[chatpro-local] consume', result);
     }
@@ -54,6 +61,15 @@ console.log('[chatpro-local] started', {
   anthropicModel: config.anthropicModel,
   anthropicConfigured: Boolean(config.anthropicApiKey),
 });
+
+function shutdown(signal: string) {
+  console.log('[chatpro-local] stopping', { signal });
+  queue.close();
+  process.exit(0);
+}
+
+process.once('SIGINT', () => shutdown('SIGINT'));
+process.once('SIGTERM', () => shutdown('SIGTERM'));
 
 await runPollCycle();
 await runConsumeCycle();

@@ -1,6 +1,5 @@
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 export type LocalConfig = {
   apiBaseUrl: string;
@@ -15,12 +14,12 @@ export type LocalConfig = {
 
 /** Loads key=value pairs from chatpro-local/.env into process.env (no override). */
 function loadDotEnvFile() {
-  const envPath = resolve(dirname(fileURLToPath(import.meta.url)), '../.env');
+  const envPath = resolve(import.meta.dirname, '../.env');
   if (!existsSync(envPath)) {
     return;
   }
 
-  for (const rawLine of readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+  for (const rawLine of readFileSync(envPath, 'utf8').split(/\r?\n/u)) {
     const line = rawLine.trim();
     if (!line || line.startsWith('#')) {
       continue;
@@ -37,7 +36,8 @@ function loadDotEnvFile() {
     ) {
       value = value.slice(1, -1);
     }
-    // Prefer chatpro-local/.env over a stale parent shell env.
+    // The dedicated local file is authoritative, avoiding stale secrets inherited
+    // from a parent terminal. One-off URL changes use the explicit override below.
     process.env[key] = value;
   }
 }
@@ -52,6 +52,7 @@ function readRequired(name: string) {
 
 /** Loads environment for the local ChatPro ROI consumer. */
 export function loadLocalConfig(): LocalConfig {
+  const apiBaseUrlOverride = process.env.CHATPRO_LOCAL_API_URL_OVERRIDE?.trim();
   loadDotEnvFile();
 
   const sqlitePath = resolve(
@@ -62,7 +63,7 @@ export function loadLocalConfig(): LocalConfig {
   const pdfAllowlistRaw = process.env.CHATPRO_PDF_URL_ALLOWLIST?.trim();
 
   return {
-    apiBaseUrl: readRequired('CHATPRO_LOCAL_API_URL').replace(/\/$/, ''),
+    apiBaseUrl: (apiBaseUrlOverride || readRequired('CHATPRO_LOCAL_API_URL')).replace(/\/$/u, ''),
     internalApiSecret: readRequired('INTERNAL_API_SECRET'),
     sqlitePath,
     pollIntervalMs: Number(process.env.CHATPRO_LOCAL_POLL_MS ?? 60_000),

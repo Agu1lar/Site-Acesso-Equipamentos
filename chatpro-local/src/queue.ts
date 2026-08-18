@@ -22,6 +22,7 @@ export class LocalQueue {
     this.db = new Database(sqlitePath);
     this.db.pragma('journal_mode = WAL');
     this.migrate();
+    this.repairPendingDebounces();
   }
 
   private migrate() {
@@ -61,6 +62,10 @@ export class LocalQueue {
 
       CREATE INDEX IF NOT EXISTS jobs_status_scheduled_idx ON jobs(status, scheduled_at);
     `);
+  }
+
+  close() {
+    this.db.close();
   }
 
   /** Stable id used to claim outbox leases on the remote API. */
@@ -117,7 +122,8 @@ export class LocalQueue {
       analyzeAfter,
     );
 
-    // Only (re)arm debounce when a new job was inserted — never on poll re-fetch of pending outbox.
+    // Only rearm an existing debounce when this is a genuinely new event. A duplicate
+    // pending job may still need its missing debounce repaired after an interrupted run.
     if (insertResult.changes > 0) {
       this.db.prepare(`
         INSERT INTO lead_debounce (group_key, lead_id, phone_key, analyze_after, updated_at)
@@ -128,6 +134,14 @@ export class LocalQueue {
           phone_key = excluded.phone_key,
           updated_at = datetime('now')
       `).run(groupKey, event.leadId, event.phoneKey, analyzeAfter);
+    } else {
+      this.db.prepare(`
+        INSERT INTO lead_debounce (group_key, lead_id, phone_key, analyze_after, updated_at)
+        SELECT ?, lead_id, phone_key, scheduled_at, datetime('now')
+        FROM jobs
+        WHERE outbox_id = ? AND status = 'pending'
+        ON CONFLICT(group_key) DO NOTHING
+      `).run(groupKey, event.outboxId);
     }
 
     return { inserted: insertResult.changes > 0 };
@@ -198,8 +212,70 @@ export class LocalQueue {
     `).run(...jobIds);
   }
 
-  clearLeadDebounce(groupKey: string) {
-    this.db.prepare('DELETE FROM lead_debounce WHERE group_key = ?').run(groupKey);
+  /**
+   * Removes a completed debounce or preserves/recreates it when a new job arrived
+   * while the previous lead analysis was running.
+   */
+  reconcileLeadDebounce(groupKey: string) {
+    const isLead = groupKey.startsWith('lead:');
+    const groupValue = groupKey.slice(groupKey.indexOf(':') + 1);
+    const pending = isLead
+      ? this.db.prepare(`
+          SELECT lead_id AS leadId, MAX(phone_key) AS phoneKey, MAX(scheduled_at) AS analyzeAfter
+          FROM jobs
+          WHERE lead_id = ? AND status = 'pending'
+          GROUP BY lead_id
+        `).get(Number(groupValue)) as
+          | { leadId: number; phoneKey: string; analyzeAfter: string }
+          | undefined
+      : this.db.prepare(`
+          SELECT lead_id AS leadId, phone_key AS phoneKey, MAX(scheduled_at) AS analyzeAfter
+          FROM jobs
+          WHERE phone_key = ? AND status = 'pending'
+          GROUP BY phone_key
+        `).get(groupValue) as
+          | { leadId: number | null; phoneKey: string; analyzeAfter: string }
+          | undefined;
+
+    if (!pending) {
+      this.db.prepare('DELETE FROM lead_debounce WHERE group_key = ?').run(groupKey);
+      return;
+    }
+
+    this.db.prepare(`
+      INSERT INTO lead_debounce (group_key, lead_id, phone_key, analyze_after, updated_at)
+      VALUES (?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(group_key) DO UPDATE SET
+        lead_id = excluded.lead_id,
+        phone_key = excluded.phone_key,
+        analyze_after = excluded.analyze_after,
+        updated_at = datetime('now')
+    `).run(groupKey, pending.leadId, pending.phoneKey, pending.analyzeAfter);
+  }
+
+  /** Restores debounce rows for pending jobs left behind by an interrupted/racing run. */
+  repairPendingDebounces() {
+    return this.db.prepare(`
+      INSERT INTO lead_debounce (group_key, lead_id, phone_key, analyze_after, updated_at)
+      SELECT
+        CASE
+          WHEN lead_id IS NOT NULL THEN 'lead:' || lead_id
+          ELSE 'phone:' || phone_key
+        END,
+        lead_id,
+        MAX(phone_key),
+        MAX(scheduled_at),
+        datetime('now')
+      FROM jobs
+      WHERE status = 'pending'
+      GROUP BY
+        CASE
+          WHEN lead_id IS NOT NULL THEN 'lead:' || lead_id
+          ELSE 'phone:' || phone_key
+        END,
+        lead_id
+      ON CONFLICT(group_key) DO NOTHING
+    `).run().changes;
   }
 
   /** Pushes back analysis for a failed group without dropping pending jobs. */

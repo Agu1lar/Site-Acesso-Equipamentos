@@ -30,7 +30,25 @@ export type ChatProOutboxEvent = {
   createdAt: Date;
 };
 
+type ClaimedOutboxRow = {
+  outboxId: number;
+  messageId: number;
+  externalId: string;
+  leadId: number | null;
+  phoneKey: string;
+  payload: unknown;
+  createdAt: Date | string;
+};
+
 const DEFAULT_OUTBOX_LEASE_MS = 15 * 60 * 1000;
+
+/** Extracts rows from the node-postgres result shape returned by Drizzle execute. */
+export function extractClaimedOutboxRows(result: { rows: unknown }): ClaimedOutboxRow[] {
+  if (!Array.isArray(result.rows)) {
+    throw new TypeError('invalid_claim_result_rows');
+  }
+  return result.rows as ClaimedOutboxRow[];
+}
 
 /** Builds the normalized payload stored in the outbox for the local consumer. */
 export function buildChatProOutboxPayload(
@@ -184,15 +202,7 @@ export async function claimChatProOutboxEvents(options: {
         o.created_at AS "createdAt"
     `);
 
-    const rows = (Array.isArray(result) ? result : []) as Array<{
-      outboxId: number;
-      messageId: number;
-      externalId: string;
-      leadId: number | null;
-      phoneKey: string;
-      payload: unknown;
-      createdAt: Date | string;
-    }>;
+    const rows = extractClaimedOutboxRows(result);
 
     return rows.map((row) =>
       mapOutboxRow({
