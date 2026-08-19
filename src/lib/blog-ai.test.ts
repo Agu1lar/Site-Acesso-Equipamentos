@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   CLAUDE_BLOG_TAG_CONTRACT,
+  coerceClaudeBlogDraftInput,
   filterEquipmentCatalogForTopic,
   normalizeClaudeBlogDraft,
   parseClaudeBlogDraft,
@@ -226,6 +227,53 @@ describe('filter equipment catalog for topic', () => {
 
   it('returns empty when nothing matches a generic topic', () => {
     expect(filterEquipmentCatalogForTopic('lgpd cookies analytics dashboard xyzzy')).toEqual([]);
+  });
+});
+
+describe('coerce Claude blog draft', () => {
+  it('slugifies accented slugs and pads a short excerpt', () => {
+    const coerced = coerceClaudeBlogDraftInput({
+      title: 'Como escolher plataforma tesoura',
+      slug: 'Como Escolher Plataforma Tesoura',
+      excerpt: 'Curto',
+      metaTitle: 'Tesoura',
+      metaDescription: 'Meta',
+      coverImageIndex: 0,
+      contentMarkup: longMarkup,
+      images: [],
+      relatedLinks: [],
+    }) as { slug: string; excerpt: string };
+
+    expect(coerced.slug).toBe('como-escolher-plataforma-tesoura');
+    expect(coerced.excerpt.length).toBeGreaterThanOrEqual(30);
+  });
+
+  it('parses a draft when image alt is empty', () => {
+    const parsed = parseClaudeBlogDraft({
+      title: 'Como escolher equipamentos para uma obra eficiente',
+      slug: 'como-escolher-equipamentos-obra',
+      excerpt: 'Um guia prático para planejar a locação de equipamentos na construção civil.',
+      metaTitle: 'Equipamentos para obra: como escolher | Acesso',
+      metaDescription:
+        'Entenda como escolher equipamentos para cada etapa da obra com segurança e produtividade.',
+      coverImageIndex: 0,
+      contentMarkup: longMarkup,
+      images: [
+        {
+          type: 'equipment',
+          prompt: '',
+          url: '/equipamentos/betoneira.webp',
+          svg: '',
+          alt: '',
+        },
+      ],
+      relatedLinks: [],
+    });
+
+    expect(parsed.imageSlots[0]).toMatchObject({
+      type: 'equipment',
+      url: '/equipamentos/betoneira.webp',
+    });
   });
 });
 

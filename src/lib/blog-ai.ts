@@ -8,9 +8,11 @@ import {
   remapImageTagsAfterImageChange,
   type BlogEditorImage,
 } from '@/lib/blog-tag-markup';
+import { slugifyEquipmentName } from '@/lib/equipment-slug';
 import { Env } from '@/libs/Env';
 import { ClaudeBlogDraftSchema } from '@/validations/blog-ai';
 import type { ClaudeBlogImageSlot, GeneratedBlogDraft } from '@/validations/blog-ai';
+import * as z from 'zod';
 
 const ANTHROPIC_MESSAGES_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -227,7 +229,11 @@ export function sanitizeClaudeImageSlots(
       if (!svg) {
         continue;
       }
-      result.push({ type: 'generated', svg, alt: slot.alt });
+      result.push({
+        type: 'generated',
+        svg,
+        alt: slot.alt.trim() || 'Ilustração do artigo',
+      });
       generatedCount += 1;
       continue;
     }
@@ -239,7 +245,11 @@ export function sanitizeClaudeImageSlots(
     if (!allowedImageUrls.has(url)) {
       continue;
     }
-    result.push({ type: 'equipment', url, alt: slot.alt });
+    result.push({
+      type: 'equipment',
+      url,
+      alt: slot.alt.trim() || 'Equipamento da frota Acesso',
+    });
     equipmentCount += 1;
   }
 
@@ -281,6 +291,67 @@ type ParsedClaudeBlogDraft = {
   relatedLinks: GeneratedBlogDraft['relatedLinks'];
 };
 
+function padText(value: string, fallback: string, minLength: number, maxLength: number) {
+  const trimmed = value.trim() || fallback.trim();
+  if (trimmed.length >= minLength) {
+    return trimmed.slice(0, maxLength);
+  }
+  const padded = `${trimmed} ${fallback}`.trim();
+  if (padded.length >= minLength) {
+    return padded.slice(0, maxLength);
+  }
+  return `${padded} Locação de equipamentos para construção civil em Minas Gerais.`.slice(
+    0,
+    maxLength,
+  );
+}
+
+/**
+ * Softens Claude JSON so small schema drifts still parse.
+ */
+export function coerceClaudeBlogDraftInput(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return raw;
+  }
+
+  const draft = { ...(raw as Record<string, unknown>) };
+  const title = typeof draft.title === 'string' ? draft.title.trim() : '';
+  const slugSource = typeof draft.slug === 'string' && draft.slug.trim() ? draft.slug : title;
+  draft.slug = slugifyEquipmentName(slugSource);
+
+  if (typeof draft.excerpt === 'string' || title) {
+    draft.excerpt = padText(typeof draft.excerpt === 'string' ? draft.excerpt : '', title, 30, 500);
+  }
+  if (typeof draft.metaTitle === 'string' || title) {
+    draft.metaTitle = padText(
+      typeof draft.metaTitle === 'string' ? draft.metaTitle : '',
+      title,
+      10,
+      200,
+    );
+  }
+  if (typeof draft.metaDescription === 'string' || title) {
+    draft.metaDescription = padText(
+      typeof draft.metaDescription === 'string' ? draft.metaDescription : '',
+      typeof draft.excerpt === 'string' ? draft.excerpt : title,
+      20,
+      320,
+    );
+  }
+
+  if (!Array.isArray(draft.images)) {
+    draft.images = [];
+  }
+  if (!Array.isArray(draft.relatedLinks)) {
+    draft.relatedLinks = [];
+  }
+  if (typeof draft.coverImageIndex !== 'number' || Number.isNaN(draft.coverImageIndex)) {
+    draft.coverImageIndex = 0;
+  }
+
+  return draft;
+}
+
 /**
  * Parses and secures Claude JSON before image materialization.
  * @param raw Untrusted structured output returned by Claude.
@@ -289,7 +360,7 @@ export function parseClaudeBlogDraft(
   raw: unknown,
   options?: { allowGeneratedImages?: boolean; allowEquipmentImages?: boolean },
 ): ParsedClaudeBlogDraft {
-  const parsed = ClaudeBlogDraftSchema.parse(raw);
+  const parsed = ClaudeBlogDraftSchema.parse(coerceClaudeBlogDraftInput(raw));
   const imageSlots = sanitizeClaudeImageSlots(parsed.images, {
     allowGenerated: options?.allowGeneratedImages === true,
     allowEquipment: options?.allowEquipmentImages !== false,
@@ -390,12 +461,12 @@ export async function generateBlogDraftWithClaude(
     },
     body: JSON.stringify({
       model: Env.ANTHROPIC_MODEL,
-      max_tokens: 6000,
+      max_tokens: 4000,
       system: [
         'Você é editor sênior do blog da Acesso Equipamentos, locadora de equipamentos para construção civil em Minas Gerais.',
         'Produza conteúdo útil, responsável, original e em português do Brasil. Nunca invente normas, estatísticas, preços, especificações técnicas ou fatos atuais.',
-        'O artigo deve ter introdução forte, de 5 a 8 seções H2, H3 quando necessário, listas úteis e conclusão com CTA contextual. Escreva entre 900 e 1.400 palavras.',
-        'O título deve ser claro e específico. Use slug sem acentos, em minúsculas e separado por hífens. Meta title deve ter 45 a 60 caracteres, meta description de 120 a 155 e excerpt de 150 a 300.',
+        'O artigo deve ter introdução, 4 a 6 seções H2, H3 quando necessário, uma lista útil e conclusão com CTA. Escreva entre 500 e 700 palavras — seja completo, não prolixo.',
+        'O título deve ser claro e específico. Use slug sem acentos, em minúsculas e separado por hífens. Meta title deve ter 45 a 60 caracteres, meta description de 120 a 155 e excerpt de 120 a 220.',
         'Preencha também slug, excerpt, metaTitle, metaDescription e relatedLinks.',
         blogImageSystemInstructions(imageSource),
         'Use apenas links internos da lista fornecida. Não transforme referências externas, normas ou fontes não fornecidas em links.',
@@ -430,14 +501,28 @@ export async function generateBlogDraftWithClaude(
     throw new Error('anthropic_empty_response');
   }
 
-  const parsed = parseClaudeBlogDraft(JSON.parse(text) as unknown, {
-    allowGeneratedImages: false,
-    allowEquipmentImages: useCatalogImages,
-  });
-  const images = await materializeBlogImageSlots({
-    slots: parsed.imageSlots,
-    slug: parsed.slug,
-  });
+  let rawDraft: unknown;
+  try {
+    rawDraft = JSON.parse(text) as unknown;
+  } catch {
+    throw new Error('invalid_draft');
+  }
 
-  return buildGeneratedBlogDraft(parsed, images);
+  try {
+    const parsed = parseClaudeBlogDraft(rawDraft, {
+      allowGeneratedImages: false,
+      allowEquipmentImages: useCatalogImages,
+    });
+    const images = await materializeBlogImageSlots({
+      slots: parsed.imageSlots,
+      slug: parsed.slug,
+    });
+
+    return buildGeneratedBlogDraft(parsed, images);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error('invalid_draft');
+    }
+    throw error;
+  }
 }

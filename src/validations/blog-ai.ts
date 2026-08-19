@@ -15,7 +15,7 @@ export const ClaudeBlogImageSlotRawSchema = z.object({
   prompt: z.string().max(900).default(''),
   url: z.string().max(500).default(''),
   svg: z.string().max(40_000).default(''),
-  alt: z.string().trim().min(5).max(220),
+  alt: z.string().trim().max(220).default(''),
 });
 
 export type ClaudeBlogImageSlotRaw = z.infer<typeof ClaudeBlogImageSlotRawSchema>;
@@ -40,7 +40,7 @@ export const ClaudeBlogDraftSchema = z.object({
   metaDescription: z.string().trim().min(20).max(320),
   /** Zero-based index into `images` for the cover. */
   coverImageIndex: z.number().int().min(0).max(3),
-  contentMarkup: z.string().trim().min(500),
+  contentMarkup: z.string().trim().min(200),
   images: z.array(ClaudeBlogImageSlotRawSchema).max(4),
   relatedLinks: z.array(generatedRelatedLinkSchema).max(4),
 });

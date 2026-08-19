@@ -52,13 +52,20 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
       const response = await fetch('/api/admin/blog/generate', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ topic: topic.trim(), imageSource }),
       });
-      const payload = (await response.json()) as {
-        draft?: GeneratedBlogDraft;
-        error?: string;
-      };
+      const contentType = response.headers.get('content-type') ?? '';
+      const payload = contentType.includes('application/json')
+        ? ((await response.json()) as { draft?: GeneratedBlogDraft; error?: string })
+        : {};
       if (!response.ok || !payload.draft) {
+        if (response.status === 401 || payload.error === 'not_authenticated') {
+          throw new Error('not_authenticated');
+        }
+        if (response.status === 504 || payload.error === 'generation_timeout') {
+          throw new Error('generation_timeout');
+        }
         throw new Error(payload.error || 'generation_failed');
       }
 
@@ -68,6 +75,14 @@ export function BlogAiGenerator(props: BlogAiGeneratorProps) {
       const code = error instanceof Error ? error.message : 'generation_failed';
       if (code === 'anthropic_not_configured') {
         setErrorMessage(t('ai_error_not_configured'));
+      } else if (code === 'not_authenticated' || code === 'forbidden') {
+        setErrorMessage(t('ai_error_session'));
+      } else if (code === 'generation_timeout' || code === 'TimeoutError') {
+        setErrorMessage(t('ai_error_timeout'));
+      } else if (code === 'anthropic_incomplete_response') {
+        setErrorMessage(t('ai_error_incomplete'));
+      } else if (code === 'invalid_draft') {
+        setErrorMessage(t('ai_error_invalid'));
       } else {
         setErrorMessage(t('ai_error_generic'));
       }

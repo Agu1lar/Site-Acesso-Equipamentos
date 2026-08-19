@@ -32,6 +32,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ draft });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'generation_failed';
+    const name = error instanceof Error ? error.name : '';
+    console.error('[blog-ai] generation failed', name || message);
+    if (name === 'TimeoutError' || /timeout|timed out|aborted/iu.test(message)) {
+      return NextResponse.json({ error: 'generation_timeout' }, { status: 504 });
+    }
     let status = 502;
     if (message === 'anthropic_not_configured') {
       status = 503;
