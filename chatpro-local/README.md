@@ -79,3 +79,21 @@ npm start
 ```
 
 Ver pending: `GET /api/internal/v1/chatpro-roi/summary` (ou `npm run status`).
+
+### Heartbeat do dashboard
+
+Log esperado ao iniciar:
+
+```text
+[chatpro-local] dashboard network renewed {
+  ok: true,
+  ipAddress: '...',
+  expiresAt: '...'
+}
+```
+
+Falhas comuns:
+
+- `dashboard_network_heartbeat_failed:404`: a produção ainda não publicou a rota nova, ou `CHATPRO_LOCAL_API_URL` aponta para outro ambiente. Aguarde o deploy e reinicie o worker.
+- `dashboard_network_heartbeat_failed:401`: `INTERNAL_API_SECRET` local diferente do secret configurado na Vercel.
+- `dashboard_network_heartbeat_failed:500`: erro no servidor/banco; verificar `/api/health` e migrations.

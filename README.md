@@ -86,6 +86,7 @@ Variáveis obrigatórias em **Production:** Clerk, `DATABASE_URL`, `NEXT_PUBLIC_
 | Deploy / preview Vercel | [docs/DEPLOY-PREVIEW-VERCEL.md](docs/DEPLOY-PREVIEW-VERCEL.md) |
 | Clerk e papéis do painel | [docs/CLERK-ACESSO-ADMIN.md](docs/CLERK-ACESSO-ADMIN.md) |
 | GA4 e Google Ads | [docs/GOOGLE-ADS-GA4.md](docs/GOOGLE-ADS-GA4.md) |
+| ChatPro ROI e worker local | [docs/CHATPRO-ROI-WORKER.md](docs/CHATPRO-ROI-WORKER.md) |
 | API interna para app externo | [docs/INTERNAL-ADS-QUALITY-API.md](docs/INTERNAL-ADS-QUALITY-API.md) |
 | Migração SEO WordPress | [docs/MIGRACAO-SEO-WP.md](docs/MIGRACAO-SEO-WP.md) |
 | GEO / IAs (`llms.txt`) | [docs/GEO-AI-SEARCH.md](docs/GEO-AI-SEARCH.md) |

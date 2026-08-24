@@ -27,6 +27,17 @@ GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID=123456789
 
 `GOOGLE_ADS_LOGIN_CUSTOMER_ID` só é necessário quando a API é acessada via conta MCC.
 
+Depois de configurar na Vercel Production e redeployar, `/api/health` deve retornar:
+
+```json
+{
+  "googleAdsApiConfigured": true,
+  "googleAdsOfflineConversionConfigured": true
+}
+```
+
+Se `googleAdsApiConfigured=false`, falta uma das credenciais da API. Se `googleAdsApiConfigured=true` e `googleAdsOfflineConversionConfigured=false`, falta a ação offline (`GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID` ou `GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME`).
+
 ## Obter refresh token (uma vez)
 
 1. [Google Cloud Console](https://console.cloud.google.com/) → APIs → ativar **Google Ads API**

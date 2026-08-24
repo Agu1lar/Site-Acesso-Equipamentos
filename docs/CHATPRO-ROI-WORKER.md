@@ -11,6 +11,7 @@ ChatPro → POST /api/webhooks/chatpro (Vercel)
 
 chatpro-local/ (sua máquina)
             ├─ poll GET …/chatpro-roi/events?since=0
+            ├─ heartbeat POST …/dashboard-network/heartbeat (autoriza IP do painel)
             ├─ fila SQLite (job_id = externalId, dedup)
             ├─ debounce 30 min por lead
             ├─ GET …/leads/{id}/context (403 se não for campanha)
@@ -57,6 +58,8 @@ npm run db:migrate
 - `0037_chatpro_roi_worker.sql` — messages + evaluations
 - `0038_chatpro_outbox.sql` — outbox pull
 - `0039_whatsapp_attribution_tokens.sql` — ponte clique WhatsApp → ChatPro
+- `0045_dashboard_trusted_networks.sql` — IPs autorizados pelo heartbeat do PC
+- `0046`/`0047` — remove unicidade por IP para permitir mais de um dispositivo na mesma rede
 
 ## API interna
 
@@ -70,6 +73,7 @@ Todas exigem `Authorization: Bearer INTERNAL_API_SECRET`.
 | GET | `/api/internal/v1/chatpro-roi/leads/{id}/context` | Lead + mensagens para Claude |
 | GET | `/api/internal/v1/chatpro-roi/summary` | Status geral |
 | GET | `/api/internal/v1/chatpro-roi/report?campaignPrefix=…` | Relatório ROI × Ads |
+| POST | `/api/internal/v1/dashboard-network/heartbeat` | Renova o IP público confiável do painel |
 
 ## Consumer local
 
@@ -81,6 +85,8 @@ copy .env.example .env
 npm install
 npm start
 ```
+
+Ao iniciar, o consumer renova o IP público atual do PC como rede confiável para o dashboard. O site detecta o IP pela própria requisição vista na Vercel; o cliente não envia o IP. A autorização expira em 36h e é renovada a cada 6h enquanto o worker estiver rodando.
 
 ## Worker legado (opcional / deprecated)
 
@@ -96,6 +102,8 @@ Ele **não** reavalia leads sem mensagens novas (exceto `--lead=… --force`).
 | Neon evaluations | único `(lead_id, last_message_id)` |
 | SQLite local | `job_id` (= externalId) UNIQUE |
 | Ack | Só marca `delivered_at` após Claude (ou skip seguro) no consumer local |
+
+`last_message_id` é o maior ID das mensagens do lead, não a última mensagem por `event_at`. Isso evita duplicidade ou perda incremental quando o ChatPro entrega eventos com horário fora de ordem.
 
 PDFs baixados para Claude usam allowlist de hosts (`chatpro.com.br`, etc.) + `CHATPRO_PDF_URL_ALLOWLIST` opcional. HTTP e IPs privados são bloqueados.
 

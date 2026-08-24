@@ -6,6 +6,36 @@ Formato: mais recente primeiro.
 
 ---
 
+## 2026-08 — ChatPro ROI, Ads offline e acesso por rede confiável
+
+Correções de produção após ativação do ChatPro local, limite do Neon e diagnóstico de conversões Google Ads.
+
+### ChatPro local e ROI
+
+- `chatpro-local` passou para modo econômico por padrão: poll e consumo a cada 15 min.
+- Heartbeat do worker local registra automaticamente o IP público atual do PC em `dashboard_trusted_networks`.
+- Acesso ao dashboard pode ser liberado pela rede renovada pelo worker, sem editar `DASHBOARD_ALLOWED_IPS` nem redeployar.
+- Correção do cursor de avaliação ROI: `lastMessageId` agora usa o maior ID de mensagem, não a última mensagem ordenada por horário.
+- Recuperação manual aplicada para lead com avaliação parcial; auditoria confirmou zero mensagens ChatPro não avaliadas.
+- Outbox ChatPro ganhou reparo defensivo de schema e erros JSON mais claros em `/api/internal/v1/chatpro-roi/events`.
+
+### Google Ads e conversões
+
+- Backup server-side de conversão offline para clique no WhatsApp com `gclid`, `gbraid` ou `wbraid`.
+- Nova tabela `google_ads_offline_conversions` para auditoria/deduplicação de uploads.
+- `/api/health` expõe `googleAdsOfflineConversionConfigured`.
+- Docs explicam a diferença entre tag `AW-.../label` no navegador e ação de conversão `UPLOAD_CLICKS` da Google Ads API.
+
+### Operação e estabilidade
+
+- `npm run dev` no Windows corrigido para PGlite com `--include-database-url`.
+- `db:migrate` agora faz preflight de conexão e mostra erro claro quando o Neon excede quota de compute.
+- `/dicas` ganhou fallback para artigos legados quando o banco/CMS do blog estiver indisponível.
+
+**Docs:** [CHATPRO-ROI-WORKER.md](docs/CHATPRO-ROI-WORKER.md) · [chatpro-local/README.md](chatpro-local/README.md) · [GOOGLE-ADS-ROI-API.md](docs/GOOGLE-ADS-ROI-API.md) · [GOOGLE-ADS-GA4.md](docs/GOOGLE-ADS-GA4.md)
+
+---
+
 ## 2026-07 — Métricas avançadas, geo e painel analytics
 
 Instrumentação comercial, reorganização do painel de métricas, geolocalização opcional (LGPD) e correções de build/deploy.
