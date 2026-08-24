@@ -190,19 +190,22 @@ describe('applyExplicitCustomerLossGuardrail', () => {
 });
 
 describe('applyRoleGuardrails', () => {
-  it('treats Pedro in from-me messages as seller, not company or lead contact', () => {
+  it.each([
+    ['Pedro', 'Olá, aqui é Pedro do comercial da Acesso.'],
+    ['Mariana', 'Atenciosamente, Mariana - atendimento Acesso.'],
+  ])('treats %s in from-me messages as seller, not company or lead contact', (name, sellerText) => {
     const result = applyRoleGuardrails(
       {
         ...sampleEvaluation,
-        summary: 'Empresa (Pedro) mantém contato cordial com Erica.',
-        roiNotes: 'Empresa (Pedro) precisa enviar orçamento.',
-        detectedContactName: 'Pedro',
+        summary: `Empresa (${name}) mantém contato cordial com Erica.`,
+        roiNotes: `Empresa (${name}) precisa enviar orçamento.`,
+        detectedContactName: name,
       },
       [
         {
           id: 1,
           fromMe: true,
-          messageText: 'Olá, aqui é Pedro do comercial da Acesso.',
+          messageText: sellerText,
           mediaType: null,
           mediaFilename: null,
           mediaMimetype: null,
@@ -212,8 +215,8 @@ describe('applyRoleGuardrails', () => {
       ],
     );
 
-    expect(result.summary).toBe('vendedor Pedro mantém contato cordial com Erica.');
-    expect(result.roiNotes).toBe('vendedor Pedro precisa enviar orçamento.');
+    expect(result.summary).toBe(`vendedor ${name} mantém contato cordial com Erica.`);
+    expect(result.roiNotes).toBe(`vendedor ${name} precisa enviar orçamento.`);
     expect(result.detectedContactName).toBeNull();
   });
 });

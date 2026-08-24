@@ -262,8 +262,8 @@ export async function fetchImageForAnalysis(
 const ROI_ANALYSIS_GUIDANCE = [
   'Papéis da conversa:',
   '- Linhas marcadas como "Vendedor da Acesso" são mensagens da equipe comercial/atendimento da Acesso Equipamentos.',
-  '- Se aparecer um nome em mensagem do vendedor (ex.: "Pedro"), trate como vendedor/atendente, não como empresa e não como cliente.',
-  '- Não escreva "Empresa (Nome)"; prefira "vendedor Pedro", "atendente Pedro" ou "equipe da Acesso".',
+  '- Se aparecer qualquer nome em mensagem do vendedor, trate como vendedor/atendente, não como empresa e não como cliente.',
+  '- Não escreva "Empresa (Nome)"; prefira "vendedor Nome", "atendente Nome" ou "equipe da Acesso".',
   '- detectedContactName deve ser o nome do cliente/lead, nunca o nome de vendedor da Acesso.',
   '',
   'Sinais de fechamento (locação):',
@@ -491,7 +491,7 @@ export async function evaluateChatProLeadWithClaude(
       });
       contentBlocks.push({
         type: 'text',
-        text: `PDF acima (${pdfMessage.fromMe ? 'Empresa' : 'Cliente'}) em ${formatChatProTimestamp(pdfMessage.eventAt)} — ${pdfMessage.mediaFilename ?? 'anexo'}.`,
+        text: `PDF acima (${pdfMessage.fromMe ? 'Vendedor da Acesso' : 'Cliente'}) em ${formatChatProTimestamp(pdfMessage.eventAt)} — ${pdfMessage.mediaFilename ?? 'anexo'}.`,
       });
       attachmentsAdded += 1;
     } catch {
@@ -519,7 +519,7 @@ export async function evaluateChatProLeadWithClaude(
       });
       contentBlocks.push({
         type: 'text',
-        text: `Imagem acima (${imageMessage.fromMe ? 'Empresa' : 'Cliente'}) em ${formatChatProTimestamp(imageMessage.eventAt)} — ${imageMessage.mediaFilename ?? 'anexo'}. Pode ser NF ou documento.`,
+        text: `Imagem acima (${imageMessage.fromMe ? 'Vendedor da Acesso' : 'Cliente'}) em ${formatChatProTimestamp(imageMessage.eventAt)} — ${imageMessage.mediaFilename ?? 'anexo'}. Pode ser NF ou documento.`,
       });
       attachmentsAdded += 1;
     } catch {
