@@ -41,6 +41,39 @@ type ClaimedOutboxRow = {
 };
 
 const DEFAULT_OUTBOX_LEASE_MS = 15 * 60 * 1000;
+let outboxSchemaReady: Promise<void> | null = null;
+
+async function repairChatProOutboxSchema() {
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS "chatpro_outbox" (
+      "id" serial PRIMARY KEY NOT NULL,
+      "message_id" integer NOT NULL,
+      "external_id" varchar(120) NOT NULL,
+      "lead_id" integer,
+      "phone_key" varchar(20) NOT NULL,
+      "payload" jsonb NOT NULL,
+      "created_at" timestamp DEFAULT now() NOT NULL,
+      "delivered_at" timestamp,
+      "locked_at" timestamp,
+      "locked_by" varchar(120)
+    );
+    ALTER TABLE "chatpro_outbox" ADD COLUMN IF NOT EXISTS "delivered_at" timestamp;
+    ALTER TABLE "chatpro_outbox" ADD COLUMN IF NOT EXISTS "locked_at" timestamp;
+    ALTER TABLE "chatpro_outbox" ADD COLUMN IF NOT EXISTS "locked_by" varchar(120);
+    CREATE UNIQUE INDEX IF NOT EXISTS "chatpro_outbox_external_id_uidx"
+      ON "chatpro_outbox" ("external_id");
+    CREATE INDEX IF NOT EXISTS "chatpro_outbox_pending_idx"
+      ON "chatpro_outbox" ("delivered_at", "id");
+    CREATE INDEX IF NOT EXISTS "chatpro_outbox_pending_lock_idx"
+      ON "chatpro_outbox" ("delivered_at", "locked_at", "id");
+  `);
+}
+
+function ensureChatProOutboxSchema() {
+  outboxSchemaReady ??= repairChatProOutboxSchema();
+
+  return outboxSchemaReady;
+}
 
 /** Extracts rows from the node-postgres result shape returned by Drizzle execute. */
 export function extractClaimedOutboxRows(result: { rows: unknown }): ClaimedOutboxRow[] {
@@ -86,6 +119,7 @@ export async function enqueueChatProOutboxEvent(
   leadId: number | null,
   event: ChatProInboundEvent,
 ) {
+  await ensureChatProOutboxSchema();
   const payload = buildChatProOutboxPayload(messageId, externalId, leadId, event);
 
   await db
@@ -126,6 +160,7 @@ function mapOutboxRow(row: {
  * @param limit Max rows (1–100).
  */
 export async function listPendingChatProOutboxEvents(since = 0, limit = 50) {
+  await ensureChatProOutboxSchema();
   const cappedLimit = Math.min(Math.max(limit, 1), 100);
 
   const rows = await db
@@ -161,6 +196,7 @@ export async function claimChatProOutboxEvents(options: {
   limit?: number;
   leaseMs?: number;
 }) {
+  await ensureChatProOutboxSchema();
   const since = options.since ?? 0;
   const cappedLimit = Math.min(Math.max(options.limit ?? 50, 1), 100);
   const leaseMs = options.leaseMs ?? DEFAULT_OUTBOX_LEASE_MS;
@@ -218,6 +254,7 @@ export async function claimChatProOutboxEvents(options: {
  * @param outboxIds Outbox primary keys to acknowledge.
  */
 export async function ackChatProOutboxEvents(outboxIds: number[]) {
+  await ensureChatProOutboxSchema();
   if (outboxIds.length === 0) {
     return { acked: 0 };
   }
@@ -243,6 +280,7 @@ export async function ackChatProOutboxEvents(outboxIds: number[]) {
 
 /** Counts rows still waiting for the local consumer. */
 export async function countPendingChatProOutboxEvents() {
+  await ensureChatProOutboxSchema();
   const rows = await db
     .select({ value: count() })
     .from(chatproOutboxSchema)

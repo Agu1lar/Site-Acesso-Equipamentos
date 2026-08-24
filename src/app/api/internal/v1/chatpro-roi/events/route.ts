@@ -5,6 +5,7 @@ import {
   listPendingChatProOutboxEvents,
 } from '@/lib/chatpro-outbox';
 import { authorizeInternalApi } from '@/lib/internal-api-auth';
+import { logger } from '@/libs/Logger';
 import { ChatProOutboxAckSchema } from '@/validations/chatpro-outbox';
 
 export const runtime = 'nodejs';
@@ -33,18 +34,24 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'invalid_limit' }, { status: 400 });
   }
 
-  const events = consumerId
-    ? await claimChatProOutboxEvents({ consumerId, since, limit })
-    : await listPendingChatProOutboxEvents(since, limit);
-  const nextSince = events.length > 0 ? events.at(-1)!.outboxId : since;
+  try {
+    const events = consumerId
+      ? await claimChatProOutboxEvents({ consumerId, since, limit })
+      : await listPendingChatProOutboxEvents(since, limit);
+    const nextSince = events.at(-1)?.outboxId ?? since;
 
-  return NextResponse.json({
-    since,
-    nextSince,
-    count: events.length,
-    claimed: Boolean(consumerId),
-    events,
-  });
+    return NextResponse.json({
+      since,
+      nextSince,
+      count: events.length,
+      claimed: Boolean(consumerId),
+      events,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error('ChatPro ROI events fetch failed', { message });
+    return NextResponse.json({ error: 'fetch_events_failed', message }, { status: 500 });
+  }
 }
 
 /** Acknowledges outbox rows after the local consumer finished Claude analysis. */
