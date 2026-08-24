@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   applyExplicitCustomerLossGuardrail,
+  applyRoleGuardrails,
   evaluateChatProLeadWithClaude,
   selectMessagesForClaudeAnalysis,
 } from '@/lib/chatpro-roi-ai-core';
@@ -188,6 +189,35 @@ describe('applyExplicitCustomerLossGuardrail', () => {
   });
 });
 
+describe('applyRoleGuardrails', () => {
+  it('treats Pedro in from-me messages as seller, not company or lead contact', () => {
+    const result = applyRoleGuardrails(
+      {
+        ...sampleEvaluation,
+        summary: 'Empresa (Pedro) mantém contato cordial com Erica.',
+        roiNotes: 'Empresa (Pedro) precisa enviar orçamento.',
+        detectedContactName: 'Pedro',
+      },
+      [
+        {
+          id: 1,
+          fromMe: true,
+          messageText: 'Olá, aqui é Pedro do comercial da Acesso.',
+          mediaType: null,
+          mediaFilename: null,
+          mediaMimetype: null,
+          mediaUrl: null,
+          eventAt: new Date('2026-08-20T12:03:00.000Z'),
+        },
+      ],
+    );
+
+    expect(result.summary).toBe('vendedor Pedro mantém contato cordial com Erica.');
+    expect(result.roiNotes).toBe('vendedor Pedro precisa enviar orçamento.');
+    expect(result.detectedContactName).toBeNull();
+  });
+});
+
 describe('evaluateChatProLeadWithClaude', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -237,9 +267,13 @@ describe('evaluateChatProLeadWithClaude', () => {
     expect(result.dealLikelihood).toBe(65);
     expect(result.equipmentMentioned).toContain('plataforma tesoura 12m');
 
-    const body = String(fetchMock.mock.calls[0]?.[1]?.body);
-    expect(body).toContain('[2026-08-12 11:00 America/Sao_Paulo] Cliente:');
-    expect(body).toContain('Fuso da linha do tempo: America/Sao_Paulo');
+    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as {
+      messages: Array<{ content: Array<{ text?: string }> }>;
+    };
+    const prompt = body.messages[0]?.content[0]?.text ?? '';
+    expect(prompt).toContain('[2026-08-12 11:00 America/Sao_Paulo] Cliente:');
+    expect(prompt).toContain('Linhas marcadas como "Vendedor da Acesso"');
+    expect(prompt).toContain('Fuso da linha do tempo: America/Sao_Paulo');
   });
 
   it('maps Anthropic 401 to anthropic_auth_invalid', async () => {

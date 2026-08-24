@@ -96,7 +96,7 @@ function formatChatProTimestamp(value: Date | string | null | undefined) {
 function formatConversation(messages: ChatProConversationMessage[]) {
   return messages
     .map((message) => {
-      const who = message.fromMe ? 'Empresa' : 'Cliente';
+      const who = message.fromMe ? 'Vendedor da Acesso' : 'Cliente';
       const stamp = formatChatProTimestamp(message.eventAt);
       const text = message.messageText?.trim() || '(sem texto)';
       const attachment = message.mediaFilename || message.mediaType || message.mediaMimetype
@@ -260,6 +260,12 @@ export async function fetchImageForAnalysis(
 }
 
 const ROI_ANALYSIS_GUIDANCE = [
+  'Papéis da conversa:',
+  '- Linhas marcadas como "Vendedor da Acesso" são mensagens da equipe comercial/atendimento da Acesso Equipamentos.',
+  '- Se aparecer um nome em mensagem do vendedor (ex.: "Pedro"), trate como vendedor/atendente, não como empresa e não como cliente.',
+  '- Não escreva "Empresa (Nome)"; prefira "vendedor Pedro", "atendente Pedro" ou "equipe da Acesso".',
+  '- detectedContactName deve ser o nome do cliente/lead, nunca o nome de vendedor da Acesso.',
+  '',
   'Sinais de fechamento (locação):',
   '- Contrato PDF coerente com a conversa.',
   '- Comentário explícito sobre emissão/envio de nota fiscal (NF) — ex.: "vou emitir a NF", "segue a NF", "nota fiscal emitida". Isso costuma indicar acordo fechado, mesmo sem anexo.',
@@ -296,6 +302,55 @@ function normalizeCommercialText(value: string) {
     .toLowerCase()
     .replaceAll(/\s+/gu, ' ')
     .trim();
+}
+
+function stripAcessoSellerNamesFromContact(
+  evaluation: ChatProRoiEvaluation,
+  messages: ChatProConversationMessage[],
+) {
+  if (!evaluation.detectedContactName) {
+    return evaluation;
+  }
+
+  const normalizedContact = normalizeCommercialText(evaluation.detectedContactName);
+  const sellerTexts = messages
+    .filter((message) => message.fromMe && message.messageText?.trim())
+    .map((message) => normalizeCommercialText(message.messageText ?? ''));
+
+  const appearsOnlyInSellerText = sellerTexts.some((text) => {
+    if (normalizedContact.length < 3 || !text.includes(normalizedContact)) {
+      return false;
+    }
+    return /\b(?:atenciosamente|sou|aqui\s+e|me\s+chamo|fala\s+com|comercial|vendedor)\b/u.test(text);
+  });
+
+  if (!appearsOnlyInSellerText) {
+    return evaluation;
+  }
+
+  return {
+    ...evaluation,
+    detectedContactName: null,
+  };
+}
+
+function normalizeSellerWording(evaluation: ChatProRoiEvaluation) {
+  return {
+    ...evaluation,
+    summary: evaluation.summary
+      .replaceAll(/\bEmpresa\s*\(([^)]+)\)/gu, 'vendedor $1')
+      .replaceAll(/\bempresa\s*\(([^)]+)\)/gu, 'vendedor $1'),
+    roiNotes: evaluation.roiNotes
+      .replaceAll(/\bEmpresa\s*\(([^)]+)\)/gu, 'vendedor $1')
+      .replaceAll(/\bempresa\s*\(([^)]+)\)/gu, 'vendedor $1'),
+  };
+}
+
+export function applyRoleGuardrails(
+  evaluation: ChatProRoiEvaluation,
+  messages: ChatProConversationMessage[],
+) {
+  return normalizeSellerWording(stripAcessoSellerNamesFromContact(evaluation, messages));
 }
 
 /**
@@ -521,5 +576,5 @@ export async function evaluateChatProLeadWithClaude(
   }
 
   const evaluation = ChatProRoiEvaluationSchema.parse(JSON.parse(text));
-  return applyExplicitCustomerLossGuardrail(evaluation, messages);
+  return applyExplicitCustomerLossGuardrail(applyRoleGuardrails(evaluation, messages), messages);
 }
