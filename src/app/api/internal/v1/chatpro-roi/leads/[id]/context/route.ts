@@ -28,6 +28,10 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   const analysisContext = resolved.context;
+  const lastMessageId = analysisContext.messages.reduce<number | null>(
+    (current, message) => current === null || message.id > current ? message.id : current,
+    null,
+  );
 
   return NextResponse.json({
     lead: analysisContext.lead,
@@ -36,7 +40,7 @@ export async function GET(request: Request, context: RouteContext) {
       eventAt: message.eventAt?.toISOString() ?? null,
     })),
     messageCount: analysisContext.messages.length,
-    lastMessageId: analysisContext.messages.at(-1)?.id ?? null,
+    lastMessageId,
     priorEvaluation: analysisContext.priorEvaluation
       ? {
           ...analysisContext.priorEvaluation,
