@@ -7,6 +7,7 @@ export type LocalConfig = {
   sqlitePath: string;
   pollIntervalMs: number;
   consumeIntervalMs: number;
+  dashboardNetworkHeartbeatMs: number;
   debounceMs: number;
   anthropicApiKey: string | null;
   anthropicModel: string;
@@ -69,6 +70,7 @@ export function loadLocalConfig(): LocalConfig {
     sqlitePath,
     pollIntervalMs: Number(process.env.CHATPRO_LOCAL_POLL_MS ?? 900_000),
     consumeIntervalMs: Number(process.env.CHATPRO_LOCAL_CONSUME_MS ?? process.env.CHATPRO_LOCAL_POLL_MS ?? 900_000),
+    dashboardNetworkHeartbeatMs: Number(process.env.DASHBOARD_NETWORK_HEARTBEAT_MS ?? 6 * 60 * 60 * 1000),
     debounceMs: Number(process.env.CHATPRO_LOCAL_DEBOUNCE_MS ?? 1_800_000),
     anthropicApiKey: process.env.ANTHROPIC_API_KEY?.trim() || null,
     anthropicModel: process.env.ANTHROPIC_MODEL?.trim() || 'claude-haiku-4-5-20251001',

@@ -25,7 +25,14 @@ npm start
 | `CHATPRO_LOCAL_SQLITE_PATH` | Fila local (padrão `./data/chatpro-local.db`) |
 | `CHATPRO_LOCAL_POLL_MS` | Poll da outbox (padrão 900000 = 15 min) |
 | `CHATPRO_LOCAL_CONSUME_MS` | Processamento da fila local (padrão acompanha o poll = 15 min) |
+| `DASHBOARD_NETWORK_HEARTBEAT_MS` | Renovação do IP autorizado do painel (padrão 21600000 = 6h) |
 | `CHATPRO_LOCAL_DEBOUNCE_MS` | Espera antes de analisar (padrão 1800000 = 30 min) |
+
+## IP autorizado do painel
+
+Ao iniciar, este worker chama `POST /api/internal/v1/dashboard-network/heartbeat` com `INTERNAL_API_SECRET`. O site grava o IP público que a Vercel detecta para este PC e libera o dashboard por 36 horas. Enquanto o worker estiver aberto, ele renova essa autorização a cada 6 horas.
+
+Na prática: ligou o PC e iniciou `npm start` em `chatpro-local/`, o IP atual da rede é atualizado automaticamente no site. Não precisa editar `DASHBOARD_ALLOWED_IPS` nem redeployar por mudança de IP.
 
 ## Economia no Neon Free
 

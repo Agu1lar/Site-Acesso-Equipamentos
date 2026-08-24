@@ -137,4 +137,27 @@ export class ChatProRemoteApi {
 
     return (await response.json()) as RemoteLeadContext;
   }
+
+  /** Renews this PC's public IP as a trusted dashboard network. */
+  async renewDashboardNetwork(body: { deviceId: string; label: string; ttlHours: number }) {
+    const response = await fetch(
+      new URL('/api/internal/v1/dashboard-network/heartbeat', this.baseUrl),
+      {
+        method: 'POST',
+        headers: this.headers(),
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(30_000),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`dashboard_network_heartbeat_failed:${response.status}`);
+    }
+
+    return (await response.json()) as {
+      ok: boolean;
+      ipAddress: string;
+      expiresAt: string;
+    };
+  }
 }

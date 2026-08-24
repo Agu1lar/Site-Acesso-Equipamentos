@@ -10,7 +10,28 @@ const queue = new LocalQueue(config.sqlitePath);
 
 let polling = false;
 let consuming = false;
+let renewingDashboardNetwork = false;
 let consumeBlockedReason: string | null = null;
+
+async function renewDashboardNetwork() {
+  if (renewingDashboardNetwork) {
+    return;
+  }
+  renewingDashboardNetwork = true;
+  try {
+    const consumerId = queue.getOrCreateConsumerId();
+    const result = await api.renewDashboardNetwork({
+      deviceId: consumerId,
+      label: `chatpro-local ${consumerId}`,
+      ttlHours: 36,
+    });
+    console.log('[chatpro-local] dashboard network renewed', result);
+  } catch (error) {
+    console.error('[chatpro-local] dashboard network heartbeat failed', error);
+  } finally {
+    renewingDashboardNetwork = false;
+  }
+}
 
 async function runPollCycle() {
   if (polling) {
@@ -58,6 +79,7 @@ console.log('[chatpro-local] started', {
   consumerId: queue.getOrCreateConsumerId(),
   pollIntervalMs: config.pollIntervalMs,
   consumeIntervalMs: config.consumeIntervalMs,
+  dashboardNetworkHeartbeatMs: config.dashboardNetworkHeartbeatMs,
   debounceMs: config.debounceMs,
   anthropicModel: config.anthropicModel,
   anthropicConfigured: Boolean(config.anthropicApiKey),
@@ -72,8 +94,10 @@ function shutdown(signal: string) {
 process.once('SIGINT', () => shutdown('SIGINT'));
 process.once('SIGTERM', () => shutdown('SIGTERM'));
 
+await renewDashboardNetwork();
 await runPollCycle();
 await runConsumeCycle();
 
+setInterval(renewDashboardNetwork, config.dashboardNetworkHeartbeatMs);
 setInterval(runPollCycle, config.pollIntervalMs);
 setInterval(runConsumeCycle, config.consumeIntervalMs);

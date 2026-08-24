@@ -1,8 +1,10 @@
 import type { NextRequest } from 'next/server';
+import { headers } from 'next/headers';
 import {
   getDashboardSession,
   getDashboardSessionFromRequest,
 } from '@/lib/dashboard-session';
+import { isDashboardTrustedNetworkRequest } from '@/lib/dashboard-trusted-networks';
 
 const DASHBOARD_ROLES = ['admin', 'comercial'] as const;
 
@@ -16,6 +18,11 @@ type DashboardAccessResult =
  * Ensures the request is from an authenticated dashboard user.
  */
 export async function requireDashboardAccess(): Promise<DashboardAccessResult> {
+  const requestHeaders = await headers();
+  if (!await isDashboardTrustedNetworkRequest(requestHeaders)) {
+    return { ok: false, status: 401 };
+  }
+
   const session = await getDashboardSession();
   if (!session) {
     return { ok: false, status: 401 };

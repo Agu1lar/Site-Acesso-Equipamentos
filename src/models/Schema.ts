@@ -314,6 +314,24 @@ export const dashboardAllowlistSchema = pgTable('dashboard_allowlist', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
 
+/** IPs públicos renovados por heartbeat de dispositivos confiáveis do painel. */
+export const dashboardTrustedNetworksSchema = pgTable(
+  'dashboard_trusted_networks',
+  {
+    id: serial('id').primaryKey(),
+    deviceId: varchar('device_id', { length: 120 }).notNull(),
+    label: varchar('label', { length: 160 }).notNull(),
+    ipAddress: varchar('ip_address', { length: 80 }).notNull(),
+    lastSeenAt: timestamp('last_seen_at', { mode: 'date' }).defaultNow().notNull(),
+    expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('dashboard_trusted_networks_device_uidx').on(table.deviceId),
+    uniqueIndex('dashboard_trusted_networks_ip_uidx').on(table.ipAddress),
+  ],
+);
+
 /** Códigos temporários de redefinição de senha do painel */
 export const dashboardPasswordResetSchema = pgTable('dashboard_password_reset', {
   id: serial('id').primaryKey(),
