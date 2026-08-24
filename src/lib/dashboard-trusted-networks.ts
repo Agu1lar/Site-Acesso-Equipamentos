@@ -23,8 +23,6 @@ async function ensureDashboardTrustedNetworksSchema() {
     );
     CREATE UNIQUE INDEX IF NOT EXISTS "dashboard_trusted_networks_device_uidx"
       ON "dashboard_trusted_networks" ("device_id");
-    CREATE UNIQUE INDEX IF NOT EXISTS "dashboard_trusted_networks_ip_uidx"
-      ON "dashboard_trusted_networks" ("ip_address");
   `);
 }
 

@@ -328,7 +328,6 @@ export const dashboardTrustedNetworksSchema = pgTable(
   },
   (table) => [
     uniqueIndex('dashboard_trusted_networks_device_uidx').on(table.deviceId),
-    uniqueIndex('dashboard_trusted_networks_ip_uidx').on(table.ipAddress),
   ],
 );
 
