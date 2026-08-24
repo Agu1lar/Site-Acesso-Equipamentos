@@ -7,7 +7,6 @@ import {
   requireDashboardAccessFromRequest,
 } from '@/lib/auth-roles';
 import { resolveLegacyRedirect } from '@/lib/legacy-redirects';
-import { isDashboardNetworkAllowed } from '@/lib/dashboard-network-access';
 import { getBlogSlugRedirectTarget } from '@/lib/blog-slug-redirects';
 import { getEquipmentSlugRedirectTarget } from '@/lib/equipment-slug-redirects';
 import { routing } from './libs/I18nRouting';
@@ -68,29 +67,6 @@ export default async function proxy(request: NextRequest, _event: NextFetchEvent
   }
 
   const { pathname } = request.nextUrl;
-
-  const isDashboardSurface =
-    isProtectedRoute(pathname)
-    || isSignInPage(pathname)
-    || isSignUpPage(pathname)
-    || isForgotPasswordPage(pathname)
-    || pathname.startsWith('/api/auth/');
-
-  if (isDashboardSurface && !isDashboardNetworkAllowed(request.headers)) {
-    if (pathname.startsWith('/api/')) {
-      return new NextResponse(null, {
-        status: 404,
-        headers: { 'Cache-Control': 'private, no-store' },
-      });
-    }
-
-    const locale = localePrefixFromPath(pathname);
-    const restrictedUrl = new URL(`${locale}/network-restricted`, request.url);
-
-    return NextResponse.redirect(restrictedUrl, {
-      headers: { 'Cache-Control': 'private, no-store' },
-    });
-  }
 
   // Favicons / app icons must bypass i18n (no locale prefix).
   if (
