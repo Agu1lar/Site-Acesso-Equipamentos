@@ -213,6 +213,32 @@ export const analyticsEventsSchema = pgTable('analytics_events', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
 
+/** Server-side Google Ads offline conversion uploads for campaign-attributed clicks. */
+export const googleAdsOfflineConversionsSchema = pgTable(
+  'google_ads_offline_conversions',
+  {
+    id: serial('id').primaryKey(),
+    analyticsEventId: integer('analytics_event_id').references(() => analyticsEventsSchema.id, {
+      onDelete: 'set null',
+    }),
+    leadId: integer('lead_id').references(() => leadsSchema.id, { onDelete: 'set null' }),
+    clickId: varchar('click_id', { length: 255 }).notNull(),
+    clickIdType: varchar('click_id_type', { length: 20 }).notNull(),
+    conversionAction: varchar('conversion_action', { length: 255 }).notNull(),
+    orderId: varchar('order_id', { length: 80 }).notNull(),
+    status: varchar('status', { length: 40 }).notNull().default('pending'),
+    requestPayload: jsonb('request_payload').$type<Record<string, unknown>>(),
+    responsePayload: jsonb('response_payload').$type<Record<string, unknown>>(),
+    errorMessage: text('error_message'),
+    uploadedAt: timestamp('uploaded_at', { mode: 'date' }),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('google_ads_offline_conversions_analytics_event_uidx').on(table.analyticsEventId),
+    uniqueIndex('google_ads_offline_conversions_order_uidx').on(table.orderId),
+  ],
+);
+
 /** Tempo ativo por página (aba visível + interação recente) — painel operacional */
 export const pageEngagementEventsSchema = pgTable('page_engagement_events', {
   id: serial('id').primaryKey(),

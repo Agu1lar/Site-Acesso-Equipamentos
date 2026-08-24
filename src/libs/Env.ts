@@ -4,6 +4,8 @@ import * as z from 'zod';
 export const Env = createEnv({
   emptyStringAsUndefined: true,
   server: {
+    /** Comma-separated public IPs allowed to access dashboard authentication. */
+    DASHBOARD_ALLOWED_IPS: z.string().min(1).optional(),
     DASHBOARD_SESSION_SECRET: z.string().min(32).optional(),
     DATABASE_URL: z.string().min(1),
     RESEND_API_KEY: z.string().startsWith('re_').optional(),
@@ -33,6 +35,8 @@ export const Env = createEnv({
     GOOGLE_ADS_CLIENT_ID: z.string().min(1).optional(),
     GOOGLE_ADS_CLIENT_SECRET: z.string().min(1).optional(),
     GOOGLE_ADS_REFRESH_TOKEN: z.string().min(1).optional(),
+    GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID: z.string().min(1).optional(),
+    GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
@@ -49,6 +53,7 @@ export const Env = createEnv({
     NODE_ENV: z.enum(['test', 'development', 'production']).optional(),
   },
   runtimeEnv: {
+    DASHBOARD_ALLOWED_IPS: process.env.DASHBOARD_ALLOWED_IPS,
     DASHBOARD_SESSION_SECRET: process.env.DASHBOARD_SESSION_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
@@ -73,6 +78,9 @@ export const Env = createEnv({
     GOOGLE_ADS_CLIENT_ID: process.env.GOOGLE_ADS_CLIENT_ID,
     GOOGLE_ADS_CLIENT_SECRET: process.env.GOOGLE_ADS_CLIENT_SECRET,
     GOOGLE_ADS_REFRESH_TOKEN: process.env.GOOGLE_ADS_REFRESH_TOKEN,
+    GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID: process.env.GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID,
+    GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME:
+      process.env.GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     NEXT_PUBLIC_LOGGING_LEVEL: process.env.NEXT_PUBLIC_LOGGING_LEVEL,

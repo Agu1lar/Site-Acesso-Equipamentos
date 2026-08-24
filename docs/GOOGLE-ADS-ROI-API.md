@@ -11,6 +11,7 @@ GOOGLE_ADS_LOGIN_CUSTOMER_ID=9876543210
 GOOGLE_ADS_CLIENT_ID=....apps.googleusercontent.com
 GOOGLE_ADS_CLIENT_SECRET=...
 GOOGLE_ADS_REFRESH_TOKEN=...
+GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID=123456789
 ```
 
 | Variável | Obrigatório | Descrição |
@@ -21,6 +22,8 @@ GOOGLE_ADS_REFRESH_TOKEN=...
 | `GOOGLE_ADS_CLIENT_ID` | Sim | OAuth client (Google Cloud Console) |
 | `GOOGLE_ADS_CLIENT_SECRET` | Sim | Secret do OAuth client |
 | `GOOGLE_ADS_REFRESH_TOKEN` | Sim | Refresh token com escopo `https://www.googleapis.com/auth/adwords` |
+| `GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID` | Para upload de conversões | ID da ação de conversão offline do tipo `UPLOAD_CLICKS` |
+| `GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME` | Alternativo ao ID | Resource completo: `customers/1234567890/conversionActions/987654321` |
 
 `GOOGLE_ADS_LOGIN_CUSTOMER_ID` só é necessário quando a API é acessada via conta MCC.
 
@@ -63,6 +66,29 @@ Resposta inclui:
 ```
 
 `spendSource`: `none` | `manual` | `google_ads` | `merged`
+
+## Upload offline de conversão WhatsApp
+
+Além do disparo client-side da tag Ads, o backend pode subir uma conversão offline quando:
+
+- o evento interno é `whatsapp_click`;
+- existe `gclid`, `gbraid` ou `wbraid` na atribuição salva;
+- as credenciais da Google Ads API estão completas;
+- `GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID` ou `GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME` está configurado.
+
+O upload usa `ConversionUploadService.uploadClickConversions` com:
+
+```text
+conversion_action = customers/{customer_id}/conversionActions/{conversion_action_id}
+conversion_date_time = horário do clique recebido no backend
+conversion_value = 1
+currency_code = BRL
+order_id = wa-{analytics_event_id}
+```
+
+Crie no Google Ads uma ação de conversão de **Importação** para **cliques**. A ação precisa ser do tipo `UPLOAD_CLICKS`; o rótulo `AW-.../label` usado pela tag do site não serve para esse endpoint.
+
+O banco registra cada tentativa em `google_ads_offline_conversions`, com status `uploaded` ou `failed`, para auditoria e deduplicação.
 
 ### CLI
 

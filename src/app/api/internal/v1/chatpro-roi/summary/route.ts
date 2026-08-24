@@ -5,6 +5,7 @@ import {
   countPendingChatProRoiEvaluations,
   listRecentChatProRoiEvaluations,
 } from '@/lib/chatpro-roi-worker';
+import { countLatestClosedWonSignals } from '@/lib/chatpro-roi-summary';
 import { authorizeInternalApi } from '@/lib/internal-api-auth';
 import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
@@ -52,9 +53,7 @@ export async function GET(request: Request) {
       db.select({ value: count() }).from(chatproLeadEvaluationsSchema),
     ]);
 
-    const closedWon = evaluations.filter(
-      (row) => (row.result as { stage?: string }).stage === 'closed_won',
-    ).length;
+    const closedWon = countLatestClosedWonSignals(evaluations);
 
     return NextResponse.json({
       pendingOutboxEvents: pendingOutbox,

@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { brand } from '@/lib/brand';
+import { isGoogleAdsOfflineConversionConfigured } from '@/lib/google-ads-offline-conversions';
 import { legacyRedirectStats } from '@/lib/legacy-redirects';
 import { db } from '@/libs/DB';
 import { Env } from '@/libs/Env';
@@ -111,6 +112,7 @@ export async function GET() {
       && Env.GOOGLE_ADS_CLIENT_SECRET?.trim()
       && Env.GOOGLE_ADS_REFRESH_TOKEN?.trim(),
     ),
+    googleAdsOfflineConversionConfigured: isGoogleAdsOfflineConversionConfigured(),
     googleAdsRoiDoc: 'docs/GOOGLE-ADS-ROI-API.md',
     leadTracking: {
       cookieConsentLeadRequiresGoogleOneTap: true,

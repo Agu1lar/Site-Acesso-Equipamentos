@@ -281,6 +281,13 @@
       "when": 1786958400000,
       "tag": "0043_chatpro_roi_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1787323200000,
+      "tag": "0044_google_ads_offline_conversions",
+      "breakpoints": true
     }
   ]
 }

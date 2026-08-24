@@ -260,6 +260,12 @@
     "back_home": "Voltar ao site",
     "sign_in_again": "Tentar outra conta"
   },
+  "NetworkRestrictedPage": {
+    "meta_title": "Acesso fora da rede",
+    "meta_description": "Esta área só pode ser acessada pela rede autorizada da Acesso Equipamentos.",
+    "title": "Acesso disponível apenas na rede autorizada",
+    "message": "Se você trabalha na Acesso Equipamentos, avise o setor de tecnologia para liberar seu acesso."
+  },
   "SignIn": {
     "meta_title": "Entrar",
     "meta_description": "Acesso à área restrita.",

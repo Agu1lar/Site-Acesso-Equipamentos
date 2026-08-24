@@ -10,6 +10,7 @@ const ANTHROPIC_VERSION = '2023-06-01';
 const MAX_PDF_BYTES = 15 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_MEDIA_ATTACHMENTS = 3;
+const CHATPRO_ROI_TIME_ZONE = 'America/Sao_Paulo';
 
 export type ChatProRoiAiConfig = {
   apiKey: string;
@@ -68,11 +69,35 @@ type AnthropicContentBlock =
       source: { type: 'base64'; media_type: AnthropicImageMediaType; data: string };
     };
 
+function formatChatProTimestamp(value: Date | string | null | undefined) {
+  if (!value) {
+    return 'sem data';
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value instanceof Date ? 'sem data' : value;
+  }
+
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: CHATPRO_ROI_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date);
+  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return `${byType.year}-${byType.month}-${byType.day} ${byType.hour}:${byType.minute} ${CHATPRO_ROI_TIME_ZONE}`;
+}
+
 function formatConversation(messages: ChatProConversationMessage[]) {
   return messages
     .map((message) => {
       const who = message.fromMe ? 'Empresa' : 'Cliente';
-      const stamp = message.eventAt?.toISOString().slice(0, 16) ?? 'sem data';
+      const stamp = formatChatProTimestamp(message.eventAt);
       const text = message.messageText?.trim() || '(sem texto)';
       const attachment = message.mediaFilename || message.mediaType || message.mediaMimetype
         ? ` [anexo: ${[message.mediaFilename, message.mediaType, message.mediaMimetype].filter(Boolean).join(' / ')}]`
@@ -155,10 +180,7 @@ export function selectMessagesForClaudeAnalysis(
 }
 
 function formatPriorEvaluationBlock(prior: ChatProPriorEvaluation) {
-  const stamp =
-    prior.evaluatedAt instanceof Date
-      ? prior.evaluatedAt.toISOString()
-      : prior.evaluatedAt ?? 'sem data';
+  const stamp = formatChatProTimestamp(prior.evaluatedAt);
   const result = prior.result;
 
   return [
@@ -243,11 +265,87 @@ const ROI_ANALYSIS_GUIDANCE = [
   '- Comentário explícito sobre emissão/envio de nota fiscal (NF) — ex.: "vou emitir a NF", "segue a NF", "nota fiscal emitida". Isso costuma indicar acordo fechado, mesmo sem anexo.',
   '- Nem todo fechamento inclui NF; não exija NF para marcar closed_won se houver outra evidência clara (contrato assinado, confirmação explícita de locação com valor).',
   '- Pergunta genérica sobre NF ("vocês emitem NF?") NÃO é fechamento — só curiosidade ou negociação.',
+  'Sinais explícitos de perda têm prioridade sobre intenção, orçamento e negociação anteriores:',
+  '- "resolveu/resolvi de outra forma", "não preciso mais" ou contratação de outro fornecedor significam closed_lost e suggestedStatus lost.',
+  '- Agradecimento ou encerramento cordial não transforma uma solução externa em venda. "Muito obrigado" após "resolveu de outra forma" continua sendo perda.',
+  '- Não confunda transferência de contato com transferência do negócio. Só marque ganho quando houver evidência de locação com a Acesso Equipamentos.',
   'Valores: estimatedMonthlyValueBrl somente quando aparecerem na conversa, NF, contrato ou anexo legível. Não invente.',
   'suggestedStatus espelha o CRM (new, contacted, quoted, won, lost) — é sugestão, não altera o sistema.',
   'Contato: detectedContactName só se o cliente se identificar claramente (ex.: "meu nome é João Silva"). Não use o placeholder do CRM como nome real.',
   'detectedEmail só se um e-mail explícito aparecer na conversa. Nunca invente e-mail.',
 ].join('\n');
+
+const EXPLICIT_CUSTOMER_LOSS_PATTERNS = [
+  /\b(?:resolveu|resolvi|resolvemos)\s+(?:a\s+(?:demanda|situacao|necessidade|questao|isso)\s+)?(?:por|de)\s+outr[ao]\s+(?:forma|maneira|jeito)\b/u,
+  /\b(?:nao\s+(?:vou|vamos|irei|iremos)\s+(?:mais\s+)?precisar|nao\s+preciso\s+mais)\b/u,
+  /\b(?:fechei|fechamos|aluguei|alugamos|loquei|locamos|contratei|contratamos)\s+(?:com|por)\s+outr[oa]\b/u,
+  /\b(?:desisti|desistimos|cancelei|cancelamos)(?:\s+(?:da\s+)?(?:demanda|locacao|solicitacao|pedido))?\b/u,
+];
+
+const EXPLICIT_CUSTOMER_REOPEN_PATTERNS = [
+  /\b(?:agora|novamente|ainda)\s+(?:preciso|queremos|quero|gostaria)\b/u,
+  /\b(?:preciso|queremos|quero|gostaria)\s+(?:de|do|da|dos|das|um|uma)\b/u,
+  /\b(?:vamos|quero|queremos)\s+fechar\b/u,
+  /\b(?:pode|consegue)\s+(?:enviar|mandar)\s+(?:o\s+)?orcamento\b/u,
+];
+
+function normalizeCommercialText(value: string) {
+  return value
+    .normalize('NFD')
+    .replaceAll(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replaceAll(/\s+/gu, ' ')
+    .trim();
+}
+
+/**
+ * Applies deterministic loss rules until the customer explicitly reopens demand.
+ * @param evaluation Structured Claude evaluation.
+ * @param messages Full conversation in chronological order.
+ * @returns Original evaluation or a loss-corrected evaluation.
+ */
+export function applyExplicitCustomerLossGuardrail(
+  evaluation: ChatProRoiEvaluation,
+  messages: ChatProConversationMessage[],
+) {
+  let latestLossIndex = -1;
+  for (let index = 0; index < messages.length; index += 1) {
+    const message = messages[index];
+    if (message && !message.fromMe && message.messageText?.trim()) {
+      const customerText = normalizeCommercialText(message.messageText);
+      if (EXPLICIT_CUSTOMER_LOSS_PATTERNS.some(pattern => pattern.test(customerText))) {
+        latestLossIndex = index;
+      }
+    }
+  }
+
+  if (latestLossIndex < 0) {
+    return evaluation;
+  }
+
+  const reopened = messages.slice(latestLossIndex + 1).some((message) => {
+    if (message.fromMe || !message.messageText?.trim()) {
+      return false;
+    }
+    const customerText = normalizeCommercialText(message.messageText);
+    return EXPLICIT_CUSTOMER_REOPEN_PATTERNS.some(pattern => pattern.test(customerText));
+  });
+  if (reopened) {
+    return evaluation;
+  }
+
+  return {
+    ...evaluation,
+    stage: 'closed_lost' as const,
+    dealLikelihood: 0,
+    summary:
+      'Cliente informou explicitamente que resolveu a demanda de outra forma e encerrou o atendimento sem locação com a Acesso Equipamentos.',
+    suggestedStatus: 'lost' as const,
+    roiNotes:
+      'Lead perdido: o cliente resolveu a necessidade por outra alternativa, sem locação com a empresa.',
+    followUpPriority: 'low' as const,
+  };
+}
 
 /**
  * Evaluates a ChatPro conversation (+ optional contract PDFs and images) with Claude.
@@ -297,6 +395,9 @@ export async function evaluateChatProLeadWithClaude(
         '',
         ROI_ANALYSIS_GUIDANCE,
         '',
+        `Fuso da linha do tempo: ${CHATPRO_ROI_TIME_ZONE}. Interprete todos os horários das mensagens como horário local de Belo Horizonte/São Paulo, não UTC.`,
+        `Horário atual de referência: ${formatChatProTimestamp(new Date())}. Não descreva uma mensagem como já ocorrida se o horário exibido estiver no futuro em relação a esta referência.`,
+        '',
         isIncremental && priorEvaluation ? formatPriorEvaluationBlock(priorEvaluation) : '',
         isIncremental ? 'Mensagens NOVAS desde a última análise:' : 'Conversa WhatsApp (ordem cronológica):',
         conversation,
@@ -335,7 +436,7 @@ export async function evaluateChatProLeadWithClaude(
       });
       contentBlocks.push({
         type: 'text',
-        text: `PDF acima (${pdfMessage.fromMe ? 'Empresa' : 'Cliente'}) em ${pdfMessage.eventAt?.toISOString() ?? 'data desconhecida'} — ${pdfMessage.mediaFilename ?? 'anexo'}.`,
+        text: `PDF acima (${pdfMessage.fromMe ? 'Empresa' : 'Cliente'}) em ${formatChatProTimestamp(pdfMessage.eventAt)} — ${pdfMessage.mediaFilename ?? 'anexo'}.`,
       });
       attachmentsAdded += 1;
     } catch {
@@ -363,7 +464,7 @@ export async function evaluateChatProLeadWithClaude(
       });
       contentBlocks.push({
         type: 'text',
-        text: `Imagem acima (${imageMessage.fromMe ? 'Empresa' : 'Cliente'}) em ${imageMessage.eventAt?.toISOString() ?? 'data desconhecida'} — ${imageMessage.mediaFilename ?? 'anexo'}. Pode ser NF ou documento.`,
+        text: `Imagem acima (${imageMessage.fromMe ? 'Empresa' : 'Cliente'}) em ${formatChatProTimestamp(imageMessage.eventAt)} — ${imageMessage.mediaFilename ?? 'anexo'}. Pode ser NF ou documento.`,
       });
       attachmentsAdded += 1;
     } catch {
@@ -419,5 +520,6 @@ export async function evaluateChatProLeadWithClaude(
     throw new Error('anthropic_empty_response');
   }
 
-  return ChatProRoiEvaluationSchema.parse(JSON.parse(text));
+  const evaluation = ChatProRoiEvaluationSchema.parse(JSON.parse(text));
+  return applyExplicitCustomerLossGuardrail(evaluation, messages);
 }

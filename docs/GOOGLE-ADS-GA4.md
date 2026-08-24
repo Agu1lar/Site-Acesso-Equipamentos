@@ -26,6 +26,24 @@ clique no botão → WhatsApp aberto → cliente respondeu no ChatPro
 
 Na prática, `whatsapp_click` mede intenção, `whatsapp_opened` mostra que o fluxo conseguiu abrir o aplicativo/site do WhatsApp, e `whatsapp_replied_at` confirma que a conversa realmente começou com mensagem recebida do cliente.
 
+### Backup server-side para Google Ads
+
+Quando a Google Ads API estiver configurada, o backend também envia uma conversão offline para cliques no WhatsApp com `gclid`, `gbraid` ou `wbraid`. Isso reduz perda por bloqueio de navegador, fechamento rápido da aba ou falha da tag client-side.
+
+Esse backup exige uma ação de conversão separada no Google Ads, criada como **Importação de cliques** (`UPLOAD_CLICKS`). Configure na Vercel:
+
+```env
+GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID=123456789
+```
+
+ou:
+
+```env
+GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME=customers/1234567890/conversionActions/123456789
+```
+
+O status aparece em `/api/health` como `googleAdsOfflineConversionConfigured`.
+
 ### Webhook ChatPro
 
 O site expõe:

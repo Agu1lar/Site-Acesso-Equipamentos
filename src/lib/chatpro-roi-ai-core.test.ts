@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  applyExplicitCustomerLossGuardrail,
   evaluateChatProLeadWithClaude,
   selectMessagesForClaudeAnalysis,
 } from '@/lib/chatpro-roi-ai-core';
@@ -88,20 +89,120 @@ describe('selectMessagesForClaudeAnalysis', () => {
   });
 });
 
+describe('applyExplicitCustomerLossGuardrail', () => {
+  it('marks demand resolved elsewhere as lost', () => {
+    const result = applyExplicitCustomerLossGuardrail(
+      { ...sampleEvaluation, stage: 'closed_won', suggestedStatus: 'won', dealLikelihood: 92 },
+      [
+        {
+          id: 1,
+          fromMe: true,
+          messageText: 'Conseguiu falar com o José sobre a documentação?',
+          mediaType: null,
+          mediaFilename: null,
+          mediaMimetype: null,
+          mediaUrl: null,
+          eventAt: new Date('2026-08-20T11:54:00.000Z'),
+        },
+        {
+          id: 2,
+          fromMe: false,
+          messageText: 'O José Geraldo resolveu de outra forma. Muito obrigado por sua ajuda.',
+          mediaType: null,
+          mediaFilename: null,
+          mediaMimetype: null,
+          mediaUrl: null,
+          eventAt: new Date('2026-08-20T12:03:00.000Z'),
+        },
+      ],
+    );
+
+    expect(result).toMatchObject({
+      stage: 'closed_lost',
+      suggestedStatus: 'lost',
+      dealLikelihood: 0,
+      followUpPriority: 'low',
+    });
+    expect(result.summary).toContain('sem locação');
+  });
+
+  it('preserves a reopened demand after an earlier external solution', () => {
+    const result = applyExplicitCustomerLossGuardrail(
+      sampleEvaluation,
+      [
+        {
+          id: 1,
+          fromMe: false,
+          messageText: 'Resolvi de outra forma.',
+          mediaType: null,
+          mediaFilename: null,
+          mediaMimetype: null,
+          mediaUrl: null,
+          eventAt: new Date('2026-08-20T12:03:00.000Z'),
+        },
+        {
+          id: 2,
+          fromMe: false,
+          messageText: 'A nova obra começou e agora preciso do martelete novamente.',
+          mediaType: null,
+          mediaFilename: null,
+          mediaMimetype: null,
+          mediaUrl: null,
+          eventAt: new Date('2026-08-20T13:03:00.000Z'),
+        },
+      ],
+    );
+
+    expect(result).toEqual(sampleEvaluation);
+  });
+
+  it('keeps the loss after a later neutral acknowledgement', () => {
+    const result = applyExplicitCustomerLossGuardrail(
+      sampleEvaluation,
+      [
+        {
+          id: 1,
+          fromMe: false,
+          messageText: 'Resolvi de outra forma.',
+          mediaType: null,
+          mediaFilename: null,
+          mediaMimetype: null,
+          mediaUrl: null,
+          eventAt: new Date('2026-08-20T12:03:00.000Z'),
+        },
+        {
+          id: 2,
+          fromMe: false,
+          messageText: 'Obrigado, abraço.',
+          mediaType: null,
+          mediaFilename: null,
+          mediaMimetype: null,
+          mediaUrl: null,
+          eventAt: new Date('2026-08-20T12:04:00.000Z'),
+        },
+      ],
+    );
+
+    expect(result.stage).toBe('closed_lost');
+    expect(result.suggestedStatus).toBe('lost');
+  });
+});
+
 describe('evaluateChatProLeadWithClaude', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
   it('parses structured Claude ROI response', async () => {
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        content: [{ type: 'text', text: JSON.stringify(sampleEvaluation) }],
+        stop_reason: 'end_turn',
+      }),
+    );
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        Response.json({
-          content: [{ type: 'text', text: JSON.stringify(sampleEvaluation) }],
-          stop_reason: 'end_turn',
-        }),
-      ),
+      fetchMock,
     );
 
     const result = await evaluateChatProLeadWithClaude(
@@ -135,6 +236,10 @@ describe('evaluateChatProLeadWithClaude', () => {
     expect(result.stage).toBe('negotiation');
     expect(result.dealLikelihood).toBe(65);
     expect(result.equipmentMentioned).toContain('plataforma tesoura 12m');
+
+    const body = String(fetchMock.mock.calls[0]?.[1]?.body);
+    expect(body).toContain('[2026-08-12 11:00 America/Sao_Paulo] Cliente:');
+    expect(body).toContain('Fuso da linha do tempo: America/Sao_Paulo');
   });
 
   it('maps Anthropic 401 to anthropic_auth_invalid', async () => {

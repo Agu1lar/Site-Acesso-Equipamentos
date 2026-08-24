@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import * as z from 'zod';
 import { recordAnalyticsEvent } from '@/lib/analytics-events';
+import { uploadGoogleAdsOfflineClickConversion } from '@/lib/google-ads-offline-conversions';
 import { mintWhatsAppAttributionToken } from '@/lib/whatsapp-attribution-token';
 import { logger } from '@/libs/Logger';
 import { AnalyticsEventSchema } from '@/validations/analytics';
@@ -17,8 +18,8 @@ export const POST = async (request: Request) => {
       );
     }
 
-    const data = parsed.data;
-    await recordAnalyticsEvent({
+    const { data } = parsed;
+    const event = await recordAnalyticsEvent({
       eventType: data.eventType,
       origin: data.origin,
       equipmentSlug: data.equipmentSlug,
@@ -32,6 +33,13 @@ export const POST = async (request: Request) => {
 
     let refCode: string | null = null;
     if (data.eventType === 'whatsapp_click') {
+      if (event?.id) {
+        await uploadGoogleAdsOfflineClickConversion({
+          analyticsEventId: event.id,
+          attribution: data.attribution,
+        });
+      }
+
       refCode = await mintWhatsAppAttributionToken({
         origin: data.origin,
         equipmentSlug: data.equipmentSlug,
