@@ -23,8 +23,27 @@ npm start
 | `ANTHROPIC_API_KEY` | **Obrigatório** para análise Claude |
 | `ANTHROPIC_MODEL` | Padrão `claude-haiku-4-5-20251001` |
 | `CHATPRO_LOCAL_SQLITE_PATH` | Fila local (padrão `./data/chatpro-local.db`) |
-| `CHATPRO_LOCAL_POLL_MS` | Poll da outbox (padrão 60000) |
+| `CHATPRO_LOCAL_POLL_MS` | Poll da outbox (padrão 900000 = 15 min) |
+| `CHATPRO_LOCAL_CONSUME_MS` | Processamento da fila local (padrão acompanha o poll = 15 min) |
 | `CHATPRO_LOCAL_DEBOUNCE_MS` | Espera antes de analisar (padrão 1800000 = 30 min) |
+
+## Economia no Neon Free
+
+O Neon Free inclui cerca de 100 CU-hours por projeto/mês. Se o worker consulta o site a cada 30 segundos, o banco tende a ficar acordado 24h/dia:
+
+```text
+1 CU x 24h x 30 dias = 720 CU-hours/mês
+0.25 CU x 24h x 30 dias = 180 CU-hours/mês
+```
+
+Com poll de 15 minutos e auto-suspend de 5 minutos, o teto teórico fica perto de:
+
+```text
+96 consultas/dia x 5 min = 8h/dia
+0.25 CU x 8h x 30 dias = 60 CU-hours/mês
+```
+
+Isso deixa margem dentro do Free. Para gastar ainda menos, use `CHATPRO_LOCAL_POLL_MS=1800000` (30 min), que reduz o teto para cerca de 30 CU-hours/mês em 0.25 CU.
 
 ## Fluxo completo
 

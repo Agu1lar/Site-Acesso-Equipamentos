@@ -6,6 +6,7 @@ export type LocalConfig = {
   internalApiSecret: string;
   sqlitePath: string;
   pollIntervalMs: number;
+  consumeIntervalMs: number;
   debounceMs: number;
   anthropicApiKey: string | null;
   anthropicModel: string;
@@ -66,7 +67,8 @@ export function loadLocalConfig(): LocalConfig {
     apiBaseUrl: (apiBaseUrlOverride || readRequired('CHATPRO_LOCAL_API_URL')).replace(/\/$/u, ''),
     internalApiSecret: readRequired('INTERNAL_API_SECRET'),
     sqlitePath,
-    pollIntervalMs: Number(process.env.CHATPRO_LOCAL_POLL_MS ?? 60_000),
+    pollIntervalMs: Number(process.env.CHATPRO_LOCAL_POLL_MS ?? 900_000),
+    consumeIntervalMs: Number(process.env.CHATPRO_LOCAL_CONSUME_MS ?? process.env.CHATPRO_LOCAL_POLL_MS ?? 900_000),
     debounceMs: Number(process.env.CHATPRO_LOCAL_DEBOUNCE_MS ?? 1_800_000),
     anthropicApiKey: process.env.ANTHROPIC_API_KEY?.trim() || null,
     anthropicModel: process.env.ANTHROPIC_MODEL?.trim() || 'claude-haiku-4-5-20251001',

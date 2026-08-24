@@ -57,6 +57,7 @@ console.log('[chatpro-local] started', {
   sqlitePath: config.sqlitePath,
   consumerId: queue.getOrCreateConsumerId(),
   pollIntervalMs: config.pollIntervalMs,
+  consumeIntervalMs: config.consumeIntervalMs,
   debounceMs: config.debounceMs,
   anthropicModel: config.anthropicModel,
   anthropicConfigured: Boolean(config.anthropicApiKey),
@@ -75,4 +76,4 @@ await runPollCycle();
 await runConsumeCycle();
 
 setInterval(runPollCycle, config.pollIntervalMs);
-setInterval(runConsumeCycle, Math.min(config.pollIntervalMs, 30_000));
+setInterval(runConsumeCycle, config.consumeIntervalMs);
