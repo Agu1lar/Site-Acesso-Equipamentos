@@ -52,13 +52,13 @@ export default async function RegioesPage(props: RegioesPageProps) {
         <div className="absolute inset-0">
           <Image
             alt=""
-            className="object-cover opacity-55"
+            className="object-cover"
             fill
             priority
             sizes="100vw"
             src="/regioes/belo-horizonte-hero.webp"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/85 to-neutral-950/35" />
+          <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/75 via-neutral-950/35 to-neutral-950/10" />
         </div>
         <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
           <p className="text-xs font-semibold tracking-[0.18em] text-primary uppercase">
