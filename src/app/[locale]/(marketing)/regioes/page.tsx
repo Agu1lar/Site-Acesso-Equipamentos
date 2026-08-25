@@ -2,12 +2,12 @@ import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ConversionCtas } from '@/components/marketing/ConversionCtas';
+import { RegiaoCityCard } from '@/components/marketing/RegiaoCityCard';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { focusLabel, getAllRegioes } from '@/data/regioes';
+import { getAllRegioes } from '@/data/regioes';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
 import { buildRegioesIndexJsonLd } from '@/lib/regioes-json-ld';
 import { buildMarketingMetadata } from '@/lib/seo-metadata';
-import { Link } from '@/libs/I18nNavigation';
 import { routing } from '@/libs/I18nRouting';
 import { resolveAppLocale } from '@/utils/locale';
 
@@ -49,17 +49,27 @@ export default async function RegioesPage(props: RegioesPageProps) {
     <>
       <JsonLd data={buildRegioesIndexJsonLd(regioes)} />
 
-      {/* Mills-style split: copy on light panel, vivid photo without dark wash */}
-      <section className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto grid max-w-7xl lg:grid-cols-2">
-          <div className="flex flex-col justify-center px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-            <p className="text-xs font-semibold tracking-[0.18em] text-primary uppercase">
+      {/* Split hero — light copy panel + bright photo, no dark overlay. */}
+      <section
+        aria-labelledby="regioes-hero-title"
+        className="border-b border-neutral-200 bg-white"
+      >
+        <div className="mx-auto grid max-w-7xl lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+          <div className="relative flex flex-col justify-center px-4 py-14 sm:px-6 sm:py-20 lg:px-10 lg:py-24">
+            <span
+              aria-hidden
+              className="absolute top-16 left-0 hidden h-16 w-1 bg-primary lg:block"
+            />
+            <p className="text-xs font-semibold tracking-[0.22em] text-primary uppercase">
               {t('hero_eyebrow')}
             </p>
-            <h1 className="mt-3 font-heading text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl lg:text-[2.75rem] lg:leading-tight">
+            <h1
+              className="mt-4 max-w-xl font-heading text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl lg:leading-[1.08]"
+              id="regioes-hero-title"
+            >
               {t('hero_title')}
             </h1>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-neutral-600 sm:text-lg">
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-neutral-600 sm:text-lg">
               {t('hero_subtitle')}
             </p>
             <ConversionCtas
@@ -72,7 +82,7 @@ export default async function RegioesPage(props: RegioesPageProps) {
             />
           </div>
 
-          <div className="relative min-h-[280px] sm:min-h-[360px] lg:min-h-full">
+          <div className="relative min-h-[280px] sm:min-h-[400px] lg:min-h-[560px]">
             <Image
               alt="Plataforma elevatória em operação industrial na região metropolitana de Belo Horizonte"
               className="object-cover brightness-[1.08] contrast-[1.02] saturate-[1.05]"
@@ -85,44 +95,31 @@ export default async function RegioesPage(props: RegioesPageProps) {
         </div>
       </section>
 
-      <section className="bg-neutral-50">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      {/* City grid on soft-gray band with generous whitespace. */}
+      <section aria-labelledby="regioes-list-title" className="bg-neutral-50">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
           <div className="max-w-2xl">
-            <h2 className="font-heading text-2xl font-bold text-neutral-900 sm:text-3xl">
+            <span aria-hidden className="block h-1 w-12 bg-primary" />
+            <h2
+              className="mt-4 font-heading text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl lg:text-4xl"
+              id="regioes-list-title"
+            >
               {t('list_title')}
             </h2>
-            <p className="mt-3 text-neutral-600">{t('list_subtitle')}</p>
+            <p className="mt-4 text-base leading-relaxed text-neutral-600">
+              {t('list_subtitle')}
+            </p>
           </div>
 
-          <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {regioes.map((regiao) => (
+          <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {regioes.map((regiao, index) => (
               <li key={regiao.slug}>
-                <Link
-                  className="group flex h-full flex-col overflow-hidden border border-neutral-200 bg-white transition hover:border-primary/40 hover:shadow-[0_12px_40px_-16px_rgba(0,0,0,0.25)]"
-                  href={`/regioes/${regiao.slug}`}
-                >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-neutral-100">
-                    <Image
-                      alt={regiao.heroAlt}
-                      className="object-cover transition duration-500 group-hover:scale-[1.04]"
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      src={regiao.heroImage}
-                    />
-                  </div>
-                  <div className="flex flex-1 flex-col border-t-4 border-t-primary p-5">
-                    <p className="text-[11px] font-semibold tracking-wider text-primary uppercase">
-                      {focusLabel(regiao.focus)}
-                    </p>
-                    <h3 className="mt-1 font-heading text-xl font-bold text-neutral-900 group-hover:text-primary">
-                      {regiao.name}
-                    </h3>
-                    <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-neutral-600">
-                      {regiao.tagline}
-                    </p>
-                    <p className="mt-4 text-sm font-semibold text-primary">{t('card_cta')}</p>
-                  </div>
-                </Link>
+                <RegiaoCityCard
+                  ctaLabel={t('card_cta')}
+                  imagePriority={index < 3}
+                  imageSizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  regiao={regiao}
+                />
               </li>
             ))}
           </ul>
