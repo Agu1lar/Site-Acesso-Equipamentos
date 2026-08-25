@@ -38,6 +38,11 @@ export async function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link className="hover:text-white" href="/solucoes">
+                {t('solucoes_link')}
+              </Link>
+            </li>
+            <li>
               <Link className="hover:text-white" href="/regioes">
                 {t('regioes_link')}
               </Link>

@@ -3,6 +3,7 @@ import { getAllBlogSlugs, getBlogLastModifiedBySlug } from '@/lib/blog-articles'
 import { ALL_EQUIPMENT_CATEGORIES } from '@/lib/categories-seo';
 import { getAllEquipment, getEquipmentSitemapLastModifiedBySlug } from '@/lib/equipment';
 import { ALL_REGIAO_SLUGS } from '@/data/regioes';
+import { ALL_SOLUCAO_SLUGS } from '@/data/solucoes';
 import type { EquipmentCategory } from '@/types/equipment';
 import { getBaseUrl } from '@/utils/Helpers';
 
@@ -11,7 +12,7 @@ export const revalidate = 0;
 
 /** Stable lastmod for institutional pages (update when content changes). */
 const STATIC_ROUTE_LAST_MODIFIED: Record<string, Date> = {
-  '': new Date('2026-06-08'),
+  '': new Date('2026-08-25'),
   '/equipamentos': new Date('2026-06-08'),
   '/treinamento-plataformas-aereas': new Date('2026-05-21'),
   '/sobre': new Date('2026-05-21'),
@@ -21,6 +22,7 @@ const STATIC_ROUTE_LAST_MODIFIED: Record<string, Date> = {
   '/dicas': new Date('2026-05-21'),
   '/privacidade': new Date('2026-05-21'),
   '/regioes': new Date('2026-08-25'),
+  '/solucoes': new Date('2026-08-25'),
   '/llms.txt': new Date('2026-06-15'),
   '/catalog.json': new Date('2026-06-15'),
 };
@@ -29,14 +31,19 @@ function priorityForRoute(route: string) {
   if (route === '') {
     return 1;
   }
-  if (route.startsWith('/categorias/') || route.startsWith('/regioes/')) {
+  if (
+    route.startsWith('/categorias/') ||
+    route.startsWith('/regioes/') ||
+    route.startsWith('/solucoes/')
+  ) {
     return 0.9;
   }
   if (
     route === '/equipamentos' ||
     route === '/orcamento' ||
     route === '/treinamento-plataformas-aereas' ||
-    route === '/regioes'
+    route === '/regioes' ||
+    route === '/solucoes'
   ) {
     return 0.85;
   }
@@ -88,6 +95,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/dicas',
     '/privacidade',
     '/regioes',
+    '/solucoes',
     '/llms.txt',
     '/catalog.json',
   ];
@@ -116,12 +124,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const categoryRoutes = ALL_EQUIPMENT_CATEGORIES.map((slug) => `/categorias/${slug}`);
   const regiaoRoutes = ALL_REGIAO_SLUGS.map((slug) => `/regioes/${slug}`);
+  const solucaoRoutes = ALL_SOLUCAO_SLUGS.map((slug) => `/solucoes/${slug}`);
   const equipmentRoutes = catalog.map((item) => `/equipamentos/${item.slug}`);
   const dicaRoutes = dicaSlugs.map((slug) => `/dicas/${slug}`);
   const allRoutes = [
     ...staticRoutes,
     ...categoryRoutes,
     ...regiaoRoutes,
+    ...solucaoRoutes,
     ...equipmentRoutes,
     ...dicaRoutes,
   ];
@@ -147,6 +157,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
     } else if (route.startsWith('/regioes')) {
       lastModified = STATIC_ROUTE_LAST_MODIFIED['/regioes'];
+    } else if (route.startsWith('/solucoes')) {
+      lastModified = STATIC_ROUTE_LAST_MODIFIED['/solucoes'];
     }
 
     return {

@@ -23,6 +23,7 @@ const TOGGLE_LOCK_MS = 450;
 const navLinks = [
   { href: '/', key: 'home_link' as const },
   { href: '/equipamentos', key: 'equipamentos_link' as const },
+  { href: '/solucoes', key: 'solucoes_link' as const },
   { href: '/regioes', key: 'regioes_link' as const },
   { href: '/treinamento-plataformas-aereas', key: 'treinamento_link' as const },
   { href: '/dicas', key: 'blog_link' as const },

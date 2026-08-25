@@ -3,14 +3,15 @@ import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { CategoryHomeGrid } from '@/components/marketing/CategoryHomeGrid';
 import { ConversionCtas } from '@/components/marketing/ConversionCtas';
-import { EquipmentCard } from '@/components/marketing/EquipmentCard';
 import { SetMobileDockConfig } from '@/components/marketing/mobile-dock-config';
 import { ServiceAreaSection } from '@/components/marketing/ServiceAreaSection';
+import { SolucaoSegmentGrid } from '@/components/marketing/SolucaoSegmentGrid';
 import { StepsSection } from '@/components/marketing/StepsSection';
 import { TestimonialsSection } from '@/components/marketing/TestimonialsSection';
 import { HOME_CATEGORY_CARDS } from '@/data/home-category-cards';
+import { getAllSolucoes } from '@/data/solucoes';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
-import { getAllEquipment, getFeaturedEquipment } from '@/lib/equipment';
+import { getAllEquipment } from '@/lib/equipment';
 import { getResolvedEquipmentImageMap } from '@/lib/equipment-images-server';
 import { buildHomeCategoryImagePools } from '@/lib/home-category-images';
 import { buildMarketingMetadata } from '@/lib/seo-metadata';
@@ -49,12 +50,12 @@ export default async function HomePage(props: IndexPageProps) {
     locale,
     namespace: 'ServiceArea',
   });
-  const [featured, imageBySlug, equipment] = await Promise.all([
-    getFeaturedEquipment(6),
+  const [imageBySlug, equipment] = await Promise.all([
     getResolvedEquipmentImageMap(),
     getAllEquipment(),
   ]);
   const categoryImagePools = buildHomeCategoryImagePools(equipment, imageBySlug);
+  const solucoes = getAllSolucoes();
   const whatsappHome = buildWhatsAppUrl(buildWhatsAppMessage({ origin: 'site-home' }));
 
   return (
@@ -114,29 +115,28 @@ export default async function HomePage(props: IndexPageProps) {
         />
       </section>
 
-      <section className="cv-auto bg-neutral-100">
+      <section className="cv-auto bg-neutral-50">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between gap-4">
-            <h2 className="font-heading text-2xl font-bold text-neutral-900">
-              {t('featured_title')}
-            </h2>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="max-w-2xl">
+              <span aria-hidden className="block h-1 w-12 bg-primary" />
+              <h2 className="mt-4 font-heading text-2xl font-bold text-neutral-900 sm:text-3xl">
+                {t('solutions_title')}
+              </h2>
+              <p className="mt-3 text-neutral-600">{t('solutions_subtitle')}</p>
+            </div>
             <Link
-              className="text-sm font-semibold text-primary hover:underline"
-              href="/equipamentos"
+              className="shrink-0 text-sm font-semibold text-primary hover:underline"
+              href="/solucoes"
             >
-              Ver todos →
+              {t('solutions_view_all')}
             </Link>
           </div>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((equipment, index) => (
-              <EquipmentCard
-                equipment={equipment}
-                imagePriority={index < 2}
-                imageSrc={imageBySlug[equipment.slug]}
-                key={equipment.slug}
-              />
-            ))}
-          </div>
+          <SolucaoSegmentGrid
+            className="mt-10"
+            ctaLabel={t('solutions_card_cta')}
+            solucoes={solucoes}
+          />
         </div>
       </section>
 
