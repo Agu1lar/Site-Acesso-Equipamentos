@@ -3,13 +3,24 @@ import { CookiePreferencesLink } from '@/components/analytics/CookiePreferencesL
 import { TrackedPhoneLink } from '@/components/TrackedPhoneLink';
 import { TrackedWhatsAppLink } from '@/components/analytics/TrackedWhatsAppLink';
 import { InstagramIcon, LinkedInIcon, WhatsAppIcon } from '@/components/layout/SocialIcons';
+import { getRegiaoBySlug } from '@/data/regioes';
 import { brand, buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
 import { Link } from '@/libs/I18nNavigation';
 import { AppConfig } from '@/utils/AppConfig';
 
+const FOOTER_REGION_SLUGS = [
+  'belo-horizonte',
+  'contagem',
+  'betim',
+  'nova-lima',
+] as const;
+
 export async function SiteFooter() {
   const t = await getTranslations('Footer');
   const whatsappFooter = buildWhatsAppUrl(buildWhatsAppMessage({ origin: 'site-footer' }));
+  const footerRegioes = FOOTER_REGION_SLUGS.map((slug) => getRegiaoBySlug(slug)).filter(
+    (regiao): regiao is NonNullable<typeof regiao> => Boolean(regiao),
+  );
 
   return (
     <footer className="border-t border-neutral-200 bg-neutral-900 text-neutral-300">
@@ -24,6 +35,11 @@ export async function SiteFooter() {
             <li>
               <Link className="hover:text-white" href="/equipamentos">
                 Equipamentos
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:text-white" href="/regioes">
+                {t('regioes_link')}
               </Link>
             </li>
             <li>
@@ -67,10 +83,31 @@ export async function SiteFooter() {
           </ul>
         </div>
         <div className="min-w-0">
+          <p className="font-semibold text-white">{t('regioes_title')}</p>
+          <ul className="mt-3 space-y-2 text-sm">
+            {footerRegioes.map((regiao) => (
+              <li key={regiao.slug}>
+                <Link className="hover:text-white" href={`/regioes/${regiao.slug}`}>
+                  {regiao.name}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link className="font-medium text-white hover:underline" href="/regioes">
+                {t('regioes_link')} →
+              </Link>
+            </li>
+          </ul>
+        </div>
+        <div className="min-w-0">
           <p className="font-semibold text-white">{t('contact')}</p>
           <ul className="mt-3 space-y-3 text-sm">
             <li>
-              <TrackedPhoneLink className="hover:text-white" href={`tel:+55${brand.phone}`} origin="site-footer-ligar">
+              <TrackedPhoneLink
+                className="hover:text-white"
+                href={`tel:+55${brand.phone}`}
+                origin="site-footer-ligar"
+              >
                 {brand.phoneDisplay}
               </TrackedPhoneLink>
             </li>
@@ -123,9 +160,7 @@ export async function SiteFooter() {
           <p className="mt-3 text-sm leading-relaxed">{brand.address.full}</p>
           <p className="mt-4 font-semibold text-white">{t('hours')}</p>
           <p className="mt-1 text-sm">{brand.hours}</p>
-        </div>
-        <div className="min-w-0">
-          <p className="font-semibold text-white">{t('support_title')}</p>
+          <p className="mt-6 font-semibold text-white">{t('support_title')}</p>
           <p className="mt-3 text-sm leading-relaxed">{t('support_body')}</p>
           <a
             className="mt-2 inline-block max-w-full break-words text-sm font-medium text-white hover:underline"

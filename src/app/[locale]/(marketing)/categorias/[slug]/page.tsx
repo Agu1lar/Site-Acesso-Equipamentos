@@ -6,7 +6,9 @@ import { CategorySeoSection } from '@/components/marketing/CategorySeoSection';
 import { ConversionCtas } from '@/components/marketing/ConversionCtas';
 import { SetMobileDockConfig } from '@/components/marketing/mobile-dock-config';
 import { CategoryEquipmentGrid } from '@/components/marketing/CategoryEquipmentGrid';
+import { RegiaoLinks } from '@/components/marketing/RegiaoLinks';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { getRegioesForCategory } from '@/data/regioes';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
 import {
   ALL_EQUIPMENT_CATEGORIES,
@@ -68,6 +70,7 @@ export default async function CategoryPage(props: CategoryPageProps) {
   ]);
   const gallery = getCategoryGallery(slug);
   const categoryLabel = CATEGORY_LABELS[slug];
+  const regioes = getRegioesForCategory(slug);
   const whatsappHref = buildWhatsAppUrl(
     buildWhatsAppMessage({
       equipmentName: categoryLabel,
@@ -179,6 +182,8 @@ export default async function CategoryPage(props: CategoryPageProps) {
           paragraphs={seo.paragraphs}
           readMoreLabel={t('seo_read_more', { category: categoryLabel })}
         />
+
+        <RegiaoLinks className="mt-10 sm:mt-12" regioes={regioes} title={t('regions_title')} />
       </div>
 
       <SetMobileDockConfig

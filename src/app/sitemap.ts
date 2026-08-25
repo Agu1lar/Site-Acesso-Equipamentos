@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { getAllBlogSlugs, getBlogLastModifiedBySlug } from '@/lib/blog-articles';
 import { ALL_EQUIPMENT_CATEGORIES } from '@/lib/categories-seo';
 import { getAllEquipment, getEquipmentSitemapLastModifiedBySlug } from '@/lib/equipment';
+import { ALL_REGIAO_SLUGS } from '@/data/regioes';
 import type { EquipmentCategory } from '@/types/equipment';
 import { getBaseUrl } from '@/utils/Helpers';
 
@@ -19,6 +20,7 @@ const STATIC_ROUTE_LAST_MODIFIED: Record<string, Date> = {
   '/faq': new Date('2026-05-21'),
   '/dicas': new Date('2026-05-21'),
   '/privacidade': new Date('2026-05-21'),
+  '/regioes': new Date('2026-08-25'),
   '/llms.txt': new Date('2026-06-15'),
   '/catalog.json': new Date('2026-06-15'),
 };
@@ -27,13 +29,14 @@ function priorityForRoute(route: string) {
   if (route === '') {
     return 1;
   }
-  if (route.startsWith('/categorias/')) {
+  if (route.startsWith('/categorias/') || route.startsWith('/regioes/')) {
     return 0.9;
   }
   if (
     route === '/equipamentos' ||
     route === '/orcamento' ||
-    route === '/treinamento-plataformas-aereas'
+    route === '/treinamento-plataformas-aereas' ||
+    route === '/regioes'
   ) {
     return 0.85;
   }
@@ -84,6 +87,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/faq',
     '/dicas',
     '/privacidade',
+    '/regioes',
     '/llms.txt',
     '/catalog.json',
   ];
@@ -111,9 +115,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     maxDate(Array.from(dicaLastModified.values())) ?? STATIC_ROUTE_LAST_MODIFIED['/dicas'];
 
   const categoryRoutes = ALL_EQUIPMENT_CATEGORIES.map((slug) => `/categorias/${slug}`);
+  const regiaoRoutes = ALL_REGIAO_SLUGS.map((slug) => `/regioes/${slug}`);
   const equipmentRoutes = catalog.map((item) => `/equipamentos/${item.slug}`);
   const dicaRoutes = dicaSlugs.map((slug) => `/dicas/${slug}`);
-  const allRoutes = [...staticRoutes, ...categoryRoutes, ...equipmentRoutes, ...dicaRoutes];
+  const allRoutes = [
+    ...staticRoutes,
+    ...categoryRoutes,
+    ...regiaoRoutes,
+    ...equipmentRoutes,
+    ...dicaRoutes,
+  ];
 
   return allRoutes.map((route) => {
     let lastModified = STATIC_ROUTE_LAST_MODIFIED[route];
@@ -134,6 +145,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         equipmentLastModified,
         slugsByCategory.get(category) ?? [],
       );
+    } else if (route.startsWith('/regioes')) {
+      lastModified = STATIC_ROUTE_LAST_MODIFIED['/regioes'];
     }
 
     return {

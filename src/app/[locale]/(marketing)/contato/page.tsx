@@ -107,8 +107,9 @@ export default async function ContatoPage(props: PageProps) {
       <ServiceAreaSection
         className="border-t-0"
         eyebrow={t('eyebrow')}
-        primaryLabel={t('primary_label')}
+        hubLinkLabel={t('hub_link')}
         moreLabel={t('more_label')}
+        primaryLabel={t('primary_label')}
         title={t('title')}
       />
     </>

@@ -97,8 +97,9 @@ export default async function HomePage(props: IndexPageProps) {
 
       <ServiceAreaSection
         eyebrow={tServiceArea('eyebrow')}
-        primaryLabel={tServiceArea('primary_label')}
+        hubLinkLabel={tServiceArea('hub_link')}
         moreLabel={tServiceArea('more_label')}
+        primaryLabel={tServiceArea('primary_label')}
         title={tServiceArea('title')}
       />
 

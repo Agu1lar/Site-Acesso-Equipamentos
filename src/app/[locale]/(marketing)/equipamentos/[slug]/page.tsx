@@ -7,10 +7,12 @@ import { EquipmentCard } from '@/components/marketing/EquipmentCard';
 import { EquipmentDetailImage } from '@/components/marketing/EquipmentDetailImage';
 import { EquipmentLaudoLink } from '@/components/marketing/EquipmentLaudoLink';
 import { ExpandableParagraphs } from '@/components/marketing/ExpandableParagraphs';
+import { RegiaoLinks } from '@/components/marketing/RegiaoLinks';
 import { SetMobileDockConfig } from '@/components/marketing/mobile-dock-config';
 import { SpecTable } from '@/components/marketing/SpecTable';
 import { AddToQuoteButton } from '@/components/quote-cart/AddToQuoteButton';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { getRegioesForCategory } from '@/data/regioes';
 import { buildEquipmentWhatsAppUrl, equipmentSeoTitle } from '@/lib/brand';
 import {
   getAllSlugs,
@@ -205,6 +207,12 @@ export default async function EquipmentDetailPage(props: EquipmentDetailProps) {
                 />
               </section>
             ) : null}
+
+            <RegiaoLinks
+              className="mt-8"
+              regioes={getRegioesForCategory(equipment.category)}
+              title={t('regions_title')}
+            />
           </div>
         </div>
 

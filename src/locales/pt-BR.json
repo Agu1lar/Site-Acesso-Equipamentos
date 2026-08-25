@@ -7,6 +7,7 @@
   "RootLayout": {
     "home_link": "Início",
     "equipamentos_link": "Equipamentos",
+    "regioes_link": "Regiões",
     "treinamento_link": "Treinamento",
     "blog_link": "Blog",
     "sobre_link": "Sobre",
@@ -28,7 +29,36 @@
     "eyebrow": "Área de atendimento",
     "title": "Atendemos a região metropolitana de Belo Horizonte e realizamos operações em todo o território nacional.",
     "primary_label": "Sede",
-    "more_label": "e mais"
+    "more_label": "e mais",
+    "hub_link": "Ver todas as regiões →"
+  },
+  "RegioesPage": {
+    "meta_title": "Regiões atendidas na RMBH | Acesso Equipamentos",
+    "meta_description": "Locação de equipamentos em Belo Horizonte, Contagem, Betim, Nova Lima e cidades da região metropolitana. Frota revisada e orçamento rápido.",
+    "hero_eyebrow": "Área de atendimento",
+    "hero_title": "Regiões atendidas pela Acesso Equipamentos",
+    "hero_subtitle": "Locação de plataformas, andaimes, guindastes e ferramentas na região metropolitana de Belo Horizonte, com entrega na obra e orientação técnica.",
+    "cta_quote": "Solicitar orçamento",
+    "cta_whatsapp": "Falar no WhatsApp",
+    "list_title": "Cidades com página dedicada",
+    "list_subtitle": "Escolha a cidade da obra para ver frota recomendada, logística e perguntas frequentes.",
+    "card_cta": "Ver região →"
+  },
+  "RegiaoDetail": {
+    "breadcrumb_home": "Início",
+    "breadcrumb_regioes": "Regiões",
+    "hero_eyebrow": "Acesso Equipamentos",
+    "cta_quote": "Solicitar orçamento",
+    "cta_whatsapp": "Falar no WhatsApp",
+    "intro_title": "Atendimento em {city}",
+    "highlights_title": "Destaques do atendimento",
+    "categories_title": "Equipamentos mais pedidos em {city}",
+    "categories_subtitle": "Linhas com demanda frequente nesta cidade. Veja o catálogo completo e solicite orçamento.",
+    "nearby_title": "Cidades próximas",
+    "nearby_subtitle": "Também atendemos municípios vizinhos com a mesma base logística.",
+    "faq_title": "Perguntas frequentes — {city}",
+    "cta_block_title": "Precisa de equipamentos em {city}?",
+    "cta_block_subtitle": "Resposta em horário comercial com disponibilidade e condições sob consulta."
   },
   "Search": {
     "placeholder": "Buscar equipamentos…",
@@ -127,6 +157,7 @@
     "catalog_cta_title": "Precisa de {category}?",
     "catalog_cta_subtitle": "Resposta em horário comercial com disponibilidade e valores sob consulta.",
     "view_all_catalog": "Ver catálogo completo →",
+    "regions_title": "Atendemos em",
     "filter_all_platforms": "Todos",
     "filter_scissor": "Tesoura",
     "filter_articulated": "Articulada",
@@ -163,6 +194,7 @@
     "back": "Voltar ao catálogo",
     "back_to_category": "Voltar para {category}",
     "related_title": "Equipamentos relacionados",
+    "regions_title": "Atendemos em",
     "gallery_label": "Fotos de {name}",
     "gallery_prev": "Foto anterior",
     "gallery_next": "Próxima foto",
@@ -182,6 +214,8 @@
   "Footer": {
     "links": "Links",
     "dicas_link": "Blog",
+    "regioes_link": "Regiões atendidas",
+    "regioes_title": "Regiões",
     "contact": "Contato",
     "address": "Endereço",
     "hours": "Horário",

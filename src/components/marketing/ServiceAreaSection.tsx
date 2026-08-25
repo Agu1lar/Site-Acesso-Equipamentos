@@ -1,4 +1,6 @@
+import { CITY_NAME_TO_REGIAO_SLUG } from '@/data/regioes';
 import { brand } from '@/lib/brand';
+import { Link } from '@/libs/I18nNavigation';
 
 type ServiceAreaSectionProps = {
   title: string;
@@ -6,6 +8,8 @@ type ServiceAreaSectionProps = {
   primaryLabel: string;
   /** Pill after city list — e.g. national coverage hint. */
   moreLabel?: string;
+  /** Link to /regioes hub. */
+  hubLinkLabel?: string;
   /** Defaults to brand.serviceAreaCities (same list as LocalBusiness schema). */
   cities?: readonly string[];
   /** Highlighted municipality — usually Belo Horizonte (sede). */
@@ -29,6 +33,8 @@ function MapPinIcon() {
 
 /**
  * Visual block for local SEO — municipalities served around Belo Horizonte.
+ * @param props Section copy, optional city list and hub link label.
+ * @returns Service-area section with city pills linked to /regioes when available.
  */
 export function ServiceAreaSection(props: ServiceAreaSectionProps) {
   const cities = props.cities ?? brand.serviceAreaCities;
@@ -52,29 +58,51 @@ export function ServiceAreaSection(props: ServiceAreaSectionProps) {
             >
               {props.title}
             </h2>
+            {props.hubLinkLabel ? (
+              <p className="mt-4">
+                <Link
+                  className="text-sm font-semibold text-primary hover:underline"
+                  href="/regioes"
+                >
+                  {props.hubLinkLabel}
+                </Link>
+              </p>
+            ) : null}
           </div>
 
           <ul className="flex flex-wrap gap-2 lg:justify-end">
             {cities.map((city) => {
               const isPrimary = city === primaryCity;
+              const slug = CITY_NAME_TO_REGIAO_SLUG[city];
+              const pillClass = `inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium shadow-sm transition-colors ${
+                isPrimary
+                  ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/90'
+                  : 'border-neutral-200/90 bg-white text-neutral-800 hover:border-primary/40 hover:text-primary'
+              }`;
 
               return (
                 <li key={city}>
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium shadow-sm ${
-                      isPrimary
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-neutral-200/90 bg-white text-neutral-800'
-                    }`}
-                  >
-                    {isPrimary ? <MapPinIcon /> : null}
-                    <span>{city}</span>
-                    {isPrimary ? (
-                      <span className="rounded-full border border-white/70 px-1.5 py-0.5 text-[10px] font-bold tracking-wide uppercase">
-                        {props.primaryLabel}
-                      </span>
-                    ) : null}
-                  </span>
+                  {slug ? (
+                    <Link className={pillClass} href={`/regioes/${slug}`}>
+                      {isPrimary ? <MapPinIcon /> : null}
+                      <span>{city}</span>
+                      {isPrimary ? (
+                        <span className="rounded-full border border-white/70 px-1.5 py-0.5 text-[10px] font-bold tracking-wide uppercase">
+                          {props.primaryLabel}
+                        </span>
+                      ) : null}
+                    </Link>
+                  ) : (
+                    <span className={pillClass}>
+                      {isPrimary ? <MapPinIcon /> : null}
+                      <span>{city}</span>
+                      {isPrimary ? (
+                        <span className="rounded-full border border-white/70 px-1.5 py-0.5 text-[10px] font-bold tracking-wide uppercase">
+                          {props.primaryLabel}
+                        </span>
+                      ) : null}
+                    </span>
+                  )}
                 </li>
               );
             })}
