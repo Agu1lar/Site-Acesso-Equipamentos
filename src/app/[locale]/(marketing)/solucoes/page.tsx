@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ConversionCtas } from '@/components/marketing/ConversionCtas';
@@ -48,25 +49,48 @@ export default async function SolucoesPage(props: SolucoesPageProps) {
     <>
       <JsonLd data={buildSolucoesIndexJsonLd(solucoes)} />
 
-      <section className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-          <p className="text-xs font-semibold tracking-[0.22em] text-primary uppercase">
-            {t('hero_eyebrow')}
-          </p>
-          <h1 className="mt-4 max-w-3xl font-heading text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl lg:leading-[1.08]">
-            {t('hero_title')}
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-neutral-600 sm:text-lg">
-            {t('hero_subtitle')}
-          </p>
-          <ConversionCtas
-            className="mt-8"
-            quoteLabel={t('cta_quote')}
-            size="md"
-            whatsappHref={whatsappHref}
-            whatsappLabel={t('cta_whatsapp')}
-            whatsappOrigin="site-solucoes"
-          />
+      <section
+        aria-labelledby="solucoes-hero-title"
+        className="border-b border-neutral-200 bg-white"
+      >
+        <div className="mx-auto grid max-w-7xl lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+          <div className="relative flex flex-col justify-center px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-20">
+            <span
+              aria-hidden
+              className="absolute top-12 left-0 hidden h-14 w-1 bg-primary lg:block"
+            />
+            <p className="text-xs font-semibold tracking-[0.22em] text-primary uppercase">
+              {t('hero_eyebrow')}
+            </p>
+            <h1
+              className="mt-4 max-w-xl font-heading text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08]"
+              id="solucoes-hero-title"
+            >
+              {t('hero_title')}
+            </h1>
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-neutral-600 sm:text-lg">
+              {t('hero_subtitle')}
+            </p>
+            <ConversionCtas
+              className="mt-8"
+              quoteLabel={t('cta_quote')}
+              size="md"
+              whatsappHref={whatsappHref}
+              whatsappLabel={t('cta_whatsapp')}
+              whatsappOrigin="site-solucoes"
+            />
+          </div>
+
+          <div className="relative min-h-[280px] sm:min-h-[400px] lg:min-h-[520px]">
+            <Image
+              alt={t('hero_image_alt')}
+              className="object-cover brightness-[1.08] contrast-[1.03] saturate-[1.05]"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              src="/solucoes/industria-hero.webp"
+            />
+          </div>
         </div>
       </section>
 
