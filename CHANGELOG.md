@@ -18,6 +18,7 @@ Correções de produção após ativação do ChatPro local, limite do Neon e di
 - Correção do cursor de avaliação ROI: `lastMessageId` agora usa o maior ID de mensagem, não a última mensagem ordenada por horário.
 - Recuperação manual aplicada para lead com avaliação parcial; auditoria confirmou zero mensagens ChatPro não avaliadas.
 - Outbox ChatPro ganhou reparo defensivo de schema e erros JSON mais claros em `/api/internal/v1/chatpro-roi/events`.
+- Reparo do `chatpro_outbox` passou a rodar DDL em statements separados (pooler Neon rejeita multi-statement) e limpa o cache após falha para permitir retry.
 
 ### Google Ads e conversões
 

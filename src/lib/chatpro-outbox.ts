@@ -43,8 +43,12 @@ type ClaimedOutboxRow = {
 const DEFAULT_OUTBOX_LEASE_MS = 15 * 60 * 1000;
 let outboxSchemaReady: Promise<void> | null = null;
 
-async function repairChatProOutboxSchema() {
-  await db.execute(sql`
+/**
+ * Neon pooler rejects multi-statement queries — run each DDL separately.
+ * Statements are idempotent (IF NOT EXISTS) for defensive repair on deploy drift.
+ */
+const CHATPRO_OUTBOX_REPAIR_STATEMENTS = [
+  sql`
     CREATE TABLE IF NOT EXISTS "chatpro_outbox" (
       "id" serial PRIMARY KEY NOT NULL,
       "message_id" integer NOT NULL,
@@ -56,21 +60,37 @@ async function repairChatProOutboxSchema() {
       "delivered_at" timestamp,
       "locked_at" timestamp,
       "locked_by" varchar(120)
-    );
-    ALTER TABLE "chatpro_outbox" ADD COLUMN IF NOT EXISTS "delivered_at" timestamp;
-    ALTER TABLE "chatpro_outbox" ADD COLUMN IF NOT EXISTS "locked_at" timestamp;
-    ALTER TABLE "chatpro_outbox" ADD COLUMN IF NOT EXISTS "locked_by" varchar(120);
+    )
+  `,
+  sql`ALTER TABLE "chatpro_outbox" ADD COLUMN IF NOT EXISTS "delivered_at" timestamp`,
+  sql`ALTER TABLE "chatpro_outbox" ADD COLUMN IF NOT EXISTS "locked_at" timestamp`,
+  sql`ALTER TABLE "chatpro_outbox" ADD COLUMN IF NOT EXISTS "locked_by" varchar(120)`,
+  sql`
     CREATE UNIQUE INDEX IF NOT EXISTS "chatpro_outbox_external_id_uidx"
-      ON "chatpro_outbox" ("external_id");
+      ON "chatpro_outbox" ("external_id")
+  `,
+  sql`
     CREATE INDEX IF NOT EXISTS "chatpro_outbox_pending_idx"
-      ON "chatpro_outbox" ("delivered_at", "id");
+      ON "chatpro_outbox" ("delivered_at", "id")
+  `,
+  sql`
     CREATE INDEX IF NOT EXISTS "chatpro_outbox_pending_lock_idx"
-      ON "chatpro_outbox" ("delivered_at", "locked_at", "id");
-  `);
+      ON "chatpro_outbox" ("delivered_at", "locked_at", "id")
+  `,
+] as const;
+
+async function repairChatProOutboxSchema() {
+  for (const statement of CHATPRO_OUTBOX_REPAIR_STATEMENTS) {
+    await db.execute(statement);
+  }
 }
 
 function ensureChatProOutboxSchema() {
-  outboxSchemaReady ??= repairChatProOutboxSchema();
+  outboxSchemaReady ??= repairChatProOutboxSchema().catch((error: unknown) => {
+    // Allow the next request to retry after a transient pooler/DDL failure.
+    outboxSchemaReady = null;
+    throw error;
+  });
 
   return outboxSchemaReady;
 }
