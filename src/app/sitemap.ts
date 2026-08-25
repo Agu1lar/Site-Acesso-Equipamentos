@@ -3,6 +3,7 @@ import { getAllBlogSlugs, getBlogLastModifiedBySlug } from '@/lib/blog-articles'
 import { ALL_EQUIPMENT_CATEGORIES } from '@/lib/categories-seo';
 import { getAllEquipment, getEquipmentSitemapLastModifiedBySlug } from '@/lib/equipment';
 import { ALL_REGIAO_SLUGS } from '@/data/regioes';
+import { getAllRegiaoCategoriaPaths } from '@/data/regiao-categoria';
 import { ALL_SOLUCAO_SLUGS } from '@/data/solucoes';
 import type { EquipmentCategory } from '@/types/equipment';
 import { getBaseUrl } from '@/utils/Helpers';
@@ -124,6 +125,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const categoryRoutes = ALL_EQUIPMENT_CATEGORIES.map((slug) => `/categorias/${slug}`);
   const regiaoRoutes = ALL_REGIAO_SLUGS.map((slug) => `/regioes/${slug}`);
+  const regiaoCategoriaRoutes = getAllRegiaoCategoriaPaths();
   const solucaoRoutes = ALL_SOLUCAO_SLUGS.map((slug) => `/solucoes/${slug}`);
   const equipmentRoutes = catalog.map((item) => `/equipamentos/${item.slug}`);
   const dicaRoutes = dicaSlugs.map((slug) => `/dicas/${slug}`);
@@ -131,6 +133,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticRoutes,
     ...categoryRoutes,
     ...regiaoRoutes,
+    ...regiaoCategoriaRoutes,
     ...solucaoRoutes,
     ...equipmentRoutes,
     ...dicaRoutes,

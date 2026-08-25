@@ -15,6 +15,7 @@ import {
   getRegiaoBySlug,
   isRegiaoSlug,
 } from '@/data/regioes';
+import { isRegiaoCategoriaCombo } from '@/data/regiao-categoria';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
 import { buildRegiaoPageJsonLd } from '@/lib/regioes-json-ld';
 import { buildMarketingMetadata } from '@/lib/seo-metadata';
@@ -242,7 +243,11 @@ export default async function RegiaoDetailPage(props: RegiaoPageProps) {
               <li key={categorySlug}>
                 <Link
                   className="group flex h-full items-center gap-4 rounded-[var(--radius-card)] border border-neutral-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_14px_40px_-20px_rgba(196,30,36,0.35)]"
-                  href={`/categorias/${categorySlug}`}
+                  href={
+                    isRegiaoCategoriaCombo(regiao.slug, categorySlug)
+                      ? `/regioes/${regiao.slug}/${categorySlug}`
+                      : `/categorias/${categorySlug}`
+                  }
                 >
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/[0.08] text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                     <CategoryIcon category={categorySlug} className="h-6 w-6" />

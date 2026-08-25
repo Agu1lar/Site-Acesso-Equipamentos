@@ -218,6 +218,7 @@ export default async function EquipmentDetailPage(props: EquipmentDetailProps) {
 
             <RegiaoLinks
               className="mt-8"
+              categorySlug={equipment.category}
               regioes={getRegioesForCategory(equipment.category)}
               title={t('regions_title')}
             />

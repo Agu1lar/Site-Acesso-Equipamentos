@@ -62,6 +62,22 @@
     "cta_block_title": "Precisa de equipamentos em {city}?",
     "cta_block_subtitle": "Resposta em horário comercial com disponibilidade e condições sob consulta."
   },
+  "RegiaoCategoria": {
+    "breadcrumb_home": "Início",
+    "breadcrumb_regioes": "Regiões",
+    "hero_eyebrow": "Locação em {city}",
+    "cta_quote": "Solicitar orçamento",
+    "cta_whatsapp": "Falar no WhatsApp",
+    "intro_title": "{category} em {city}",
+    "catalog_link": "Ver catálogo de {category}",
+    "city_link": "Ver página de {city}",
+    "equipment_title": "Modelos de {category}",
+    "equipment_subtitle": "Itens da frota nesta linha — disponibilidade sob consulta para entrega na cidade.",
+    "solutions_title": "Soluções relacionadas",
+    "faq_title": "Perguntas frequentes — {category} em {city}",
+    "cta_block_title": "Precisa de {category} em {city}?",
+    "cta_block_subtitle": "Resposta em horário comercial com disponibilidade e condições sob consulta."
+  },
   "SolucoesPage": {
     "meta_title": "Soluções por segmento | Acesso Equipamentos",
     "meta_description": "Locação de equipamentos para mineração, indústria, construção civil, logística e manutenção na RMBH. Frota revisada e orçamento rápido.",

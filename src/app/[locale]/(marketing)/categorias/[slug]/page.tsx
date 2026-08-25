@@ -177,7 +177,12 @@ export default async function CategoryPage(props: CategoryPageProps) {
           readMoreLabel={t('seo_read_more', { category: categoryLabel })}
         />
 
-        <RegiaoLinks className="mt-10 sm:mt-12" regioes={regioes} title={t('regions_title')} />
+        <RegiaoLinks
+          className="mt-10 sm:mt-12"
+          categorySlug={slug}
+          regioes={regioes}
+          title={t('regions_title')}
+        />
         <SolucaoLinks className="mt-8" solucoes={solucoes} title={t('solutions_title')} />
       </div>
 
