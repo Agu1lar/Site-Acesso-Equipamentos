@@ -7,6 +7,7 @@ import type { LeadRecord } from '@/lib/leads-admin';
 import { formatLeadCartItems } from '@/lib/leads-admin';
 import { leadActivityTimestamp } from '@/lib/lead-contact';
 import { AdminCard } from '@/components/admin/AdminCard';
+import { AdminDragScroll } from '@/components/admin/AdminDragScroll';
 import { LeadPriorityBadge } from '@/components/admin/LeadPriorityBadge';
 import { LeadRecurringBadge } from '@/components/admin/LeadRecurringBadge';
 import { LeadWhatsAppBadge } from '@/components/admin/LeadWhatsAppBadge';
@@ -31,7 +32,7 @@ export async function LeadsTable(props: LeadsTableProps) {
 
   return (
     <AdminCard padding={false}>
-      <div className="overflow-x-auto">
+      <AdminDragScroll>
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-neutral-200 bg-neutral-50/80 text-neutral-600">
             <tr>
@@ -44,7 +45,7 @@ export async function LeadsTable(props: LeadsTableProps) {
               <th className="px-4 py-3 font-semibold">{t('col_origin')}</th>
               <th className="px-4 py-3 font-semibold">{t('col_kind')}</th>
               <th className="px-4 py-3 font-semibold">{t('col_status')}</th>
-              <th className="px-4 py-3 font-semibold" />
+              <th className="sticky right-0 z-10 bg-neutral-50/95 px-4 py-3 font-semibold shadow-[-8px_0_12px_-8px_rgba(0,0,0,0.18)]" />
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100">
@@ -78,7 +79,7 @@ export async function LeadsTable(props: LeadsTableProps) {
                         ? t('whatsapp_status_not_applicable')
                         : t('whatsapp_status_unknown');
               return (
-                <tr className="transition-colors hover:bg-neutral-50/80" key={lead.id}>
+                <tr className="group transition-colors hover:bg-neutral-50/80" key={lead.id}>
                   <td className="px-4 py-3 whitespace-nowrap text-neutral-600">
                     {formatDateTimeBrasilia(activityAt)}
                   </td>
@@ -118,7 +119,7 @@ export async function LeadsTable(props: LeadsTableProps) {
                       {t(statusKey)}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="sticky right-0 z-10 bg-white px-4 py-3 shadow-[-8px_0_12px_-8px_rgba(0,0,0,0.18)] group-hover:bg-neutral-50">
                     <Link
                       className="font-medium text-primary hover:underline"
                       href={`/dashboard/leads/${lead.id}`}
@@ -131,7 +132,7 @@ export async function LeadsTable(props: LeadsTableProps) {
             })}
           </tbody>
         </table>
-      </div>
+      </AdminDragScroll>
     </AdminCard>
   );
 }
