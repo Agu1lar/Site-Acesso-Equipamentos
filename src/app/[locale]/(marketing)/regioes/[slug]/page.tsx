@@ -91,8 +91,8 @@ export default async function RegiaoDetailPage(props: RegiaoPageProps) {
             sizes="100vw"
             src={regiao.heroImage}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-neutral-950/25" />
-          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-transparent to-neutral-950/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/70 via-neutral-950/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/55 via-transparent to-neutral-950/20" />
         </div>
 
         <div className="relative mx-auto flex min-h-[70vh] max-w-7xl flex-col justify-end px-4 pb-12 pt-24 sm:px-6 sm:pb-16 lg:min-h-[78vh] lg:px-8 lg:pb-20">
