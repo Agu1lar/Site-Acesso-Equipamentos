@@ -25,7 +25,7 @@ const navLinks = [
   { href: '/equipamentos', key: 'equipamentos_link' as const },
   { href: '/solucoes', key: 'solucoes_link' as const },
   { href: '/regioes', key: 'regioes_link' as const },
-  { href: '/treinamento-plataformas-aereas', key: 'treinamento_link' as const },
+  { href: '/treinamento', key: 'treinamento_link' as const },
   { href: '/dicas', key: 'blog_link' as const },
   { href: '/sobre', key: 'sobre_link' as const },
   { href: '/contato', key: 'contato_link' as const },

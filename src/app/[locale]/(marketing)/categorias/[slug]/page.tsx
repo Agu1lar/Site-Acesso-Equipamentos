@@ -6,9 +6,12 @@ import { CategorySeoSection } from '@/components/marketing/CategorySeoSection';
 import { ConversionCtas } from '@/components/marketing/ConversionCtas';
 import { SetMobileDockConfig } from '@/components/marketing/mobile-dock-config';
 import { CategoryEquipmentGrid } from '@/components/marketing/CategoryEquipmentGrid';
+import { MarketingBreadcrumb } from '@/components/marketing/MarketingBreadcrumb';
 import { RegiaoLinks } from '@/components/marketing/RegiaoLinks';
+import { SolucaoLinks } from '@/components/marketing/SolucaoLinks';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { getRegioesForCategory } from '@/data/regioes';
+import { getSolucoesForCategory } from '@/data/solucoes';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
 import {
   ALL_EQUIPMENT_CATEGORIES,
@@ -71,6 +74,7 @@ export default async function CategoryPage(props: CategoryPageProps) {
   const gallery = getCategoryGallery(slug);
   const categoryLabel = CATEGORY_LABELS[slug];
   const regioes = getRegioesForCategory(slug);
+  const solucoes = getSolucoesForCategory(slug);
   const whatsappHref = buildWhatsAppUrl(
     buildWhatsAppMessage({
       equipmentName: categoryLabel,
@@ -83,23 +87,13 @@ export default async function CategoryPage(props: CategoryPageProps) {
     <>
       <JsonLd data={buildCategoryPageJsonLd({ slug, seo, equipment })} />
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <nav aria-label="Breadcrumb" className="text-xs text-neutral-600 sm:text-sm">
-          <ol className="flex flex-wrap items-center gap-1">
-            <li>
-              <Link className="hover:text-primary" href="/">
-                {t('breadcrumb_home')}
-              </Link>
-            </li>
-            <li aria-hidden>/</li>
-            <li>
-              <Link className="hover:text-primary" href="/equipamentos">
-                {t('breadcrumb_equipment')}
-              </Link>
-            </li>
-            <li aria-hidden>/</li>
-            <li className="font-medium text-neutral-900">{categoryLabel}</li>
-          </ol>
-        </nav>
+        <MarketingBreadcrumb
+          items={[
+            { label: t('breadcrumb_home'), href: '/' },
+            { label: t('breadcrumb_equipment'), href: '/equipamentos' },
+            { label: categoryLabel },
+          ]}
+        />
 
         <header className="mt-4 max-w-3xl sm:mt-6">
           <p className="text-xs font-semibold tracking-wide text-primary uppercase">
@@ -184,6 +178,7 @@ export default async function CategoryPage(props: CategoryPageProps) {
         />
 
         <RegiaoLinks className="mt-10 sm:mt-12" regioes={regioes} title={t('regions_title')} />
+        <SolucaoLinks className="mt-8" solucoes={solucoes} title={t('solutions_title')} />
       </div>
 
       <SetMobileDockConfig

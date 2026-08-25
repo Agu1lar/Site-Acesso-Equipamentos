@@ -7,12 +7,15 @@ import { EquipmentCard } from '@/components/marketing/EquipmentCard';
 import { EquipmentDetailImage } from '@/components/marketing/EquipmentDetailImage';
 import { EquipmentLaudoLink } from '@/components/marketing/EquipmentLaudoLink';
 import { ExpandableParagraphs } from '@/components/marketing/ExpandableParagraphs';
+import { MarketingBreadcrumb } from '@/components/marketing/MarketingBreadcrumb';
 import { RegiaoLinks } from '@/components/marketing/RegiaoLinks';
+import { SolucaoLinks } from '@/components/marketing/SolucaoLinks';
 import { SetMobileDockConfig } from '@/components/marketing/mobile-dock-config';
 import { SpecTable } from '@/components/marketing/SpecTable';
 import { AddToQuoteButton } from '@/components/quote-cart/AddToQuoteButton';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { getRegioesForCategory } from '@/data/regioes';
+import { getSolucoesForCategory } from '@/data/solucoes';
 import { buildEquipmentWhatsAppUrl, equipmentSeoTitle } from '@/lib/brand';
 import {
   getAllSlugs,
@@ -96,12 +99,17 @@ export default async function EquipmentDetailPage(props: EquipmentDetailProps) {
       <EquipmentViewTracker name={equipment.name} slug={equipment.slug} />
       <JsonLd data={buildEquipmentPageJsonLd(equipment, galleryImages.map((image) => image.src))} />
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
-        <Link
-          className="text-xs font-medium text-primary hover:underline sm:text-sm"
-          href={`/categorias/${equipment.category}`}
-        >
-          ← {t('back_to_category', { category: CATEGORY_LABELS[equipment.category] })}
-        </Link>
+        <MarketingBreadcrumb
+          items={[
+            { label: t('breadcrumb_home'), href: '/' },
+            { label: t('breadcrumb_equipment'), href: '/equipamentos' },
+            {
+              label: CATEGORY_LABELS[equipment.category],
+              href: `/categorias/${equipment.category}`,
+            },
+            { label: equipment.name },
+          ]}
+        />
 
         <div className="mt-4 grid gap-6 lg:mt-6 lg:grid-cols-2 lg:gap-10">
           <EquipmentDetailImage images={galleryImages} name={equipment.name} slug={equipment.slug} />
@@ -212,6 +220,11 @@ export default async function EquipmentDetailPage(props: EquipmentDetailProps) {
               className="mt-8"
               regioes={getRegioesForCategory(equipment.category)}
               title={t('regions_title')}
+            />
+            <SolucaoLinks
+              className="mt-6"
+              solucoes={getSolucoesForCategory(equipment.category)}
+              title={t('solutions_title')}
             />
           </div>
         </div>

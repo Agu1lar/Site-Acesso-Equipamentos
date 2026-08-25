@@ -67,6 +67,29 @@ const CATEGORIES_SEO: Record<EquipmentCategory, CategorySeoContent> = {
       'Locar guindaste evita investimento em equipamento próprio e permite contratar a solução conforme a demanda de cada projeto. A operação deve ser planejada com responsáveis técnicos, isolamento de área, acessórios compatíveis e profissionais habilitados para garantir produtividade e segurança.',
       'Solicite orçamento informando cidade, endereço de atendimento, peso aproximado da carga, dimensões, fotos do local e prazo desejado. Nossa equipe comercial retorna com disponibilidade, condições e orientações para programar o serviço.',
     ],
+    faqTitle: 'Perguntas frequentes sobre locação de guindaste industrial',
+    faqs: [
+      {
+        question: 'Quanto custa a locação de guindaste industrial?',
+        answer:
+          'Os valores são sob consulta. O preço depende do porte do serviço, peso da carga, raio de operação, prazo e logística. Envie fotos do local, peso aproximado e cidade pelo formulário ou WhatsApp.',
+      },
+      {
+        question: 'Vocês atendem remoção técnica fora de Belo Horizonte?',
+        answer:
+          'Sim. Atendemos BH, a região metropolitana e demandas em Minas Gerais e em outros estados, conforme disponibilidade da equipe e do equipamento.',
+      },
+      {
+        question: 'O que preciso informar no orçamento de içamento?',
+        answer:
+          'Peso e dimensões da carga, endereço, restrições de acesso, interferências no entorno e prazo desejado. Com esses dados dimensionamos o serviço com mais precisão.',
+      },
+      {
+        question: 'A operação inclui equipe especializada?',
+        answer:
+          'O escopo da equipe e dos acessórios é definido no orçamento conforme o tipo de remoção ou içamento. Orientamos sobre planejamento, isolamento de área e documentação usual.',
+      },
+    ],
   },
   'manipuladores-telescopicos': {
     slug: 'manipuladores-telescopicos',
@@ -79,6 +102,29 @@ const CATEGORIES_SEO: Record<EquipmentCategory, CategorySeoContent> = {
       'A Acesso Equipamentos atende demandas de manipuladores telescópicos em Belo Horizonte, Minas Gerais e em todo o território nacional. Na cotação, informe altura de trabalho, carga máxima, tipo de terreno e período de locação para indicarmos o modelo disponível na frota ou a alternativa mais próxima.',
       'A operação segura exige operador capacitado, inspeção pré-uso, estabilização adequada e respeito aos limites de carga e alcance indicados pelo fabricante. Nossa equipe comercial orienta sobre documentação, logística de entrega e retirada e condições de locação sob consulta.',
       'Consulte o catálogo desta linha abaixo ou fale com o comercial para verificar disponibilidade e datas. Empresa fundada em 2013, com atendimento ágil por telefone, e-mail e WhatsApp em horário útil.',
+    ],
+    faqTitle: 'Perguntas frequentes sobre manipuladores telescópicos',
+    faqs: [
+      {
+        question: 'Para que serve um manipulador telescópico?',
+        answer:
+          'Para movimentar cargas com alcance vertical e horizontal em canteiros, galpões, pátios e indústrias — útil quando empilhadeira ou plataforma isolada não resolvem o layout.',
+      },
+      {
+        question: 'Como escolher a capacidade e o alcance?',
+        answer:
+          'Informe peso da carga, altura de trabalho, distância horizontal e tipo de terreno. No orçamento indicamos o modelo adequado da frota.',
+      },
+      {
+        question: 'Vocês entregam manipulador em Contagem e Betim?',
+        answer:
+          'Sim. Atendemos o eixo industrial da RMBH a partir da base em Belo Horizonte, com entrega e retirada combinadas no contrato.',
+      },
+      {
+        question: 'Preciso de operador habilitado?',
+        answer:
+          'Sim. A operação é de responsabilidade do cliente, com profissional capacitado. Orientamos requisitos usuais na locação.',
+      },
     ],
   },
   andaimes: {
@@ -93,6 +139,29 @@ const CATEGORIES_SEO: Record<EquipmentCategory, CategorySeoContent> = {
       'A montagem e desmontagem de andaimes são atividades de risco e devem ser executadas por equipe treinada, com projeto quando exigido. Fornecemos os componentes em locação; a responsabilidade pela montagem conforme normas e pelo uso seguro permanece com o contratante da obra, salvo disposição contratual específica.',
       'Veja os itens de andaimes listados abaixo. Para demandas grandes ou longo período, solicite proposta formal com lista de peças e cronograma de entrega.',
     ],
+    faqTitle: 'Perguntas frequentes sobre locação de andaimes',
+    faqs: [
+      {
+        question: 'Como funciona a locação de andaimes por obra?',
+        answer:
+          'Locamos por conjunto e por prazo, ajustando a lista de peças ao cronograma. A montagem é de responsabilidade do cliente ou de equipe parceira da obra.',
+      },
+      {
+        question: 'Vocês montam o andaime?',
+        answer:
+          'Fornecemos os componentes em locação. Montagem e desmontagem ficam a cargo de equipe treinada do contratante, salvo acordo específico no contrato.',
+      },
+      {
+        question: 'Qual o prazo mínimo de locação?',
+        answer:
+          'Trabalhamos com diárias, semanais e mensais. O mínimo depende do volume e é confirmado no orçamento.',
+      },
+      {
+        question: 'Atendem reformas em condomínio em BH?',
+        answer:
+          'Sim. Entregamos em muitos bairros da capital e na região metropolitana. Informe endereço e altura aproximada na solicitação.',
+      },
+    ],
   },
   'ferramentas-eletricas': {
     slug: 'ferramentas-eletricas',
@@ -106,6 +175,29 @@ const CATEGORIES_SEO: Record<EquipmentCategory, CategorySeoContent> = {
       'Revise o estado do equipamento na retirada ou na entrega, utilize EPIs adequados e respeite as instruções de uso. Devoluções fora do prazo ou com danos podem gerar cobranças adicionais conforme contrato — nossa equipe comercial esclarece as condições no momento da locação.',
       'Por concentrar também plataformas elevatórias, andaimes e guindastes, a Acesso reduz a fragmentação de fornecedores em obras que exigem máquinas leves e pesadas ao mesmo tempo. Atendimento em horário comercial e contato via WhatsApp para demandas urgentes dentro da disponibilidade da frota.',
     ],
+    faqTitle: 'Perguntas frequentes sobre ferramentas elétricas',
+    faqs: [
+      {
+        question: 'Quais ferramentas elétricas vocês locam?',
+        answer:
+          'Marteletes, serras, betoneiras, compressores e outros itens de canteiro. Veja o catálogo desta linha ou peça orientação no orçamento conforme o serviço.',
+      },
+      {
+        question: 'A ferramenta vem com acessórios?',
+        answer:
+          'Depende do item. Informe no pedido se precisa de brocas, discos ou mangueiras — confirmamos o que acompanha a locação.',
+      },
+      {
+        question: 'Posso locar por poucos dias?',
+        answer:
+          'Sim. Diárias e semanais são comuns em reformas. O prazo mínimo varia por equipamento e é informado na proposta.',
+      },
+      {
+        question: 'E se o equipamento apresentar defeito?',
+        answer:
+          'Avise o comercial. Quando a falha estiver coberta pelo contrato, providenciamos suporte ou substituição conforme disponibilidade.',
+      },
+    ],
   },
   'ferramentas-combustao': {
     slug: 'ferramentas-combustao',
@@ -118,6 +210,29 @@ const CATEGORIES_SEO: Record<EquipmentCategory, CategorySeoContent> = {
       'Na Acesso Equipamentos, esta linha reúne equipamentos para compactação, geração de energia e serviços externos em Belo Horizonte, Minas Gerais e em todo o território nacional. Informe tipo de serviço, autonomia desejada, local de uso e período de locação para montarmos a proposta.',
       'O uso seguro exige operador capacitado, ventilação adequada em ambientes fechados, abastecimento correto e manutenção conforme manual do fabricante. EPIs e isolamento da área de trabalho são obrigatórios conforme a atividade.',
       'Consulte o catálogo de ferramentas à combustão abaixo e solicite orçamento pelo formulário, telefone ou WhatsApp comercial.',
+    ],
+    faqTitle: 'Perguntas frequentes sobre ferramentas à combustão',
+    faqs: [
+      {
+        question: 'Quando usar ferramenta à combustão em vez de elétrica?',
+        answer:
+          'Em frentes sem rede elétrica, áreas remotas ou quando a potência e a mobilidade em campo forem prioritárias — geradores e compactadores são exemplos comuns.',
+      },
+      {
+        question: 'Vocês locam geradores?',
+        answer:
+          'Sim, conforme disponibilidade da frota. Informe a potência aproximada e o local de uso no orçamento.',
+      },
+      {
+        question: 'Há restrição de uso em ambiente fechado?',
+        answer:
+          'Sim. Equipamentos a combustão exigem ventilação adequada e boas práticas de segurança. Orientamos no briefing da locação.',
+      },
+      {
+        question: 'Atendem obras e plantas na RMBH?',
+        answer:
+          'Sim. Entrega a partir de Belo Horizonte para Contagem, Betim, Nova Lima e demais cidades da região, conforme logística combinada.',
+      },
     ],
   },
 };

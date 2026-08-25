@@ -8,6 +8,11 @@
       "note": "Hub informacional — seção /dicas (Sprint 9.4)"
     },
     {
+      "source": "/treinamento",
+      "destination": "/treinamento-plataformas-aereas",
+      "note": "Alias curto S0 — página canônica de treinamento"
+    },
+    {
       "source": "/categorias/acessorios",
       "destination": "/equipamentos",
       "note": "Categoria acessorios removida do catálogo"

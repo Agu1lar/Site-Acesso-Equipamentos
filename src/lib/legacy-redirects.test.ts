@@ -20,6 +20,11 @@ describe('resolve legacy redirect', () => {
     expect(resolveLegacyRedirect('/blog/')).toBe('/dicas');
   });
 
+  it('redirects short training alias to canonical training page', () => {
+    expect(resolveLegacyRedirect('/treinamento')).toBe('/treinamento-plataformas-aereas');
+    expect(resolveLegacyRedirect('/treinamento/')).toBe('/treinamento-plataformas-aereas');
+  });
+
   it('redirects plataformas post to dicas article', () => {
     expect(
       resolveLegacyRedirect(
