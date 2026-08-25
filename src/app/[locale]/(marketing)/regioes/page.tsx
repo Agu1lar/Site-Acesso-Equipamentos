@@ -64,7 +64,7 @@ export default async function RegioesPage(props: RegioesPageProps) {
           <p className="text-xs font-semibold tracking-[0.18em] text-primary uppercase">
             {t('hero_eyebrow')}
           </p>
-          <h1 className="mt-3 max-w-3xl font-heading text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+          <h1 className="mt-3 max-w-3xl font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
             {t('hero_title')}
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-neutral-200 sm:text-lg">
