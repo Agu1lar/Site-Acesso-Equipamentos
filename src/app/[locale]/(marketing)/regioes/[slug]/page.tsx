@@ -131,7 +131,7 @@ export default async function RegiaoDetailPage(props: RegiaoPageProps) {
           <div className="relative min-h-[300px] sm:min-h-[420px] lg:min-h-[520px]">
             <Image
               alt={regiao.heroAlt}
-              className="object-cover"
+              className="object-cover brightness-[1.1] contrast-[1.03] saturate-[1.06]"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"

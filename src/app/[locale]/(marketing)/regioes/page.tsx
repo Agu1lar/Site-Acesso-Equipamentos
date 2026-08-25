@@ -74,12 +74,12 @@ export default async function RegioesPage(props: RegioesPageProps) {
 
           <div className="relative min-h-[280px] sm:min-h-[360px] lg:min-h-full">
             <Image
-              alt="Plataforma elevatória em operação na região metropolitana de Belo Horizonte"
-              className="object-cover"
+              alt="Plataforma elevatória em operação industrial na região metropolitana de Belo Horizonte"
+              className="object-cover brightness-[1.08] contrast-[1.02] saturate-[1.05]"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"
-              src="/regioes/belo-horizonte-hero.webp"
+              src="/regioes/contagem-hero.webp"
             />
           </div>
         </div>
