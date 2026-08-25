@@ -28,45 +28,50 @@ const SOLUCOES: SolucaoContent[] = [
     slug: 'mineracao',
     name: 'Mineração',
     h1: 'Soluções para mineração',
-    metaTitle: 'Locação para mineração na RMBH | Acesso',
+    metaTitle: 'Equipamentos para mineração | Acesso',
     metaDescription:
-      'Equipamentos para mineração e frentes de campo: guindastes, manipuladores e ferramentas a combustão. Atendimento da Acesso Equipamentos na RMBH.',
-    tagline: 'Frota robusta para frentes de mineração, terrenos exigentes e áreas sem energia.',
+      'Locação de guindaste, manipuladores e ferramentas para mineração no Quadrilátero Ferrífero. Suporte técnico da Acesso Equipamentos para paradas e manutenções na RMBH.',
+    tagline: 'Frota preparada para paradas, manutenções e obras nas mineradoras do Quadrilátero Ferrífero.',
     intro: [
-      'Operações de mineração na região metropolitana de Belo Horizonte exigem equipamentos com capacidade de carga, autonomia e logística confiável. A Acesso Equipamentos atende frentes de serviço com guindastes industriais, manipuladores telescópicos e ferramentas a combustão, a partir da base em BH.',
-      'Orientamos a escolha conforme o tipo de içamento, o alcance necessário e as condições do terreno — com manutenção própria da frota e prazos alinhados ao cronograma da operação.',
+      'A mineração em Minas Gerais impõe rotinas exigentes de manutenção, montagem e movimentação em plantas de beneficiamento, correias transportadoras, galpões de britagem e áreas de estocagem. A Acesso Equipamentos apoia mineradoras e empreiteiras da RMBH com locação de guindaste industrial, manipuladores telescópicos e ferramentas a combustão preparadas para operação em campo.',
+      'Atendemos o Quadrilátero Ferrífero e o entorno de Belo Horizonte com foco em prazos curtos e acompanhamento técnico durante o uso. Trabalhamos com contratos por diária, semana ou mês, ajustados ao cronograma da parada, do projeto de manutenção ou da frente de serviço.',
     ],
     challenges: [
-      'Terrenos irregulares e acessos remotos',
-      'Içamento e movimentação de cargas pesadas',
-      'Operação em áreas sem rede elétrica estável',
+      'Acessos irregulares, poeira e áreas sem cobertura elétrica exigem equipamentos robustos e opções a combustão.',
+      'Paradas programadas concentram atividades de altura e içamento em janelas curtas de operação.',
+      'Requisitos de segurança e permissões de trabalho pedem equipamentos revisados e documentação em dia.',
     ],
     applications: [
-      'Içamento e remoção de estruturas e equipamentos',
-      'Movimentação de materiais em pátio e frente de serviço',
-      'Manutenção de instalações e infraestrutura',
-      'Apoio a frentes com ferramentas a combustão',
+      'Manutenção de correias transportadoras, chutes e peneiras em plantas de beneficiamento.',
+      'Movimentação e reposicionamento de motores, redutores e componentes pesados durante paradas.',
+      'Trocas de luminárias, limpeza estrutural e inspeções em galpões de estocagem e oficinas.',
+      'Apoio à montagem de estruturas metálicas e instalação de tubulações em novas frentes.',
     ],
     highlights: [
-      'Guindastes e manipuladores para carga e alcance',
-      'Ferramentas a combustão para autonomia em campo',
-      'Logística a partir de BH para Nova Lima, Brumadinho e Sabará',
+      'Frota adequada a áreas de mina, com opções a combustão para pontos sem energia.',
+      'Guindaste industrial e manipuladores telescópicos para içamentos e cargas médias.',
+      'Manutenção própria com revisão entre locações e suporte durante o contrato.',
     ],
     faqs: [
       {
-        question: 'A Acesso atende operações de mineração?',
+        question: 'Vocês atendem mineradoras no Quadrilátero Ferrífero?',
         answer:
-          'Sim. Atendemos frentes de mineração e serviços correlatos na RMBH com frota preparada para carga, alcance e áreas remotas.',
+          'Sim. Atendemos operações e empreiteiras em Nova Lima, Brumadinho, Sabará e demais cidades do Quadrilátero, com entrega a partir da base em Belo Horizonte.',
       },
       {
-        question: 'Vocês locam guindaste industrial para mineração?',
+        question: 'Os equipamentos atendem exigências de segurança de mineradoras?',
         answer:
-          'Sim. O guindaste industrial é indicado para içamento e remoção técnica. O modelo e a capacidade são definidos no orçamento conforme a carga e o raio de trabalho.',
+          'A frota passa por revisão entre locações e é entregue com a documentação técnica correspondente à categoria. Requisitos específicos do cliente são conferidos no orçamento.',
       },
       {
-        question: 'É possível operar sem energia elétrica na frente?',
+        question: 'É possível locar por curto prazo durante paradas de manutenção?',
         answer:
-          'Sim. Trabalhamos com ferramentas a combustão para locais sem rede elétrica, com autonomia para operações em campo.',
+          'Sim. Trabalhamos com diárias, semanais e mensais e ajustamos o contrato ao cronograma da parada, com entrega e retirada combinadas com antecedência.',
+      },
+      {
+        question: 'Vocês têm equipamentos a combustão para áreas sem energia?',
+        answer:
+          'Sim. Oferecemos ferramentas a combustão adequadas a frentes de trabalho em áreas remotas ou sem cobertura elétrica.',
       },
     ],
     featuredCategorySlugs: [
@@ -80,46 +85,46 @@ const SOLUCOES: SolucaoContent[] = [
   {
     slug: 'industria',
     name: 'Indústria',
-    h1: 'Soluções para indústria',
-    metaTitle: 'Locação para indústria na RMBH | Acesso',
+    h1: 'Soluções para a indústria',
+    metaTitle: 'Equipamentos para indústria | Acesso',
     metaDescription:
-      'Plataformas, manipuladores e ferramentas para paradas e manutenção industrial. Acesso Equipamentos atende Contagem, Betim e região.',
-    tagline: 'Apoio a paradas programadas, manutenção fabril e obras industriais.',
+      'Aluguel de plataformas, manipuladores e ferramentas para a indústria em Contagem, Betim e RMBH. Suporte técnico da Acesso Equipamentos para o dia a dia fabril.',
+    tagline: 'Equipamentos calibrados para o dia a dia produtivo da indústria mineira.',
     intro: [
-      'Indústrias da RMBH dependem de equipamentos disponíveis no prazo da parada e compatíveis com galpões, linhas de produção e áreas de manutenção. A Acesso Equipamentos fornece plataformas elevatórias, manipuladores telescópicos e ferramentas para essas operações.',
-      'Atendemos polos como Contagem, Betim e Ibirité com entrega organizada e orientação técnica para altura de trabalho, alcance e capacidade de carga.',
+      'A indústria na região metropolitana de Belo Horizonte reúne segmentos como metalurgia, alimentos, químico, autopeças e bens de capital, com forte concentração em Contagem, Betim e Ibirité. A Acesso Equipamentos apoia fábricas e empreiteiras com locação de plataformas elevatórias, manipuladores telescópicos e ferramentas a combustão.',
+      'Do turnaround de linhas de produção à manutenção rotineira de galpões e utilidades, oferecemos equipamentos para trabalhos em altura, movimentação de cargas e apoio em campo. A entrega parte de Belo Horizonte e chega ao eixo industrial da RMBH.',
     ],
     challenges: [
-      'Janelas curtas de parada programada',
-      'Acesso em altura em galpões e estruturas',
-      'Movimentação de peças e componentes no pátio',
+      'Janelas de manutenção curtas exigem equipamentos disponíveis com prazo reduzido de mobilização.',
+      'Pé-direito elevado e obstáculos internos pedem plataformas com alcance e articulação adequados.',
+      'Convivência com produção ativa demanda equipamentos revisados e operados com atenção.',
     ],
     applications: [
-      'Manutenção de cobertura, estrutura e utilidades',
-      'Instalação e troca de equipamentos industriais',
-      'Pintura, inspeção e limpeza em altura',
-      'Movimentação com manipulador telescópico',
+      'Manutenção de iluminação, exaustão e telhado em galpões produtivos e centros de utilidades.',
+      'Movimentação de componentes e materiais no pátio e no piso fabril.',
+      'Inspeção e manutenção de dutos e estruturas em altura.',
+      'Apoio a paradas programadas e retrofit de linhas de produção.',
     ],
     highlights: [
-      'Plataformas tesoura e articuladas para galpões',
-      'Manipuladores para carga e alcance no pátio',
-      'Atendimento ágil no eixo industrial da RMBH',
+      'Plataformas elétricas e a diesel para operar dentro e fora dos galpões.',
+      'Manipuladores telescópicos com capacidade e alcance para o pátio industrial.',
+      'Logística curta a partir de BH no polo industrial da RMBH.',
     ],
     faqs: [
       {
-        question: 'Vocês atendem paradas industriais?',
+        question: 'Vocês atendem plantas industriais em Contagem e Betim?',
         answer:
-          'Sim. Recomendamos alinhar a demanda com antecedência para reservar a frota no período da parada e evitar imprevistos no cronograma.',
+          'Sim. O eixo Contagem–Betim é uma das áreas que mais atendemos, com entrega a partir da base em Belo Horizonte.',
       },
       {
-        question: 'Qual plataforma usar em galpão industrial?',
+        question: 'Como funciona o contrato para uso contínuo em fábrica?',
         answer:
-          'Tesouras são indicadas para áreas amplas e subida vertical. Articuladas alcançam pontos com obstáculos. Nossa equipe ajuda a definir o modelo.',
+          'Oferecemos contratos mensais e recorrentes, com revisão programada e substituição em caso de indisponibilidade prevista em contrato.',
       },
       {
-        question: 'A Acesso entrega em Contagem e Betim?',
+        question: 'É possível ajustar o modelo do equipamento ao longo do contrato?',
         answer:
-          'Sim. Contagem e Betim fazem parte da nossa rota diária a partir da base em Belo Horizonte.',
+          'Sim. Se a aplicação mudar durante o uso, avaliamos a substituição por outro modelo da frota conforme disponibilidade e condições contratuais.',
       },
     ],
     featuredCategorySlugs: [
@@ -134,45 +139,45 @@ const SOLUCOES: SolucaoContent[] = [
     slug: 'siderurgia',
     name: 'Siderurgia',
     h1: 'Soluções para siderurgia',
-    metaTitle: 'Locação para siderurgia | Acesso',
+    metaTitle: 'Equipamentos para siderurgia | Acesso',
     metaDescription:
-      'Guindastes, plataformas e manipuladores para manutenção e montagens em ambientes siderúrgicos. Frota da Acesso Equipamentos na RMBH.',
-    tagline: 'Equipamentos para manutenção pesada, montagens e içamento em siderurgia.',
+      'Locação de guindaste, plataformas e manipuladores para siderurgia na RMBH. Apoio a paradas e manutenções pela Acesso Equipamentos, com base em Belo Horizonte.',
+    tagline: 'Frota alinhada ao ritmo de paradas e manutenções em usinas siderúrgicas.',
     intro: [
-      'Ambientes siderúrgicos exigem equipamentos robustos, documentação técnica e logística precisa. A Acesso Equipamentos apoia manutenções e montagens com guindastes industriais, plataformas elevatórias e manipuladores telescópicos.',
-      'Definimos juntos capacidade de içamento, altura de trabalho e condições de acesso, com frota revisada e suporte durante a locação.',
+      'A siderurgia mineira concentra usinas e unidades de laminação que operam em regime contínuo e demandam suporte durante paradas programadas e manutenções preventivas. A Acesso Equipamentos apoia contratadas e empreiteiras com guindaste industrial, plataformas elevatórias e manipuladores telescópicos.',
+      'Nosso foco é reduzir o tempo de indisponibilidade e apoiar frentes simultâneas, com equipamentos revisados e prazos alinhados ao cronograma. Atendemos o eixo Contagem–Betim e demais cidades da RMBH a partir de Belo Horizonte.',
     ],
     challenges: [
-      'Içamento de cargas com exigências de segurança',
-      'Acesso em altura em estruturas industriais',
-      'Coordenação logística em áreas restritas',
+      'Paradas concentram frentes de altura e içamento em janelas curtas.',
+      'Ambientes com pó e resíduos siderúrgicos exigem equipamentos robustos e bem revisados.',
+      'Movimentação de motores, redutores e componentes pesados requer içamento seguro em espaços restritos.',
     ],
     applications: [
-      'Remoção e instalação de equipamentos pesados',
-      'Manutenção de estruturas e utilidades',
-      'Trabalho em altura com plataformas',
-      'Movimentação de materiais com manipulador',
+      'Manutenção de estruturas metálicas e sistemas de exaustão.',
+      'Içamento de motores, bombas e redutores durante paradas.',
+      'Acesso a passarelas e estruturas para inspeção e reparo.',
+      'Apoio a montagem de tubulações e retrofit de linhas.',
     ],
     highlights: [
-      'Guindaste industrial para içamento técnico',
-      'Plataformas para acesso seguro em altura',
-      'Suporte técnico próximo durante a locação',
+      'Guindaste industrial com boa mobilidade em pátios industriais.',
+      'Plataformas e manipuladores para altura e cargas médias.',
+      'Suporte alinhado a cronogramas fechados de manutenção.',
     ],
     faqs: [
       {
-        question: 'A Acesso atende plantas siderúrgicas?',
+        question: 'Vocês atendem paradas em siderúrgicas na RMBH?',
         answer:
-          'Sim. Atendemos operações siderúrgicas e industriais pesadas na RMBH com frota adequada a içamento e trabalho em altura.',
+          'Sim. Atendemos empreiteiras e contratadas no eixo Contagem–Betim, com equipamentos alinhados ao cronograma da parada.',
       },
       {
-        question: 'Como é definida a capacidade do guindaste?',
+        question: 'É possível locar guindaste por curto período?',
         answer:
-          'Avaliamos carga, raio, altura e condições do local. A proposta indica o equipamento compatível com esses parâmetros.',
+          'Sim. Trabalhamos com diárias, semanais e mensais conforme disponibilidade da frota.',
       },
       {
-        question: 'Há documentação técnica dos equipamentos?',
+        question: 'Como conciliar o cronograma da parada com a locação?',
         answer:
-          'Sim. A frota passa por manutenção própria e acompanha documentação técnica para apoiar os requisitos da operação.',
+          'Combinamos data e horário de entrega com o cliente e mantemos suporte durante o contrato para ajustes de escopo.',
       },
     ],
     featuredCategorySlugs: [
@@ -187,45 +192,50 @@ const SOLUCOES: SolucaoContent[] = [
     slug: 'construcao-civil',
     name: 'Construção civil',
     h1: 'Soluções para construção civil',
-    metaTitle: 'Locação para construção civil em BH | Acesso',
+    metaTitle: 'Equipamentos para construção civil | Acesso',
     metaDescription:
-      'Plataformas, andaimes e ferramentas para obras e reformas na RMBH. Locação com entrega na obra pela Acesso Equipamentos.',
-    tagline: 'Frota para obras, fachadas, reformas e acabamento na região metropolitana.',
+      'Aluguel de plataformas, andaimes e ferramentas para construção civil em BH e região. Frota da Acesso Equipamentos para obras prediais e reformas.',
+    tagline: 'Frota completa para obras prediais, reformas e serviços de fachada em BH e região.',
     intro: [
-      'Construtoras e empreiteiras na RMBH precisam de acesso em altura, andaimes e ferramentas no ritmo do canteiro. A Acesso Equipamentos oferece plataformas elevatórias, andaimes e ferramentas elétricas com entrega e retirada na obra.',
-      'Atendemos obras residenciais, comerciais e prediais em Belo Horizonte, Ribeirão das Neves, Santa Luzia e demais cidades da região.',
+      'A construção civil na RMBH engloba obras residenciais, comerciais, prediais e reformas em condomínios que exigem acesso seguro em altura e ferramentas confiáveis no canteiro. Desde 2013, a Acesso Equipamentos atende construtoras e empreiteiras com plataformas elevatórias, andaimes e ferramentas elétricas.',
+      'Da fundação ao acabamento, oferecemos equipamentos para pintura de fachada, montagem de forros, instalação elétrica e hidráulica e coberturas. A logística parte da base em BH e chega a Ribeirão das Neves, Santa Luzia e demais cidades do entorno.',
     ],
     challenges: [
-      'Acesso seguro em fachadas e pavimentos',
-      'Montagem de andaimes conforme a etapa da obra',
-      'Ferramentas disponíveis no prazo do acabamento',
+      'Prazos apertados pedem equipamentos disponíveis e entrega rápida em várias frentes.',
+      'Fachadas, pé-direito duplo e áreas técnicas exigem plataformas e andaimes adequados a cada acesso.',
+      'Reformas em condomínios e áreas ocupadas demandam equipamentos adequados ao local.',
     ],
     applications: [
-      'Pintura e manutenção de fachadas',
-      'Instalações elétricas e hidráulicas em altura',
-      'Montagem de andaimes e escoramentos',
-      'Acabamento com ferramentas elétricas',
+      'Pintura, revestimento e manutenção de fachadas em prédios e condomínios.',
+      'Instalação de forros, luminárias e sistemas em salões, lojas e galpões.',
+      'Montagem de andaimes para alvenaria e acabamento em obras prediais.',
+      'Serviços de acabamento, corte e furação com ferramentas elétricas.',
     ],
     highlights: [
-      'Plataformas e andaimes para obra urbana',
-      'Ferramentas elétricas para o canteiro',
-      'Entrega e retirada alinhadas ao cronograma',
+      'Plataformas tesoura, articuladas e telescópicas para diferentes alturas.',
+      'Andaimes e componentes para montagens no canteiro.',
+      'Ferramentas elétricas revisadas e prontas para uso.',
     ],
     faqs: [
       {
-        question: 'Vocês entregam equipamento na obra?',
+        question: 'Vocês locam plataformas para reforma em condomínio?',
         answer:
-          'Sim. Realizamos entrega e retirada na obra na RMBH, conforme o tipo de equipamento e a programação da frota.',
+          'Sim. Locação de plataformas para pintura de fachada, manutenção e instalações é um dos serviços mais recorrentes na capital.',
       },
       {
-        question: 'Dá para locar andaimes e plataformas juntos?',
+        question: 'Como funciona a locação de andaimes por obra?',
         answer:
-          'Sim. Muitas obras combinam andaimes e plataformas. O comercial monta a proposta com os itens necessários ao período.',
+          'Locamos por conjunto e por prazo, ajustando ao cronograma. A montagem é de responsabilidade do cliente ou de empresa parceira da obra.',
       },
       {
-        question: 'Há locação diária para reformas?',
+        question: 'Qual o prazo mínimo de locação em obras residenciais?',
         answer:
-          'Sim. Trabalhamos com diárias, semanas e meses. O prazo mínimo depende do equipamento e é confirmado no orçamento.',
+          'Trabalhamos com diárias, semanais e mensais. O prazo mínimo varia por equipamento e é confirmado no orçamento.',
+      },
+      {
+        question: 'Vocês entregam em obras dentro de Belo Horizonte?',
+        answer:
+          'Sim. Entregamos em muitos bairros da capital e nas principais cidades da região metropolitana.',
       },
     ],
     featuredCategorySlugs: ['plataformas-elevatorias', 'andaimes', 'ferramentas-eletricas'],
@@ -236,45 +246,45 @@ const SOLUCOES: SolucaoContent[] = [
     slug: 'manutencao-industrial',
     name: 'Manutenção industrial',
     h1: 'Soluções para manutenção industrial',
-    metaTitle: 'Locação para manutenção industrial | Acesso',
+    metaTitle: 'Equipamentos para manutenção industrial | Acesso',
     metaDescription:
-      'Plataformas e ferramentas para manutenção predial e industrial na RMBH. Orçamento rápido com a Acesso Equipamentos.',
-    tagline: 'Equipamentos para inspeção, reparo e intervenção rápida em plantas e prédios.',
+      'Locação de plataformas, ferramentas elétricas e a combustão para manutenção industrial na RMBH. Suporte da Acesso Equipamentos em Contagem e Betim.',
+    tagline: 'Equipamentos revisados e disponíveis para preventivas, corretivas e paradas programadas.',
     intro: [
-      'Manutenção industrial e predial exige mobilidade, altura de trabalho adequada e ferramentas certas no momento da intervenção. A Acesso Equipamentos disponibiliza plataformas elevatórias e ferramentas elétricas ou a combustão conforme o ambiente.',
-      'Atendemos equipes de manutenção em Contagem, Betim, Sarzedo e demais cidades da RMBH, com foco em agilidade e orientação técnica.',
+      'Manutenção industrial reúne rotinas preventivas, corretivas e paradas programadas em fábricas, centros logísticos e utilidades da RMBH. A Acesso Equipamentos apoia equipes internas e prestadoras com plataformas elevatórias, ferramentas elétricas e ferramentas a combustão.',
+      'Nosso foco é reduzir tempo parado e apoiar várias frentes no mesmo cronograma. Entregamos a partir de BH, com atendimento no eixo Contagem, Betim, Sarzedo e demais cidades da região.',
     ],
     challenges: [
-      'Intervenções com prazo curto',
-      'Acesso pontual em altura sem montar estrutura fixa',
-      'Ambientes internos e externos na mesma operação',
+      'Janelas de manutenção fechadas concentram alta demanda por altura e ferramentas em pouco tempo.',
+      'Ambientes com pouca cobertura elétrica exigem equipamentos a combustão confiáveis.',
+      'Frentes simultâneas dentro da planta demandam disponibilidade previsível de itens.',
     ],
     applications: [
-      'Inspeção e reparo de cobertura e estruturas',
-      'Manutenção de iluminação e utilidades',
-      'Troca de componentes em linha e utilidades',
-      'Serviços em áreas sem energia com combustão',
+      'Inspeção e manutenção de telhados, exaustores e coifas em galpões.',
+      'Troca de luminárias, limpeza estrutural e pintura em áreas produtivas.',
+      'Retrofit e manutenção de tubulações, dutos e passarelas em altura.',
+      'Cortes, furações e reparos com ferramentas elétricas ou a combustão.',
     ],
     highlights: [
-      'Plataformas compactas e articuladas para manutenção',
-      'Ferramentas elétricas e a combustão sob demanda',
-      'Resposta alinhada ao horário comercial da operação',
+      'Plataformas elétricas e a diesel para operar dentro e fora dos galpões.',
+      'Ferramentas elétricas e a combustão revisadas para trabalho em campo.',
+      'Contratos flexíveis ajustados a cronogramas de parada.',
     ],
     faqs: [
       {
-        question: 'Consigo locar plataforma só por alguns dias?',
+        question: 'Vocês atendem paradas de manutenção com prazo curto?',
         answer:
-          'Sim. Locações curtas são comuns em manutenção. Confirmamos prazo mínimo e disponibilidade no orçamento.',
+          'Sim. Ajustamos entrega e devolução ao cronograma da parada e mantemos suporte técnico durante o contrato.',
       },
       {
-        question: 'Atendem manutenção predial em condomínios?',
+        question: 'Locam ferramentas para uso em áreas sem energia elétrica?',
         answer:
-          'Sim. Atendemos manutenção predial e industrial com equipamentos adequados ao tipo de acesso e ao local.',
+          'Sim. Oferecemos ferramentas a combustão para frentes de trabalho sem cobertura elétrica.',
       },
       {
-        question: 'Há orientação para escolher a altura certa?',
+        question: 'É possível estender ou reduzir o prazo da locação?',
         answer:
-          'Sim. Informe a altura de trabalho e o ambiente (interno/externo). Indicamos o modelo mais adequado.',
+          'Sim. Prorrogações e antecipações de devolução podem ser combinadas com o comercial, conforme disponibilidade do equipamento.',
       },
     ],
     featuredCategorySlugs: [
@@ -289,40 +299,40 @@ const SOLUCOES: SolucaoContent[] = [
     slug: 'logistica',
     name: 'Logística',
     h1: 'Soluções para logística',
-    metaTitle: 'Locação para logística e galpões | Acesso',
+    metaTitle: 'Equipamentos para logística | Acesso',
     metaDescription:
-      'Manipuladores e plataformas para galpões, centros de distribuição e pátios. Atendimento da Acesso Equipamentos na RMBH.',
-    tagline: 'Movimentação e acesso em galpões, CD e operações logísticas.',
+      'Aluguel de manipuladores telescópicos e plataformas para logística e centros de distribuição em Contagem, Betim e RMBH pela Acesso Equipamentos.',
+    tagline: 'Movimentação de carga e manutenção de galpões nos principais centros logísticos da RMBH.',
     intro: [
-      'Centros de distribuição e galpões precisam movimentar cargas e acessar altura com segurança e produtividade. A Acesso Equipamentos oferece manipuladores telescópicos e plataformas elevatórias para essas operações.',
-      'Atendemos o eixo logístico da RMBH — Contagem, Betim e entorno — com frota revisada e suporte para definir alcance, capacidade e tipo de plataforma.',
+      'Centros de distribuição, transportadoras e operadores logísticos da RMBH demandam equipamentos ágeis para movimentar carga, manter estruturas e organizar o pátio. A Acesso Equipamentos apoia essas operações com manipuladores telescópicos e plataformas elevatórias.',
+      'Atuamos com foco no eixo Contagem–Betim, entregando equipamentos revisados e com suporte durante o contrato. Contratos por diária, semana ou mês acompanham picos sazonais e projetos específicos.',
     ],
     challenges: [
-      'Movimentação de pallets e materiais em pátio',
-      'Acesso a prateleiras e estruturas elevadas',
-      'Operação contínua com pouca folga no cronograma',
+      'Volumes sazonais aumentam a demanda por movimentação de carga em curto prazo.',
+      'Portas altas, prateleiras e estruturas metálicas exigem alcance e capacidade adequados.',
+      'Convivência com fluxo de caminhões e empilhadeiras pede equipamentos seguros no pátio.',
     ],
     applications: [
-      'Movimentação com manipulador telescópico',
-      'Inventário e organização em altura',
-      'Manutenção de cobertura e sistemas do galpão',
-      'Apoio a montagem de estruturas leves',
+      'Carga e descarga de volumes pesados no pátio do galpão.',
+      'Movimentação e reposicionamento de materiais em altura.',
+      'Manutenção de docas, portões e sistemas de exaustão em CDs.',
+      'Instalação e revisão de iluminação em galpões logísticos.',
     ],
     highlights: [
-      'Manipulador telescópico para carga e alcance',
-      'Plataformas para inventário e manutenção',
-      'Logística próxima aos polos de Contagem e Betim',
+      'Manipuladores telescópicos para operação em galpão e pátio.',
+      'Plataformas elevatórias para manutenção interna.',
+      'Base em BH próxima ao eixo Contagem–Betim.',
     ],
     faqs: [
       {
-        question: 'O manipulador telescópico serve para galpão?',
+        question: 'Vocês atendem centros de distribuição em Contagem e Betim?',
         answer:
-          'Sim. É muito usado em pátios e operações logísticas para movimentar cargas com alcance. Confirmamos capacidade e acessórios no orçamento.',
+          'Sim. Contagem e Betim concentram grande parte das entregas para operações logísticas, a partir da base em Belo Horizonte.',
       },
       {
-        question: 'Vocês atendem centros de distribuição?',
+        question: 'É possível locar manipulador telescópico por temporada?',
         answer:
-          'Sim. Atendemos CDs e galpões na RMBH com entrega programada conforme a operação.',
+          'Sim. Contratos mensais são comuns em picos sazonais e podem ser renovados enquanto durar a demanda.',
       },
       {
         question: 'Posso combinar plataforma e manipulador?',
@@ -338,45 +348,45 @@ const SOLUCOES: SolucaoContent[] = [
     slug: 'montagens-industriais',
     name: 'Montagens industriais',
     h1: 'Soluções para montagens industriais',
-    metaTitle: 'Locação para montagens industriais | Acesso',
+    metaTitle: 'Equipamentos para montagens industriais | Acesso',
     metaDescription:
-      'Guindastes, plataformas e manipuladores para montagem de estruturas e equipamentos. Acesso Equipamentos na RMBH.',
-    tagline: 'Içamento, acesso em altura e movimentação para montagens industriais.',
+      'Locação de guindaste, plataformas e manipuladores para montagens industriais na RMBH. Apoio da Acesso Equipamentos a cronogramas em Contagem e Betim.',
+    tagline: 'Guindaste, plataformas e manipuladores alinhados ao cronograma da montagem.',
     intro: [
-      'Montagens industriais reúnem içamento, posicionamento de peças e trabalho em altura no mesmo projeto. A Acesso Equipamentos combina guindastes industriais, plataformas elevatórias e manipuladores telescópicos para essas frentes.',
-      'Apoiamos empreiteiras e prestadores em Contagem, Betim, Ibirité e demais cidades da RMBH, com orientação para capacidade, alcance e sequência logística.',
+      'Montagens industriais envolvem instalação de estruturas metálicas, tubulações, equipamentos e utilidades em novas plantas, ampliações e retrofits. A Acesso Equipamentos apoia montadoras e empreiteiras com guindaste industrial, plataformas elevatórias e manipuladores telescópicos.',
+      'Trabalhamos com cronogramas fechados, alinhando entrega, uso e devolução ao avanço da montagem. Atendemos com regularidade o eixo Contagem, Betim, Ibirité e demais cidades industriais da RMBH.',
     ],
     challenges: [
-      'Içamento preciso de estruturas e equipamentos',
-      'Acesso simultâneo de equipes em altura',
-      'Coordenação de vários equipamentos no canteiro',
+      'Cronogramas fechados exigem previsibilidade de disponibilidade e mobilização de várias frentes.',
+      'Estruturas metálicas em altura pedem plataformas e alcance adequados.',
+      'Movimentação de peças pesadas e volumosas requer içamento planejado e seguro.',
     ],
     applications: [
-      'Montagem de estruturas metálicas',
-      'Instalação de máquinas e módulos',
-      'Trabalho em altura com plataformas',
-      'Movimentação auxiliar com manipulador',
+      'Montagem de estruturas metálicas, mezaninos e passarelas.',
+      'Instalação e alinhamento de equipamentos e tubulações.',
+      'Acesso em altura para soldagem, aparafusamento e acabamento.',
+      'Apoio a testes e ajustes durante o comissionamento.',
     ],
     highlights: [
-      'Guindaste para içamento técnico',
-      'Plataformas e manipuladores no mesmo projeto',
-      'Equipe técnica para dimensionar a frota',
+      'Guindaste industrial com boa mobilidade em canteiros industriais.',
+      'Manipuladores e plataformas para altura e movimentação de peças.',
+      'Contratos ajustados ao cronograma da montagem.',
     ],
     faqs: [
+      {
+        question: 'Vocês atendem montagens em novas plantas na RMBH?',
+        answer:
+          'Sim. Atendemos montadoras e empreiteiras nas cidades industriais próximas a BH, com foco no eixo Contagem, Betim e Ibirité.',
+      },
+      {
+        question: 'É possível ajustar o contrato ao cronograma da montagem?',
+        answer:
+          'Sim. Trabalhamos com diárias, semanais e mensais e negociamos prorrogações conforme o andamento da obra.',
+      },
       {
         question: 'Dá para locar guindaste e plataforma juntos?',
         answer:
           'Sim. Montagens costumam exigir mais de um tipo de equipamento. O comercial organiza a proposta unificada.',
-      },
-      {
-        question: 'Como antecipar a reserva da frota?',
-        answer:
-          'Envie o cronograma, cargas estimadas e alturas de trabalho. Assim reservamos os equipamentos com maior previsibilidade.',
-      },
-      {
-        question: 'Atendem montagens em áreas industriais da RMBH?',
-        answer:
-          'Sim. Atendemos montagens industriais a partir da base em Belo Horizonte, com foco no eixo Contagem–Betim–Ibirité.',
       },
     ],
     featuredCategorySlugs: [
@@ -407,6 +417,9 @@ export function isSolucaoSlug(slug: string) {
 
 /**
  * Returns solution pages that feature a given equipment category.
+ * @param category Equipment category slug.
+ * @param limit Maximum number of solutions to return.
+ * @returns Solution content entries for interlinking.
  */
 export function getSolucoesForCategory(category: EquipmentCategory, limit = 3) {
   return SOLUCOES.filter((solucao) => solucao.featuredCategorySlugs.includes(category)).slice(
