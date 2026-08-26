@@ -38,11 +38,33 @@ describe('buildRegiaoCategoriaContent', () => {
     expect(content?.intro.join(' ')).toMatch(/industrial/i);
   });
 
-  it('includes Brumadinho and Santa Luzia in the S4 city matrix', () => {
+  it('enriches Vespasiano plataformas with northern RMBH industrial context', () => {
+    const content = buildRegiaoCategoriaContent('vespasiano', 'plataformas-elevatorias');
+
+    expect(content).not.toBeNull();
+    expect(content?.path).toBe('/regioes/vespasiano/plataformas-elevatorias');
+    expect(content?.metaTitle).toBe('Locação de plataformas elevatórias em Vespasiano');
+    expect(content?.enrichment?.types.length).toBeGreaterThanOrEqual(4);
+    expect(content?.faqs.some((item) => /galpões/i.test(item.question))).toBe(true);
+    expect(content?.intro.join(' ')).toMatch(/norte/i);
+  });
+
+  it('enriches Lagoa Santa plataformas with Confins corridor context', () => {
+    const content = buildRegiaoCategoriaContent('lagoa-santa', 'plataformas-elevatorias');
+
+    expect(content).not.toBeNull();
+    expect(content?.path).toBe('/regioes/lagoa-santa/plataformas-elevatorias');
+    expect(content?.metaTitle).toBe('Locação de plataformas elevatórias em Lagoa Santa');
+    expect(content?.enrichment?.types.length).toBeGreaterThanOrEqual(4);
+    expect(content?.faqs.some((item) => /Confins/i.test(item.question))).toBe(true);
+    expect(content?.intro.join(' ')).toMatch(/Confins/i);
+  });
+
+  it('includes Vespasiano and Lagoa Santa in the S4 city matrix', () => {
     const paths = getAllRegiaoCategoriaPaths();
-    expect(paths).toContain('/regioes/brumadinho/plataformas-elevatorias');
-    expect(paths).toContain('/regioes/santa-luzia/plataformas-elevatorias');
-    expect(paths).toHaveLength(32);
+    expect(paths).toContain('/regioes/vespasiano/plataformas-elevatorias');
+    expect(paths).toContain('/regioes/lagoa-santa/plataformas-elevatorias');
+    expect(paths).toHaveLength(40);
   });
 
   it('enriches Ibirité plataformas with industrial shutdown context', () => {

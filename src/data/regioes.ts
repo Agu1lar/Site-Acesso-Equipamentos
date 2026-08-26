@@ -300,9 +300,99 @@ const REGIOES: RegiaoContent[] = [
       },
     ],
     featuredCategorySlugs: FEATURED_CATEGORIES_WITHOUT_TOOLS,
-    nearbySlugs: ['belo-horizonte', 'sabara', 'ribeirao-das-neves', 'contagem'],
+    nearbySlugs: ['belo-horizonte', 'vespasiano', 'lagoa-santa', 'sabara'],
     heroImage: '/regioes/santa-luzia-hero.webp',
     heroAlt: 'Plataforma elevatória em galpão industrial em Santa Luzia',
+  },
+  {
+    slug: 'vespasiano',
+    name: 'Vespasiano',
+    focus: 'industria',
+    h1: 'Locação de equipamentos em Vespasiano',
+    metaTitle: 'Locação de equipamentos em Vespasiano | Acesso',
+    metaDescription:
+      'Aluguel de plataformas, manipuladores e andaimes em Vespasiano. Entrega a partir de BH pela Acesso Equipamentos para o vetor norte da RMBH.',
+    tagline: 'Frota para indústrias, galpões e obras no vetor norte da região metropolitana.',
+    intro: [
+      'Vespasiano integra o vetor norte da região metropolitana de Belo Horizonte, com parque industrial, logística e expansão urbana. A Acesso Equipamentos atende a cidade a partir da base em BH, com entrega alinhada ao cronograma de obras, manutenções e frentes em galpões.',
+      'Disponibilizamos plataformas elevatórias, manipuladores telescópicos e andaimes para manutenção industrial, reformas prediais e montagens. A proximidade com Santa Luzia, Lagoa Santa e o eixo do aeroporto facilita a logística de entrega e retirada.',
+    ],
+    highlights: [
+      'Equipamentos para manutenção industrial, galpões e obras urbanas',
+      'Entrega a partir de Belo Horizonte no vetor norte da RMBH',
+      'Orientação técnica para altura, piso e tipo de aplicação',
+    ],
+    faqs: [
+      {
+        question: 'A Acesso entrega equipamentos em Vespasiano?',
+        answer:
+          'Sim. Atendemos Vespasiano a partir da base em Belo Horizonte, com entrega e retirada combinadas conforme disponibilidade da frota.',
+      },
+      {
+        question: 'Locam plataformas elevatórias para indústrias em Vespasiano?',
+        answer:
+          'Sim. Tesouras, articuladas e telescópicas são usadas em manutenção industrial, galpões e frentes externas. Indicamos o modelo conforme altura e acesso.',
+      },
+      {
+        question: 'Atendem obras residenciais e comerciais em Vespasiano?',
+        answer:
+          'Sim. Além do perfil industrial, atendemos reformas prediais, fachadas e instalações comerciais com equipamentos adequados a cada tipo de acesso.',
+      },
+      {
+        question: 'Como pedir orçamento para Vespasiano?',
+        answer:
+          'Informe endereço, tipo de serviço, altura ou carga e prazo. Enviamos proposta sob consulta com disponibilidade da frota.',
+      },
+    ],
+    featuredCategorySlugs: FEATURED_CATEGORIES_WITHOUT_TOOLS,
+    nearbySlugs: ['santa-luzia', 'lagoa-santa', 'belo-horizonte', 'ribeirao-das-neves'],
+    heroImage: '/regioes/vespasiano-hero.webp',
+    heroAlt: 'Plataforma elevatória em obra urbana e industrial em Vespasiano',
+  },
+  {
+    slug: 'lagoa-santa',
+    name: 'Lagoa Santa',
+    focus: 'metropole',
+    h1: 'Locação de equipamentos em Lagoa Santa',
+    metaTitle: 'Locação de equipamentos em Lagoa Santa | Acesso',
+    metaDescription:
+      'Aluguel de plataformas, andaimes e equipamentos em Lagoa Santa. Logística a partir de BH pela Acesso Equipamentos no eixo Confins.',
+    tagline: 'Frota para obras urbanas, comércio e logística no eixo Confins e norte da RMBH.',
+    intro: [
+      'Lagoa Santa cresce no eixo norte da região metropolitana, com obras residenciais, comerciais e demanda ligada ao entorno do Aeroporto de Confins. A Acesso Equipamentos atende a cidade a partir de Belo Horizonte, com entrega para canteiros, condomínios e frentes de serviço.',
+      'Trabalhamos com plataformas elevatórias, andaimes e equipamentos de apoio para pintura, fachadas, manutenção predial e montagens. A logística no corredor Confins–Lagoa Santa–Vespasiano permite prazos alinhados ao cronograma da obra.',
+    ],
+    highlights: [
+      'Equipamentos para obras prediais, comércio e manutenção urbana',
+      'Entrega no eixo Confins e norte da RMBH a partir de BH',
+      'Suporte técnico para escolher o modelo certo para cada serviço',
+    ],
+    faqs: [
+      {
+        question: 'Vocês locam equipamentos em Lagoa Santa?',
+        answer:
+          'Sim. Atendemos Lagoa Santa e o entorno do eixo Confins a partir da base em Belo Horizonte, conforme disponibilidade da frota.',
+      },
+      {
+        question: 'Atendem obras perto do aeroporto de Confins?',
+        answer:
+          'Sim. A operação cobre Lagoa Santa e cidades vizinhas do corredor aeroportuário, com entrega combinada no orçamento.',
+      },
+      {
+        question: 'Locam andaimes e plataformas para reforma predial?',
+        answer:
+          'Sim. Andaimes e plataformas elevatórias são usados em pintura, fachadas e reformas. Informe altura e tipo de acesso no orçamento.',
+      },
+      {
+        question: 'Como funciona o prazo de entrega em Lagoa Santa?',
+        answer:
+          'Combinamos data e horário após o fechamento. Em muitas frentes do eixo norte conseguimos prazos curtos; confirme com o endereço da obra.',
+      },
+    ],
+    featuredCategorySlugs: FEATURED_CATEGORIES_WITHOUT_TOOLS,
+    nearbySlugs: ['vespasiano', 'santa-luzia', 'belo-horizonte', 'sabara'],
+    heroImage: '/regioes/lagoa-santa-hero.webp',
+    heroAlt: 'Equipamentos de acesso em obra urbana em Lagoa Santa',
   },
   {
     slug: 'brumadinho',
@@ -435,7 +525,7 @@ const REGIOES: RegiaoContent[] = [
       },
     ],
     featuredCategorySlugs: FEATURED_CATEGORIES_WITHOUT_TOOLS,
-    nearbySlugs: ['belo-horizonte', 'contagem', 'santa-luzia', 'betim'],
+    nearbySlugs: ['belo-horizonte', 'vespasiano', 'santa-luzia', 'contagem'],
     heroImage: '/regioes/ribeirao-das-neves-hero.webp',
     heroAlt: 'Obra urbana com plataforma elevatória em Ribeirão das Neves',
   },

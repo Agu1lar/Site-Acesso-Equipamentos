@@ -11,6 +11,8 @@ export const REGIAO_CATEGORIA_CITY_SLUGS = [
   'ribeirao-das-neves',
   'brumadinho',
   'santa-luzia',
+  'vespasiano',
+  'lagoa-santa',
 ] as const;
 
 /** Categories included in the S4 matrix (v1). */
@@ -566,6 +568,242 @@ function applyIbiritePlataformasOverride(base: RegiaoCategoriaContent): RegiaoCa
   };
 }
 
+/** Vespasiano × plataformas — página longa para a query “plataformas elevatórias Vespasiano”. */
+function buildVespasianoPlataformasEnrichment(): RegiaoCategoriaEnrichment {
+  return {
+    typesTitle: 'Tipos de plataforma elevatória para Vespasiano',
+    types: [
+      {
+        title: 'Plataforma tesoura em Vespasiano',
+        body:
+          'Indicada para galpões, plantas e pisos nivelados. Em Vespasiano, atende bem manutenção de iluminação, exaustão e reformas internas no parque industrial e logístico do vetor norte.',
+      },
+      {
+        title: 'Plataforma articulada em Vespasiano',
+        body:
+          'Lança flexível para contornar tubulações, marquises e obstáculos. Útil em fachadas, plantas e frentes externas com interferências.',
+      },
+      {
+        title: 'Plataforma telescópica em Vespasiano',
+        body:
+          'Maior alcance para estruturas, pátios e serviços externos. Indicamos o modelo conforme altura de trabalho e área de estabilização no canteiro.',
+      },
+      {
+        title: 'Plataforma tipo mastro em Vespasiano',
+        body:
+          'Opção compacta para corredores, estoques e altura moderada. Avaliamos vão e capacidade junto com o comercial.',
+      },
+    ],
+    propulsionTitle: 'Elétrica ou diesel — o que faz sentido em Vespasiano',
+    propulsion: [
+      {
+        title: 'Plataformas elétricas',
+        body:
+          'Preferidas em galpões e áreas internas com restrição de emissão ou ruído — perfil frequente no eixo industrial de Vespasiano.',
+      },
+      {
+        title: 'Plataformas a diesel',
+        body:
+          'Indicadas para áreas externas, obras e terrenos mistos. Em frentes abertas, autonomia e tração costumam pesar na escolha.',
+      },
+    ],
+    heightsTitle: 'Alturas de trabalho frequentes em Vespasiano',
+    heights: [
+      {
+        title: 'Faixa de 8 a 16 metros',
+        body:
+          'Cobre boa parte das manutenções industriais e prediais: galpões, iluminação, pintura e mezzaninos.',
+      },
+      {
+        title: 'Faixa de 16 a 26 metros',
+        body:
+          'Comum em estruturas, fachadas e serviços externos. Confirme altura real e espaço para estabilizadores.',
+      },
+      {
+        title: 'Acima de 26 metros',
+        body:
+          'Para frentes mais altas, a frota inclui lanças de maior alcance. Em cronogramas fechados, reservamos com antecedência pela logística a partir de BH.',
+      },
+    ],
+    whyTitle: 'Por que locar com a Acesso em Vespasiano',
+    why: [
+      'Base em Belo Horizonte com entrega ágil no vetor norte (Vespasiano e entorno)',
+      'Orientação técnica para galpão, fachada ou frente externa — tesoura, articulada ou telescópica',
+      'Frota revisada e documentação usual de locação para apoiar a obra',
+      'Diária, semanal ou mensal — valores sob consulta conforme modelo e logística',
+    ],
+  };
+}
+
+function applyVespasianoPlataformasOverride(base: RegiaoCategoriaContent): RegiaoCategoriaContent {
+  return {
+    ...base,
+    metaTitle: 'Locação de plataformas elevatórias em Vespasiano',
+    metaDescription: clipMetaDescription(
+      'Aluguel de plataforma elevatória em Vespasiano: tesoura, articulada e telescópica. Entrega a partir de BH, frota revisada e orçamento sob consulta pela Acesso Equipamentos.',
+    ),
+    tagline:
+      'Plataformas para indústria, galpões e obras em Vespasiano — logística a partir de Belo Horizonte.',
+    intro: [
+      'A Acesso Equipamentos loca plataformas elevatórias em Vespasiano com foco no vetor norte da RMBH: parque industrial, logística e obras urbanas. A operação parte da base em Belo Horizonte, com entrega alinhada ao cronograma da obra.',
+      'Nesta página está o recorte local de plataformas elevatórias em Vespasiano — tipos (tesoura, articulada, telescópica e mastro), propulsão elétrica ou diesel, faixas de altura e catálogo da linha. O comercial indica o modelo conforme altura de trabalho, piso, alcance e prazo.',
+      'Vespasiano concentra manutenção industrial, reforma de galpões e serviços prediais. Informe endereço, interno/externo e altura aproximada para orçamento sob consulta com disponibilidade da frota.',
+      'Trabalhamos com a frota publicada no catálogo do site. Valores não são tabelados online: a proposta considera equipamento, deslocamento a partir de BH e condições do local em Vespasiano.',
+    ],
+    faqs: [
+      {
+        question: 'Vocês locam plataformas elevatórias em Vespasiano?',
+        answer:
+          'Sim. Atendemos Vespasiano e o entorno com entrega a partir de Belo Horizonte, conforme disponibilidade da frota e endereço da obra.',
+      },
+      {
+        question: 'Qual a diferença entre tesoura e articulada para Vespasiano?',
+        answer:
+          'A tesoura sobe na vertical em áreas niveladas (galpões e plantas). A articulada contorna obstáculos e alcança pontos laterais — útil em fachadas e frentes com interferências.',
+      },
+      {
+        question: 'Plataforma elétrica ou diesel em Vespasiano — qual escolher?',
+        answer:
+          'Elétrica para áreas internas e restrição de emissão. Diesel para externas e terrenos mais exigentes. Informe se o serviço é interno ou externo.',
+      },
+      {
+        question: 'Locam plataformas para galpões industriais em Vespasiano?',
+        answer:
+          'Sim. Tesoura e articulada são muito usadas em manutenção e reforma de galpões. Antecipe a reserva quando o prazo da obra for apertado.',
+      },
+      {
+        question: 'Preciso de capacitação para operar a plataforma?',
+        answer:
+          'Sim. A operação exige capacitação alinhada às normas aplicáveis (como NR-18). A locação inclui a documentação técnica usual do equipamento; o contratante organiza a habilitação da equipe.',
+      },
+      {
+        question: 'Como pedir orçamento de plataforma elevatória em Vespasiano?',
+        answer:
+          'Pelo WhatsApp ou formulário: informe altura aproximada, interno/externo, endereço em Vespasiano e prazo. Retornamos com disponibilidade e condições sob consulta.',
+      },
+    ],
+    enrichment: buildVespasianoPlataformasEnrichment(),
+  };
+}
+
+/** Lagoa Santa × plataformas — página longa para a query “plataformas elevatórias Lagoa Santa”. */
+function buildLagoaSantaPlataformasEnrichment(): RegiaoCategoriaEnrichment {
+  return {
+    typesTitle: 'Tipos de plataforma elevatória para Lagoa Santa',
+    types: [
+      {
+        title: 'Plataforma tesoura em Lagoa Santa',
+        body:
+          'Indicada para áreas niveladas, galpões leves e interiores. Em Lagoa Santa, atende bem manutenção predial, comércio e serviços internos no eixo urbano e logístico.',
+      },
+      {
+        title: 'Plataforma articulada em Lagoa Santa',
+        body:
+          'Lança flexível para fachadas, marquises e pontos com obstáculos. Útil em reformas comerciais, condomínios e frentes externas no corredor Confins.',
+      },
+      {
+        title: 'Plataforma telescópica em Lagoa Santa',
+        body:
+          'Maior alcance para estruturas, obras e serviços externos. Indicamos o modelo conforme altura de trabalho e área de estabilização no local.',
+      },
+      {
+        title: 'Plataforma tipo mastro em Lagoa Santa',
+        body:
+          'Opção compacta para corredores, estoques e altura moderada. Avaliamos vão e capacidade junto com o comercial.',
+      },
+    ],
+    propulsionTitle: 'Elétrica ou diesel — o que faz sentido em Lagoa Santa',
+    propulsion: [
+      {
+        title: 'Plataformas elétricas',
+        body:
+          'Preferidas em interiores, comércios e áreas com restrição de emissão ou ruído — frequente em reformas prediais e galpões leves.',
+      },
+      {
+        title: 'Plataformas a diesel',
+        body:
+          'Indicadas para áreas externas, obras e terrenos mistos. Em frentes abertas no eixo Confins, autonomia e tração costumam pesar na escolha.',
+      },
+    ],
+    heightsTitle: 'Alturas de trabalho frequentes em Lagoa Santa',
+    heights: [
+      {
+        title: 'Faixa de 8 a 16 metros',
+        body:
+          'Cobre boa parte das manutenções prediais e comerciais: iluminação, pintura, fachadas baixas e mezzaninos.',
+      },
+      {
+        title: 'Faixa de 16 a 26 metros',
+        body:
+          'Comum em fachadas, estruturas e serviços externos. Confirme altura real e espaço para estabilizadores.',
+      },
+      {
+        title: 'Acima de 26 metros',
+        body:
+          'Para frentes mais altas, a frota inclui lanças de maior alcance. Em cronogramas fechados, reservamos com antecedência pela logística a partir de BH.',
+      },
+    ],
+    whyTitle: 'Por que locar com a Acesso em Lagoa Santa',
+    why: [
+      'Base em Belo Horizonte com entrega no eixo Confins e norte da RMBH',
+      'Orientação técnica para obra predial, comércio ou frente externa',
+      'Frota revisada e documentação usual de locação para apoiar a obra',
+      'Diária, semanal ou mensal — valores sob consulta conforme modelo e logística',
+    ],
+  };
+}
+
+function applyLagoaSantaPlataformasOverride(base: RegiaoCategoriaContent): RegiaoCategoriaContent {
+  return {
+    ...base,
+    metaTitle: 'Locação de plataformas elevatórias em Lagoa Santa',
+    metaDescription: clipMetaDescription(
+      'Aluguel de plataforma elevatória em Lagoa Santa: tesoura, articulada e telescópica. Entrega no eixo Confins a partir de BH e orçamento sob consulta pela Acesso Equipamentos.',
+    ),
+    tagline:
+      'Plataformas para obras urbanas, comércio e logística em Lagoa Santa — logística a partir de Belo Horizonte.',
+    intro: [
+      'A Acesso Equipamentos loca plataformas elevatórias em Lagoa Santa com foco no eixo norte da RMBH e no corredor do Aeroporto de Confins: obras prediais, comércio e frentes de serviço. A operação parte da base em Belo Horizonte.',
+      'Nesta página está o recorte local de plataformas elevatórias em Lagoa Santa — tipos (tesoura, articulada, telescópica e mastro), propulsão elétrica ou diesel, faixas de altura e catálogo da linha. O comercial indica o modelo conforme altura de trabalho, piso, alcance e prazo.',
+      'Lagoa Santa concentra reformas, fachadas e demanda ligada ao entorno aeroportuário. Informe endereço, interno/externo e altura aproximada para orçamento sob consulta com disponibilidade da frota.',
+      'Trabalhamos com a frota publicada no catálogo do site. Valores são sob consulta: a proposta considera equipamento, deslocamento a partir de BH e condições do local em Lagoa Santa.',
+    ],
+    faqs: [
+      {
+        question: 'Vocês locam plataformas elevatórias em Lagoa Santa?',
+        answer:
+          'Sim. Atendemos Lagoa Santa e o entorno do eixo Confins com entrega a partir de Belo Horizonte, conforme disponibilidade da frota e endereço da obra.',
+      },
+      {
+        question: 'Atendem obras no entorno do aeroporto de Confins?',
+        answer:
+          'Sim. A logística cobre Lagoa Santa e cidades vizinhas do corredor aeroportuário. Informe o endereço exato no orçamento para combinar a entrega.',
+      },
+      {
+        question: 'Qual a diferença entre tesoura e articulada para Lagoa Santa?',
+        answer:
+          'A tesoura sobe na vertical em áreas niveladas. A articulada contorna obstáculos e alcança pontos laterais — útil em fachadas e reformas com interferências.',
+      },
+      {
+        question: 'Plataforma elétrica ou diesel em Lagoa Santa — qual escolher?',
+        answer:
+          'Elétrica para áreas internas e restrição de emissão. Diesel para externas e terrenos mais exigentes. Informe se o serviço é interno ou externo.',
+      },
+      {
+        question: 'Preciso de capacitação para operar a plataforma?',
+        answer:
+          'Sim. A operação exige capacitação alinhada às normas aplicáveis (como NR-18). A locação inclui a documentação técnica usual do equipamento; o contratante organiza a habilitação da equipe.',
+      },
+      {
+        question: 'Como pedir orçamento de plataforma elevatória em Lagoa Santa?',
+        answer:
+          'Pelo WhatsApp ou formulário: informe altura aproximada, interno/externo, endereço em Lagoa Santa e prazo. Retornamos com disponibilidade e condições sob consulta.',
+      },
+    ],
+    enrichment: buildLagoaSantaPlataformasEnrichment(),
+  };
+}
+
 /**
  * Builds unique long-tail copy for a city × category landing.
  */
@@ -648,10 +886,18 @@ export function buildRegiaoCategoriaContent(
     return applyIbiritePlataformasOverride(base);
   }
 
+  if (typedCity === 'vespasiano' && typedCategory === 'plataformas-elevatorias') {
+    return applyVespasianoPlataformasOverride(base);
+  }
+
+  if (typedCity === 'lagoa-santa' && typedCategory === 'plataformas-elevatorias') {
+    return applyLagoaSantaPlataformasOverride(base);
+  }
+
   return base;
 }
 
-/** All static params for the S4 matrix (8 cities × 4 categories = 32 combos). */
+/** All static params for the S4 matrix (10 cities × 4 categories = 40 combos). */
 export function getAllRegiaoCategoriaParams() {
   const params: { slug: RegiaoCategoriaCitySlug; categoria: RegiaoCategoriaCategorySlug }[] = [];
   for (const slug of REGIAO_CATEGORIA_CITY_SLUGS) {
