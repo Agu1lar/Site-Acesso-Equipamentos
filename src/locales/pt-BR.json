@@ -7,7 +7,7 @@
   "RootLayout": {
     "home_link": "Início",
     "equipamentos_link": "Equipamentos",
-    "solucoes_link": "Soluções",
+    "solucoes_link": "Áreas de atuação",
     "regioes_link": "Regiões",
     "treinamento_link": "Treinamento",
     "blog_link": "Blog",
@@ -278,7 +278,7 @@
     "links": "Links",
     "dicas_link": "Blog",
     "regioes_link": "Regiões atendidas",
-    "solucoes_link": "Soluções por segmento",
+    "solucoes_link": "Áreas de atuação",
     "regioes_title": "Regiões",
     "contact": "Contato",
     "address": "Endereço",

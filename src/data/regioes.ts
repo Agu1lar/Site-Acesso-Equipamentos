@@ -1,4 +1,4 @@
-import type { EquipmentCategory } from '@/types/equipment';
+import { EQUIPMENT_CATEGORY_ORDER, type EquipmentCategory } from '@/types/equipment';
 
 export type RegiaoFocus = 'metropole' | 'industria' | 'mineracao';
 
@@ -24,6 +24,14 @@ export type RegiaoContent = {
   heroImage: string;
   heroAlt: string;
 };
+
+/** BH, Contagem, Betim e Nova Lima — todas as categorias no bloco “mais pedidos”. */
+const FEATURED_CATEGORIES_CORE_CITIES: EquipmentCategory[] = [...EQUIPMENT_CATEGORY_ORDER];
+
+/** Demais cidades — sem ferramentas elétricas nem à combustão. */
+const FEATURED_CATEGORIES_WITHOUT_TOOLS: EquipmentCategory[] = EQUIPMENT_CATEGORY_ORDER.filter(
+  (category) => category !== 'ferramentas-eletricas' && category !== 'ferramentas-combustao',
+);
 
 const REGIOES: RegiaoContent[] = [
   {
@@ -66,7 +74,7 @@ const REGIOES: RegiaoContent[] = [
           'Sim. Trabalhamos com locações diárias, semanais e mensais. O prazo mínimo depende do equipamento e é confirmado no orçamento.',
       },
     ],
-    featuredCategorySlugs: ['plataformas-elevatorias', 'andaimes', 'ferramentas-eletricas'],
+    featuredCategorySlugs: FEATURED_CATEGORIES_CORE_CITIES,
     nearbySlugs: ['contagem', 'nova-lima', 'sabara', 'ribeirao-das-neves'],
     heroImage: '/regioes/belo-horizonte-hero.webp',
     heroAlt: 'Plataforma elevatória em obra urbana em Belo Horizonte',
@@ -111,11 +119,7 @@ const REGIOES: RegiaoContent[] = [
           'Sim. A NR-18 exige capacitação para operação de plataformas. A locação inclui a documentação técnica dos equipamentos para apoiar o cumprimento da norma.',
       },
     ],
-    featuredCategorySlugs: [
-      'plataformas-elevatorias',
-      'manipuladores-telescopicos',
-      'ferramentas-combustao',
-    ],
+    featuredCategorySlugs: FEATURED_CATEGORIES_CORE_CITIES,
     nearbySlugs: ['belo-horizonte', 'betim', 'ibirite', 'ribeirao-das-neves'],
     heroImage: '/regioes/contagem-hero.webp',
     heroAlt: 'Plataforma articulada em área industrial de Contagem',
@@ -160,11 +164,7 @@ const REGIOES: RegiaoContent[] = [
           'Toda a frota passa por manutenção própria e inspeções periódicas. Em caso de falha, coordenamos a substituição a partir de BH.',
       },
     ],
-    featuredCategorySlugs: [
-      'plataformas-elevatorias',
-      'manipuladores-telescopicos',
-      'ferramentas-combustao',
-    ],
+    featuredCategorySlugs: FEATURED_CATEGORIES_CORE_CITIES,
     nearbySlugs: ['contagem', 'ibirite', 'sarzedo', 'belo-horizonte'],
     heroImage: '/regioes/betim-hero.webp',
     heroAlt: 'Plataforma tesoura em planta industrial de Betim',
@@ -209,11 +209,7 @@ const REGIOES: RegiaoContent[] = [
           'Sim. Trabalhamos com ferramentas a combustão que operam de forma autônoma, ideais para frentes sem acesso à rede elétrica.',
       },
     ],
-    featuredCategorySlugs: [
-      'guindaste-industrial',
-      'manipuladores-telescopicos',
-      'ferramentas-combustao',
-    ],
+    featuredCategorySlugs: FEATURED_CATEGORIES_CORE_CITIES,
     nearbySlugs: ['belo-horizonte', 'brumadinho', 'sabara', 'sarzedo'],
     heroImage: '/regioes/nova-lima-hero.webp',
     heroAlt: 'Equipamento de acesso em área de mineração em Nova Lima',
@@ -258,11 +254,7 @@ const REGIOES: RegiaoContent[] = [
           'Sim. A prorrogação pode ser combinada com antecedência, sujeita à disponibilidade da frota no período solicitado.',
       },
     ],
-    featuredCategorySlugs: [
-      'plataformas-elevatorias',
-      'manipuladores-telescopicos',
-      'ferramentas-combustao',
-    ],
+    featuredCategorySlugs: FEATURED_CATEGORIES_WITHOUT_TOOLS,
     nearbySlugs: ['betim', 'sarzedo', 'contagem', 'belo-horizonte'],
     heroImage: '/regioes/ibirite-hero.webp',
     heroAlt: 'Equipamentos de acesso em obra industrial em Ibirité',
@@ -307,11 +299,7 @@ const REGIOES: RegiaoContent[] = [
           'Sim, sujeito à disponibilidade da frota. Caso a obra exija um modelo diferente, avaliamos a troca antes de reprogramar a entrega.',
       },
     ],
-    featuredCategorySlugs: [
-      'plataformas-elevatorias',
-      'manipuladores-telescopicos',
-      'ferramentas-combustao',
-    ],
+    featuredCategorySlugs: FEATURED_CATEGORIES_WITHOUT_TOOLS,
     nearbySlugs: ['belo-horizonte', 'sabara', 'ribeirao-das-neves', 'contagem'],
     heroImage: '/regioes/santa-luzia-hero.webp',
     heroAlt: 'Plataforma elevatória em galpão industrial em Santa Luzia',
@@ -356,11 +344,7 @@ const REGIOES: RegiaoContent[] = [
           'A equipe fica disponível durante o período de locação. Em caso de dúvidas ou suporte, o atendimento é coordenado a partir de BH.',
       },
     ],
-    featuredCategorySlugs: [
-      'guindaste-industrial',
-      'manipuladores-telescopicos',
-      'ferramentas-combustao',
-    ],
+    featuredCategorySlugs: FEATURED_CATEGORIES_WITHOUT_TOOLS,
     nearbySlugs: ['nova-lima', 'sarzedo', 'betim', 'belo-horizonte'],
     heroImage: '/regioes/brumadinho-hero.webp',
     heroAlt: 'Equipamento de acesso em operação de suporte em Brumadinho',
@@ -405,11 +389,7 @@ const REGIOES: RegiaoContent[] = [
           'A entrega é combinada previamente com o cliente. A proximidade com BH permite prazos curtos e reposição ágil quando necessário.',
       },
     ],
-    featuredCategorySlugs: [
-      'guindaste-industrial',
-      'manipuladores-telescopicos',
-      'ferramentas-combustao',
-    ],
+    featuredCategorySlugs: FEATURED_CATEGORIES_WITHOUT_TOOLS,
     nearbySlugs: ['belo-horizonte', 'santa-luzia', 'nova-lima', 'ribeirao-das-neves'],
     heroImage: '/regioes/sabara-hero.webp',
     heroAlt: 'Plataforma elevatória em obra em Sabará',
@@ -454,7 +434,7 @@ const REGIOES: RegiaoContent[] = [
           'Basta entrar em contato informando o tipo de serviço, altura de trabalho e prazo estimado. A partir disso, enviamos a proposta com os equipamentos indicados.',
       },
     ],
-    featuredCategorySlugs: ['plataformas-elevatorias', 'andaimes', 'ferramentas-eletricas'],
+    featuredCategorySlugs: FEATURED_CATEGORIES_WITHOUT_TOOLS,
     nearbySlugs: ['belo-horizonte', 'contagem', 'santa-luzia', 'betim'],
     heroImage: '/regioes/ribeirao-das-neves-hero.webp',
     heroAlt: 'Obra urbana com plataforma elevatória em Ribeirão das Neves',
@@ -499,11 +479,7 @@ const REGIOES: RegiaoContent[] = [
           'O prazo é combinado com o cliente após o fechamento do orçamento, considerando o local da obra e a disponibilidade da frota.',
       },
     ],
-    featuredCategorySlugs: [
-      'plataformas-elevatorias',
-      'manipuladores-telescopicos',
-      'ferramentas-combustao',
-    ],
+    featuredCategorySlugs: FEATURED_CATEGORIES_WITHOUT_TOOLS,
     nearbySlugs: ['ibirite', 'betim', 'brumadinho', 'nova-lima'],
     heroImage: '/regioes/sarzedo-hero.webp',
     heroAlt: 'Pátio industrial com manipulador telescópico em Sarzedo',
