@@ -190,6 +190,108 @@ export default async function RegiaoCategoriaPage(props: RegiaoCategoriaPageProp
         </div>
       </section>
 
+      {content.enrichment ? (
+        <>
+          <section
+            aria-labelledby="regiao-categoria-types-title"
+            className="border-t border-neutral-200 bg-neutral-50"
+          >
+            <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+              <span aria-hidden className="block h-1 w-12 bg-primary" />
+              <h2
+                className="mt-4 font-heading text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl"
+                id="regiao-categoria-types-title"
+              >
+                {content.enrichment.typesTitle}
+              </h2>
+              <div className="mt-10 grid gap-8 sm:grid-cols-2">
+                {content.enrichment.types.map((item) => (
+                  <article key={item.title}>
+                    <h3 className="font-heading text-lg font-semibold text-neutral-900">
+                      {item.title}
+                    </h3>
+                    <p className="mt-3 text-base leading-relaxed text-neutral-700">{item.body}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section
+            aria-labelledby="regiao-categoria-propulsion-title"
+            className="border-t border-neutral-200 bg-white"
+          >
+            <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+              <span aria-hidden className="block h-1 w-12 bg-primary" />
+              <h2
+                className="mt-4 font-heading text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl"
+                id="regiao-categoria-propulsion-title"
+              >
+                {content.enrichment.propulsionTitle}
+              </h2>
+              <div className="mt-10 grid gap-8 sm:grid-cols-2">
+                {content.enrichment.propulsion.map((item) => (
+                  <article key={item.title}>
+                    <h3 className="font-heading text-lg font-semibold text-neutral-900">
+                      {item.title}
+                    </h3>
+                    <p className="mt-3 text-base leading-relaxed text-neutral-700">{item.body}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section
+            aria-labelledby="regiao-categoria-heights-title"
+            className="border-t border-neutral-200 bg-neutral-50"
+          >
+            <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+              <span aria-hidden className="block h-1 w-12 bg-primary" />
+              <h2
+                className="mt-4 font-heading text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl"
+                id="regiao-categoria-heights-title"
+              >
+                {content.enrichment.heightsTitle}
+              </h2>
+              <div className="mt-10 grid gap-8 lg:grid-cols-3">
+                {content.enrichment.heights.map((item) => (
+                  <article key={item.title}>
+                    <h3 className="font-heading text-lg font-semibold text-neutral-900">
+                      {item.title}
+                    </h3>
+                    <p className="mt-3 text-base leading-relaxed text-neutral-700">{item.body}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section
+            aria-labelledby="regiao-categoria-why-title"
+            className="border-t border-neutral-200 bg-white"
+          >
+            <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+              <span aria-hidden className="block h-1 w-12 bg-primary" />
+              <h2
+                className="mt-4 font-heading text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl"
+                id="regiao-categoria-why-title"
+              >
+                {content.enrichment.whyTitle}
+              </h2>
+              <ul className="mt-8 space-y-3 text-base leading-relaxed text-neutral-700">
+                {content.enrichment.why.map((item) => (
+                  <li className="flex gap-3" key={item}>
+                    <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        </>
+      ) : null}
+
       {featuredEquipment.length > 0 ? (
         <section
           aria-labelledby="regiao-categoria-equipment-title"
