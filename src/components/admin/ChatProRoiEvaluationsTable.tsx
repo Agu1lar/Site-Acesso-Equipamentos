@@ -1,11 +1,12 @@
 import { Fragment } from 'react';
-import { Link } from '@/libs/I18nNavigation';
-import { formatDateTimeBrasilia } from '@/lib/app-datetime';
-import type { ChatProRoiLeadEvaluationGroup } from '@/lib/chatpro-roi-group';
+import { AdminDragScroll } from '@/components/admin/AdminDragScroll';
 import { ChatProRoiEvaluationHistory } from '@/components/admin/ChatProRoiEvaluationHistory';
 import { ChatProRoiFrozenBadge } from '@/components/admin/ChatProRoiFrozenBadge';
+import { formatDateTimeBrasilia } from '@/lib/app-datetime';
 import { isRoiJourneyFrozen } from '@/lib/chatpro-roi-eligibility';
 import type { ChatProRoiDashboardEvaluation } from '@/lib/chatpro-roi-dashboard-types';
+import type { ChatProRoiLeadEvaluationGroup } from '@/lib/chatpro-roi-group';
+import { Link } from '@/libs/I18nNavigation';
 
 type ChatProRoiEvaluationsTableProps = {
   groups: ChatProRoiLeadEvaluationGroup[];
@@ -52,7 +53,7 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
       {props.groups.length === 0 ? (
         <p className="px-5 py-8 text-sm text-neutral-500">{props.labels.empty}</p>
       ) : (
-        <div className="overflow-x-auto">
+        <AdminDragScroll>
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="border-b border-neutral-200 text-neutral-500">
@@ -66,7 +67,7 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
                 <th className="px-5 py-3 font-medium">{props.labels.colSuggestedStatus}</th>
                 <th className="px-5 py-3 font-medium">{props.labels.colEvaluatedAt}</th>
                 <th className="px-5 py-3 font-medium">{props.labels.colSummary}</th>
-                <th className="px-5 py-3 font-medium" />
+                <th className="sticky right-0 z-10 bg-neutral-50/95 px-5 py-3 font-medium shadow-[-8px_0_12px_-8px_rgba(0,0,0,0.18)]" />
               </tr>
             </thead>
             <tbody>
@@ -81,7 +82,7 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
 
                 return (
                   <Fragment key={group.leadId}>
-                    <tr className="border-b border-neutral-100 align-top">
+                    <tr className="group border-b border-neutral-100 align-top hover:bg-neutral-50/80">
                       <td className="px-5 py-3">
                         <p className="font-medium text-neutral-900">{row.leadName}</p>
                         <p className="text-xs text-neutral-500">#{row.leadId}</p>
@@ -127,7 +128,7 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
                           {row.summary || '—'}
                         </p>
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="sticky right-0 z-10 bg-white px-5 py-3 shadow-[-8px_0_12px_-8px_rgba(0,0,0,0.18)] group-hover:bg-neutral-50">
                         <Link
                           className="whitespace-nowrap font-medium text-primary hover:underline"
                           href={`/dashboard/leads/${row.leadId}`}
@@ -171,7 +172,7 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
               })}
             </tbody>
           </table>
-        </div>
+        </AdminDragScroll>
       )}
     </section>
   );
