@@ -40,6 +40,16 @@ describe('build marketing graph json-ld', () => {
     expect(graph.some((node) => node['@type'] === 'Organization')).toBeTruthy();
     expect(graph.some((node) => node['@type'] === 'LocalBusiness')).toBeTruthy();
 
+    const organization = graph.find((node) => node['@type'] === 'Organization') as {
+      logo?: { '@type'?: string; url?: string; width?: number; height?: number };
+      image?: string;
+    };
+    expect(organization.logo?.['@type']).toBe('ImageObject');
+    expect(organization.logo?.url).toContain('/assets/brand/logo-acesso.png');
+    expect(organization.logo?.width).toBe(200);
+    expect(organization.logo?.height).toBe(200);
+    expect(organization.image).toContain('/assets/brand/logo-acesso.png');
+
     const webSite = graph.find((node) => node['@type'] === 'WebSite') as {
       potentialAction?: { '@type'?: string };
     };

@@ -71,6 +71,13 @@ function organizationNode(baseUrl: string) {
     email: brand.email,
     telephone: `+55${brand.phone}`,
     foundingDate: String(brand.foundedYear),
+    logo: {
+      '@type': 'ImageObject',
+      url: `${baseUrl}/assets/brand/logo-acesso.png`,
+      width: 200,
+      height: 200,
+    },
+    image: `${baseUrl}/assets/brand/logo-acesso.png`,
     sameAs: [brand.instagramUrl, brand.linkedinUrl],
     address: postalAddress(),
   };
