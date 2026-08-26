@@ -9,6 +9,7 @@ export const REGIAO_CATEGORIA_CITY_SLUGS = [
   'nova-lima',
   'ibirite',
   'ribeirao-das-neves',
+  'brumadinho',
 ] as const;
 
 /** Categories included in the S4 matrix (v1). */
@@ -210,6 +211,124 @@ function applyContagemPlataformasOverride(base: RegiaoCategoriaContent): RegiaoC
   };
 }
 
+/** Brumadinho × plataformas — página longa para a query “plataformas elevatórias Brumadinho”. */
+function buildBrumadinhoPlataformasEnrichment(): RegiaoCategoriaEnrichment {
+  return {
+    typesTitle: 'Tipos de plataforma elevatória para Brumadinho',
+    types: [
+      {
+        title: 'Plataforma tesoura em Brumadinho',
+        body:
+          'Indicada para galpões, áreas de apoio e pisos nivelados. Em Brumadinho, atende bem manutenção interna, iluminação e serviços em estruturas com solo firme — desde que o ponto de trabalho esteja alinhado à base da máquina.',
+      },
+      {
+        title: 'Plataforma articulada em Brumadinho',
+        body:
+          'Lança articulada para contornar obstáculos e operar em frentes com relevo ou interferências. Frequente em manutenção de estruturas, plantas de apoio à mineração e acessos laterais onde a tesoura não chega.',
+      },
+      {
+        title: 'Plataforma telescópica em Brumadinho',
+        body:
+          'Maior alcance vertical e horizontal para frentes externas e estruturas altas. Avaliamos área de estabilização, acesso rodoviário e altura de trabalho antes de indicar o modelo do catálogo.',
+      },
+      {
+        title: 'Plataforma tipo mastro em Brumadinho',
+        body:
+          'Opção compacta para acessos internos e altura moderada. Útil em áreas de estoque, corredores e serviços leves em edificações de apoio.',
+      },
+    ],
+    propulsionTitle: 'Elétrica ou diesel — o que faz sentido em Brumadinho',
+    propulsion: [
+      {
+        title: 'Plataformas elétricas',
+        body:
+          'Melhor escolha em ambientes internos, pisos acabados e áreas com restrição de emissão. Em Brumadinho, entram em galpões, manutenção predial e espaços onde ruído e gases precisam ser controlados.',
+      },
+      {
+        title: 'Plataformas a diesel',
+        body:
+          'Indicadas para áreas externas, pátios e frentes com terreno mais exigente. Em operações de mineração e infraestrutura no município, a autonomia e a tração costumam pesar na escolha.',
+      },
+    ],
+    heightsTitle: 'Alturas de trabalho frequentes em Brumadinho',
+    heights: [
+      {
+        title: 'Faixa de 8 a 16 metros',
+        body:
+          'Cobre manutenções prediais, galpões e serviços técnicos comuns no município. Informe altura de trabalho real (ponto a alcançar), não só a altura da plataforma.',
+      },
+      {
+        title: 'Faixa de 16 a 26 metros',
+        body:
+          'Usada em estruturas, fachadas e frentes externas. Em Brumadinho, confirme espaço para estabilizadores e condições de piso no local da obra.',
+      },
+      {
+        title: 'Acima de 26 metros',
+        body:
+          'Para frentes mais altas, a frota inclui lanças de maior alcance. Em paradas e cronogramas fechados, reservamos com antecedência pela logística a partir de BH.',
+      },
+    ],
+    whyTitle: 'Por que locar com a Acesso em Brumadinho',
+    why: [
+      'Base em Belo Horizonte com entrega para Brumadinho e frentes no entorno',
+      'Orientação técnica para terreno, altura e tipo (tesoura, articulada ou telescópica)',
+      'Frota revisada e documentação usual de locação para apoiar a obra',
+      'Diária, semanal ou mensal — valores sob consulta conforme modelo e acesso ao canteiro',
+    ],
+  };
+}
+
+function applyBrumadinhoPlataformasOverride(base: RegiaoCategoriaContent): RegiaoCategoriaContent {
+  return {
+    ...base,
+    metaTitle: 'Locação de plataformas elevatórias em Brumadinho',
+    metaDescription: clipMetaDescription(
+      'Aluguel de plataforma elevatória em Brumadinho: tesoura, articulada e telescópica. Entrega a partir de BH, frota revisada e orçamento sob consulta pela Acesso Equipamentos.',
+    ),
+    tagline:
+      'Plataformas para mineração, infraestrutura e manutenção em Brumadinho — logística a partir de Belo Horizonte.',
+    intro: [
+      'A Acesso Equipamentos loca plataformas elevatórias em Brumadinho com atenção a frentes de mineração, infraestrutura e manutenção em altura. A operação parte da base em Belo Horizonte, com planejamento de entrega conforme acesso rodoviário e condições do canteiro.',
+      'Nesta página está o recorte local de plataformas elevatórias em Brumadinho: tipos (tesoura, articulada, telescópica e mastro), propulsão elétrica ou diesel, faixas de altura e catálogo da linha. O comercial indica o modelo conforme altura de trabalho, piso, relevo e prazo.',
+      'O município combina áreas urbanas, rurais e operações ligadas à mineração. Terreno irregular, solo compactado e acessos longos pedem avaliação prévia do local — informe endereço, interno/externo e altura aproximada no orçamento.',
+      'Trabalhamos com a frota publicada no catálogo do site. Valores são sob consulta: a proposta considera equipamento, deslocamento a partir de BH e condições reais da obra em Brumadinho.',
+    ],
+    faqs: [
+      {
+        question: 'Vocês locam plataformas elevatórias em Brumadinho?',
+        answer:
+          'Sim. Atendemos Brumadinho e frentes no entorno com entrega a partir de Belo Horizonte, conforme disponibilidade da frota e condições de acesso ao local.',
+      },
+      {
+        question: 'A plataforma funciona em terreno inclinado como o de Brumadinho?',
+        answer:
+          'Depende do modelo. Articuladas e telescópicas costumam atender melhor frentes externas com piso irregular; tesoura e mastro pedem piso mais nivelado. Descreva o terreno no orçamento para indicarmos a opção adequada.',
+      },
+      {
+        question: 'Qual a diferença entre tesoura e articulada para Brumadinho?',
+        answer:
+          'A tesoura sobe na vertical em áreas niveladas. A articulada contorna obstáculos e alcança pontos laterais — útil em estruturas e plantas com interferências. Indicamos no orçamento conforme o serviço.',
+      },
+      {
+        question: 'Plataforma elétrica ou diesel em Brumadinho — qual escolher?',
+        answer:
+          'Elétrica para áreas internas e restrição de emissão. Diesel para externas e terrenos mais exigentes. Informe se o trabalho é interno ou externo.',
+      },
+      {
+        question: 'Preciso de capacitação para operar a plataforma?',
+        answer:
+          'Sim. A operação exige capacitação alinhada às normas aplicáveis (como NR-18 e boas práticas de trabalho em altura). A locação inclui a documentação técnica usual do equipamento; o contratante organiza a habilitação da equipe.',
+      },
+      {
+        question: 'Como pedir orçamento de plataforma elevatória em Brumadinho?',
+        answer:
+          'Pelo WhatsApp ou formulário: informe altura aproximada, interno/externo, endereço em Brumadinho e prazo. Retornamos com disponibilidade e condições sob consulta.',
+      },
+    ],
+    enrichment: buildBrumadinhoPlataformasEnrichment(),
+  };
+}
+
 /**
  * Builds unique long-tail copy for a city × category landing.
  */
@@ -280,10 +399,14 @@ export function buildRegiaoCategoriaContent(
     return applyContagemPlataformasOverride(base);
   }
 
+  if (typedCity === 'brumadinho' && typedCategory === 'plataformas-elevatorias') {
+    return applyBrumadinhoPlataformasOverride(base);
+  }
+
   return base;
 }
 
-/** All static params for the S4 matrix (24 combos). */
+/** All static params for the S4 matrix (7 cities × 4 categories = 28 combos). */
 export function getAllRegiaoCategoriaParams() {
   const params: { slug: RegiaoCategoriaCitySlug; categoria: RegiaoCategoriaCategorySlug }[] = [];
   for (const slug of REGIAO_CATEGORIA_CITY_SLUGS) {
