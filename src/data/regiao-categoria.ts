@@ -10,6 +10,7 @@ export const REGIAO_CATEGORIA_CITY_SLUGS = [
   'ibirite',
   'ribeirao-das-neves',
   'brumadinho',
+  'santa-luzia',
 ] as const;
 
 /** Categories included in the S4 matrix (v1). */
@@ -329,6 +330,242 @@ function applyBrumadinhoPlataformasOverride(base: RegiaoCategoriaContent): Regia
   };
 }
 
+/** Santa Luzia × plataformas — página longa para a query “plataformas elevatórias Santa Luzia”. */
+function buildSantaLuziaPlataformasEnrichment(): RegiaoCategoriaEnrichment {
+  return {
+    typesTitle: 'Tipos de plataforma elevatória para Santa Luzia',
+    types: [
+      {
+        title: 'Plataforma tesoura em Santa Luzia',
+        body:
+          'Indicada para galpões, CDs e pisos nivelados. Em Santa Luzia, atende bem manutenção de iluminação, exaustão, inventário em altura e reformas internas no parque industrial e logístico.',
+      },
+      {
+        title: 'Plataforma articulada em Santa Luzia',
+        body:
+          'Lança flexível para contornar tubulações, marquises e estruturas. Útil em plantas, fachadas comerciais e frentes externas com obstáculos no vetor nordeste da RMBH.',
+      },
+      {
+        title: 'Plataforma telescópica em Santa Luzia',
+        body:
+          'Maior alcance para obras, estruturas metálicas e manutenção externa. Indicamos o modelo conforme altura de trabalho, área de estabilização e acesso ao canteiro.',
+      },
+      {
+        title: 'Plataforma tipo mastro em Santa Luzia',
+        body:
+          'Opção compacta para corredores, estoques e serviços leves em altura moderada. Avaliamos vão e capacidade junto com o comercial.',
+      },
+    ],
+    propulsionTitle: 'Elétrica ou diesel — o que faz sentido em Santa Luzia',
+    propulsion: [
+      {
+        title: 'Plataformas elétricas',
+        body:
+          'Preferidas em galpões, centros de distribuição e áreas internas com restrição de emissão ou ruído — perfil frequente no eixo industrial de Santa Luzia.',
+      },
+      {
+        title: 'Plataformas a diesel',
+        body:
+          'Indicadas para áreas externas, obras e terrenos mistos. Em frentes abertas e montagens, a autonomia e a tração costumam pesar na escolha.',
+      },
+    ],
+    heightsTitle: 'Alturas de trabalho frequentes em Santa Luzia',
+    heights: [
+      {
+        title: 'Faixa de 8 a 16 metros',
+        body:
+          'Cobre boa parte das manutenções industriais e prediais: galpões, iluminação, pintura e acesso a mezzaninos.',
+      },
+      {
+        title: 'Faixa de 16 a 26 metros',
+        body:
+          'Comum em estruturas, fachadas e serviços externos. Confirme altura de trabalho real e espaço para estabilizadores no local.',
+      },
+      {
+        title: 'Acima de 26 metros',
+        body:
+          'Para frentes mais altas, a frota inclui lanças de maior alcance. Em cronogramas fechados, reservamos com antecedência pela logística a partir de BH.',
+      },
+    ],
+    whyTitle: 'Por que locar com a Acesso em Santa Luzia',
+    why: [
+      'Base em Belo Horizonte com entrega ágil no vetor nordeste (Santa Luzia e entorno)',
+      'Orientação técnica para galpão, fachada ou frente externa — tesoura, articulada ou telescópica',
+      'Frota revisada e documentação usual de locação para apoiar a obra',
+      'Diária, semanal ou mensal — valores sob consulta conforme modelo e logística',
+    ],
+  };
+}
+
+function applySantaLuziaPlataformasOverride(base: RegiaoCategoriaContent): RegiaoCategoriaContent {
+  return {
+    ...base,
+    metaTitle: 'Locação de plataformas elevatórias em Santa Luzia',
+    metaDescription: clipMetaDescription(
+      'Aluguel de plataforma elevatória em Santa Luzia: tesoura, articulada e telescópica. Entrega a partir de BH, frota revisada e orçamento sob consulta pela Acesso Equipamentos.',
+    ),
+    tagline:
+      'Plataformas para indústria, galpões e obras em Santa Luzia — logística a partir de Belo Horizonte.',
+    intro: [
+      'A Acesso Equipamentos loca plataformas elevatórias em Santa Luzia com foco no perfil misto da cidade: parque industrial, logística e obras prediais no vetor nordeste da RMBH. A operação parte da base em Belo Horizonte, com entrega alinhada ao cronograma da obra.',
+      'Nesta página está o recorte local de plataformas elevatórias em Santa Luzia — tipos (tesoura, articulada, telescópica e mastro), propulsão elétrica ou diesel, faixas de altura e catálogo da linha. O comercial indica o modelo conforme altura de trabalho, piso, alcance e prazo.',
+      'Santa Luzia concentra reformas de galpões, manutenção industrial e serviços em fachadas. Informe endereço, interno/externo e altura aproximada para orçamento sob consulta com disponibilidade da frota.',
+      'Trabalhamos com a frota publicada no catálogo do site. Valores não são tabelados online: a proposta considera equipamento, deslocamento a partir de BH e condições do local em Santa Luzia.',
+    ],
+    faqs: [
+      {
+        question: 'Vocês locam plataformas elevatórias em Santa Luzia?',
+        answer:
+          'Sim. Atendemos Santa Luzia e o entorno com entrega a partir de Belo Horizonte, conforme disponibilidade da frota e endereço da obra.',
+      },
+      {
+        question: 'Qual a diferença entre tesoura e articulada para Santa Luzia?',
+        answer:
+          'A tesoura sobe na vertical em áreas niveladas (galpões e CDs). A articulada contorna obstáculos e alcança pontos laterais — útil em fachadas e plantas com interferências.',
+      },
+      {
+        question: 'Plataforma elétrica ou diesel em Santa Luzia — qual escolher?',
+        answer:
+          'Elétrica para áreas internas e restrição de emissão. Diesel para externas e terrenos mais exigentes. Informe se o serviço é interno ou externo.',
+      },
+      {
+        question: 'Locam plataformas para reforma de galpões em Santa Luzia?',
+        answer:
+          'Sim. Tesoura e articulada são muito usadas em reforma de galpões, coberturas e estruturas. Antecipe a reserva quando o prazo da obra for apertado.',
+      },
+      {
+        question: 'Preciso de capacitação para operar a plataforma?',
+        answer:
+          'Sim. A operação exige capacitação alinhada às normas aplicáveis (como NR-18). A locação inclui a documentação técnica usual do equipamento; o contratante organiza a habilitação da equipe.',
+      },
+      {
+        question: 'Como pedir orçamento de plataforma elevatória em Santa Luzia?',
+        answer:
+          'Pelo WhatsApp ou formulário: informe altura aproximada, interno/externo, endereço em Santa Luzia e prazo. Retornamos com disponibilidade e condições sob consulta.',
+      },
+    ],
+    enrichment: buildSantaLuziaPlataformasEnrichment(),
+  };
+}
+
+/** Ibirité × plataformas — página longa para a query “plataformas elevatórias Ibirité”. */
+function buildIbiritePlataformasEnrichment(): RegiaoCategoriaEnrichment {
+  return {
+    typesTitle: 'Tipos de plataforma elevatória para Ibirité',
+    types: [
+      {
+        title: 'Plataforma tesoura em Ibirité',
+        body:
+          'Indicada para galpões, áreas de planta e pisos nivelados. Em Ibirité, atende bem manutenção interna, iluminação e serviços em estruturas durante paradas técnicas e rotinas industriais.',
+      },
+      {
+        title: 'Plataforma articulada em Ibirité',
+        body:
+          'Lança flexível para contornar tubulações, racks e obstáculos em plantas. Frequente em manutenção industrial e frentes externas no eixo petroquímico e logístico da cidade.',
+      },
+      {
+        title: 'Plataforma telescópica em Ibirité',
+        body:
+          'Maior alcance para estruturas altas, pátios e montagens. Indicamos o modelo conforme altura de trabalho, área de estabilização e janela da parada.',
+      },
+      {
+        title: 'Plataforma tipo mastro em Ibirité',
+        body:
+          'Opção compacta para acessos internos e altura moderada. Avaliamos vão, piso e capacidade junto com o comercial.',
+      },
+    ],
+    propulsionTitle: 'Elétrica ou diesel — o que faz sentido em Ibirité',
+    propulsion: [
+      {
+        title: 'Plataformas elétricas',
+        body:
+          'Preferidas em áreas internas e ambientes com restrição de emissão ou ruído — galpões e zonas de planta onde a operação precisa ser mais limpa.',
+      },
+      {
+        title: 'Plataformas a diesel',
+        body:
+          'Indicadas para áreas externas, pátios e frentes com piso mais exigente. Em paradas e montagens ao ar livre, autonomia e tração costumam pesar na escolha.',
+      },
+    ],
+    heightsTitle: 'Alturas de trabalho frequentes em Ibirité',
+    heights: [
+      {
+        title: 'Faixa de 8 a 16 metros',
+        body:
+          'Cobre boa parte das manutenções industriais e prediais em Ibirité: galpões, iluminação, tubulação e acesso a mezzaninos.',
+      },
+      {
+        title: 'Faixa de 16 a 26 metros',
+        body:
+          'Comum em estruturas, plantas e serviços externos. Confirme altura de trabalho real e espaço para estabilizadores no local.',
+      },
+      {
+        title: 'Acima de 26 metros',
+        body:
+          'Para frentes mais altas, a frota inclui lanças de maior alcance. Em paradas programadas, reservamos com antecedência pela logística a partir de BH.',
+      },
+    ],
+    whyTitle: 'Por que locar com a Acesso em Ibirité',
+    why: [
+      'Base em Belo Horizonte com entrega no eixo industrial de Ibirité e entorno',
+      'Orientação técnica para paradas, manutenção e obras — tesoura, articulada ou telescópica',
+      'Frota revisada e documentação usual de locação para apoiar a planta',
+      'Diária, semanal ou mensal — valores sob consulta conforme modelo e janela da obra',
+    ],
+  };
+}
+
+function applyIbiritePlataformasOverride(base: RegiaoCategoriaContent): RegiaoCategoriaContent {
+  return {
+    ...base,
+    metaTitle: 'Locação de plataformas elevatórias em Ibirité',
+    metaDescription: clipMetaDescription(
+      'Aluguel de plataforma elevatória em Ibirité: tesoura, articulada e telescópica. Entrega a partir de BH, frota revisada e orçamento sob consulta pela Acesso Equipamentos.',
+    ),
+    tagline:
+      'Plataformas para paradas técnicas, manutenção e obras em Ibirité — logística a partir de Belo Horizonte.',
+    intro: [
+      'A Acesso Equipamentos loca plataformas elevatórias em Ibirité com foco no eixo industrial da RMBH: plantas, logística e frentes de manutenção. A operação parte da base em Belo Horizonte, com entregas alinhadas a janelas curtas de parada quando necessário.',
+      'Nesta página está o recorte local de plataformas elevatórias em Ibirité — tipos (tesoura, articulada, telescópica e mastro), propulsão elétrica ou diesel, faixas de altura e catálogo da linha. O comercial indica o modelo conforme altura de trabalho, piso, alcance e prazo.',
+      'Ibirité concentra demanda de paradas programadas, manutenção industrial e montagens. Informe endereço da obra, interno/externo e altura aproximada para orçamento sob consulta com disponibilidade da frota.',
+      'Trabalhamos com a frota publicada no catálogo do site. Valores são sob consulta: a proposta considera equipamento, deslocamento a partir de BH e condições do local em Ibirité.',
+    ],
+    faqs: [
+      {
+        question: 'Vocês locam plataformas elevatórias em Ibirité?',
+        answer:
+          'Sim. Atendemos Ibirité e o entorno industrial com entrega a partir de Belo Horizonte, conforme disponibilidade da frota e endereço da obra.',
+      },
+      {
+        question: 'Vocês atendem paradas técnicas em Ibirité?',
+        answer:
+          'Sim. Em paradas programadas, recomendamos antecipar a reserva para garantir altura, quantidade de equipamentos e entrega na janela crítica.',
+      },
+      {
+        question: 'Qual a diferença entre tesoura e articulada para Ibirité?',
+        answer:
+          'A tesoura sobe na vertical em áreas niveladas (galpões e plantas). A articulada contorna obstáculos e alcança pontos laterais — útil em tubulações, racks e frentes com interferências.',
+      },
+      {
+        question: 'Plataforma elétrica ou diesel em Ibirité — qual escolher?',
+        answer:
+          'Elétrica para áreas internas e restrição de emissão. Diesel para externas e terrenos mais exigentes. Informe se o serviço é interno ou externo.',
+      },
+      {
+        question: 'Preciso de capacitação para operar a plataforma?',
+        answer:
+          'Sim. A operação exige capacitação alinhada às normas aplicáveis (como NR-18). A locação inclui a documentação técnica usual do equipamento; o contratante organiza a habilitação da equipe.',
+      },
+      {
+        question: 'Como pedir orçamento de plataforma elevatória em Ibirité?',
+        answer:
+          'Pelo WhatsApp ou formulário: informe altura aproximada, interno/externo, endereço em Ibirité e prazo. Retornamos com disponibilidade e condições sob consulta.',
+      },
+    ],
+    enrichment: buildIbiritePlataformasEnrichment(),
+  };
+}
+
 /**
  * Builds unique long-tail copy for a city × category landing.
  */
@@ -403,10 +640,18 @@ export function buildRegiaoCategoriaContent(
     return applyBrumadinhoPlataformasOverride(base);
   }
 
+  if (typedCity === 'santa-luzia' && typedCategory === 'plataformas-elevatorias') {
+    return applySantaLuziaPlataformasOverride(base);
+  }
+
+  if (typedCity === 'ibirite' && typedCategory === 'plataformas-elevatorias') {
+    return applyIbiritePlataformasOverride(base);
+  }
+
   return base;
 }
 
-/** All static params for the S4 matrix (7 cities × 4 categories = 28 combos). */
+/** All static params for the S4 matrix (8 cities × 4 categories = 32 combos). */
 export function getAllRegiaoCategoriaParams() {
   const params: { slug: RegiaoCategoriaCitySlug; categoria: RegiaoCategoriaCategorySlug }[] = [];
   for (const slug of REGIAO_CATEGORIA_CITY_SLUGS) {

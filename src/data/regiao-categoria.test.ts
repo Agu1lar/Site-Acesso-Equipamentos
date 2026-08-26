@@ -27,9 +27,33 @@ describe('buildRegiaoCategoriaContent', () => {
     expect(content?.intro.join(' ')).toMatch(/mineração/i);
   });
 
-  it('includes Brumadinho in the S4 city matrix', () => {
-    expect(getAllRegiaoCategoriaPaths()).toContain('/regioes/brumadinho/plataformas-elevatorias');
-    expect(getAllRegiaoCategoriaPaths()).toHaveLength(28);
+  it('enriches Santa Luzia plataformas with industrial and urban context', () => {
+    const content = buildRegiaoCategoriaContent('santa-luzia', 'plataformas-elevatorias');
+
+    expect(content).not.toBeNull();
+    expect(content?.path).toBe('/regioes/santa-luzia/plataformas-elevatorias');
+    expect(content?.metaTitle).toBe('Locação de plataformas elevatórias em Santa Luzia');
+    expect(content?.enrichment?.types.length).toBeGreaterThanOrEqual(4);
+    expect(content?.faqs.some((item) => /galpões/i.test(item.question))).toBe(true);
+    expect(content?.intro.join(' ')).toMatch(/industrial/i);
+  });
+
+  it('includes Brumadinho and Santa Luzia in the S4 city matrix', () => {
+    const paths = getAllRegiaoCategoriaPaths();
+    expect(paths).toContain('/regioes/brumadinho/plataformas-elevatorias');
+    expect(paths).toContain('/regioes/santa-luzia/plataformas-elevatorias');
+    expect(paths).toHaveLength(32);
+  });
+
+  it('enriches Ibirité plataformas with industrial shutdown context', () => {
+    const content = buildRegiaoCategoriaContent('ibirite', 'plataformas-elevatorias');
+
+    expect(content).not.toBeNull();
+    expect(content?.path).toBe('/regioes/ibirite/plataformas-elevatorias');
+    expect(content?.metaTitle).toBe('Locação de plataformas elevatórias em Ibirité');
+    expect(content?.enrichment?.types.length).toBeGreaterThanOrEqual(4);
+    expect(content?.faqs.some((item) => /paradas/i.test(item.question))).toBe(true);
+    expect(content?.intro.join(' ')).toMatch(/industrial/i);
   });
 
   it('keeps other combos without enrichment', () => {
