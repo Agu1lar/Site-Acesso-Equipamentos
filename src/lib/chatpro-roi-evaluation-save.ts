@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { and, eq } from 'drizzle-orm';
+import { sanitizeChatProRoiEvaluationProse } from '@/lib/chatpro-roi-prose';
 import type { ChatProRoiEvaluation } from '@/validations/chatpro-roi';
 import { db } from '@/libs/DB';
 import { chatproLeadEvaluationsSchema } from '@/models/Schema';
@@ -26,6 +27,8 @@ export type SaveChatProRoiEvaluationResult = {
 export async function saveChatProRoiEvaluation(
   input: SaveChatProRoiEvaluationInput,
 ): Promise<SaveChatProRoiEvaluationResult> {
+  const result = sanitizeChatProRoiEvaluationProse(input.result);
+
   if (input.lastMessageId !== null) {
     const existing = await db
       .select({ id: chatproLeadEvaluationsSchema.id })
@@ -52,7 +55,7 @@ export async function saveChatProRoiEvaluation(
         lastMessageId: input.lastMessageId,
         model: input.model,
         trigger: input.trigger,
-        result: input.result,
+        result,
       })
       .returning({ id: chatproLeadEvaluationsSchema.id });
 

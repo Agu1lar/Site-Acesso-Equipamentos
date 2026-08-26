@@ -4,6 +4,7 @@ import {
   type ChatProRoiEvaluation,
 } from '../validations/chatpro-roi';
 import { isAllowedPdfFetchUrl } from './chatpro-pdf-url';
+import { sanitizeChatProRoiEvaluationProse } from './chatpro-roi-prose';
 
 const ANTHROPIC_MESSAGES_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -277,6 +278,9 @@ const ROI_ANALYSIS_GUIDANCE = [
   '- Não confunda transferência de contato com transferência do negócio. Só marque ganho quando houver evidência de locação com a Acesso Equipamentos.',
   'Valores: estimatedMonthlyValueBrl somente quando aparecerem na conversa, NF, contrato ou anexo legível. Não invente.',
   'suggestedStatus espelha o CRM (new, contacted, quoted, won, lost) — é sugestão, não altera o sistema.',
+  'Em summary, roiNotes e contractNotes escreva só em português claro para o comercial.',
+  'Nunca use códigos internos no texto livre (proposal_sent, contract_sent, closed_won, closed_lost, inquiry, negotiation, quoted, contacted, gclid, utm_campaign, suggestedStatus, etc.).',
+  'No texto livre diga "proposta enviada", "contrato enviado", "ganho", "perdido", "consulta", "negociação", "orçamento enviado", "clique pago do Google".',
   'Contato: detectedContactName só se o cliente se identificar claramente (ex.: "meu nome é João Silva"). Não use o placeholder do CRM como nome real.',
   'detectedEmail só se um e-mail explícito aparecer na conversa. Nunca invente e-mail.',
 ].join('\n');
@@ -576,5 +580,7 @@ export async function evaluateChatProLeadWithClaude(
   }
 
   const evaluation = ChatProRoiEvaluationSchema.parse(JSON.parse(text));
-  return applyExplicitCustomerLossGuardrail(applyRoleGuardrails(evaluation, messages), messages);
+  return sanitizeChatProRoiEvaluationProse(
+    applyExplicitCustomerLossGuardrail(applyRoleGuardrails(evaluation, messages), messages),
+  );
 }

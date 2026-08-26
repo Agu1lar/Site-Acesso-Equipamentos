@@ -15,6 +15,7 @@ import {
   ChatProRoiEvaluationSchema,
   type ChatProRoiEvaluation,
 } from '@/validations/chatpro-roi';
+import { sanitizeChatProRoiEvaluationProse, sanitizeChatProRoiProse } from '@/lib/chatpro-roi-prose';
 import { db } from '@/libs/DB';
 import {
   chatproLeadEvaluationsSchema,
@@ -47,7 +48,7 @@ const emptySummary: ChatProRoiDashboardSummary = {
 
 function parseEvaluationResult(raw: unknown): ChatProRoiEvaluation | null {
   const parsed = ChatProRoiEvaluationSchema.safeParse(raw);
-  return parsed.success ? parsed.data : null;
+  return parsed.success ? sanitizeChatProRoiEvaluationProse(parsed.data) : null;
 }
 
 function mapEvaluationRow(row: Awaited<ReturnType<typeof listRecentChatProRoiEvaluations>>[number]): ChatProRoiDashboardEvaluation {
@@ -68,7 +69,7 @@ function mapEvaluationRow(row: Awaited<ReturnType<typeof listRecentChatProRoiEva
     suggestedStatus: result?.suggestedStatus ?? null,
     contractDetected: result?.contractDetected ?? false,
     estimatedMonthlyValueBrl: result?.estimatedMonthlyValueBrl ?? null,
-    summary: result?.summary ?? '',
+    summary: sanitizeChatProRoiProse(result?.summary ?? ''),
   };
 }
 

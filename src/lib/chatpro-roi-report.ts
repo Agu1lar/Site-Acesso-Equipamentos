@@ -10,6 +10,7 @@ import { googleAdsCampaignSpendKey } from '@/lib/google-ads-spend';
 import { db } from '@/libs/DB';
 import { chatproLeadEvaluationsSchema, leadsSchema } from '@/models/Schema';
 import type { ChatProRoiEvaluation } from '@/validations/chatpro-roi';
+import { sanitizeChatProRoiEvaluationProse } from '@/lib/chatpro-roi-prose';
 
 export type CampaignSpendMap = Record<string, number>;
 
@@ -181,7 +182,7 @@ function readEvaluationResult(raw: Record<string, unknown> | null | undefined): 
     return null;
   }
 
-  return {
+  return sanitizeChatProRoiEvaluationProse({
     stage: stage as ChatProRoiEvaluation['stage'],
     intentScore: Number(raw.intentScore) || 0,
     dealLikelihood: Number(raw.dealLikelihood) || 0,
@@ -199,7 +200,7 @@ function readEvaluationResult(raw: Record<string, unknown> | null | undefined): 
       ? raw.equipmentMentioned.filter((item): item is string => typeof item === 'string')
       : [],
     summary: typeof raw.summary === 'string' ? raw.summary : '',
-    suggestedStatus:
+    suggestedStatus: (
       raw.suggestedStatus === 'new'
       || raw.suggestedStatus === 'contacted'
       || raw.suggestedStatus === 'quoted'
@@ -207,7 +208,8 @@ function readEvaluationResult(raw: Record<string, unknown> | null | undefined): 
       || raw.suggestedStatus === 'won'
       || raw.suggestedStatus === 'lost'
         ? raw.suggestedStatus === 'qualified' ? 'quoted' : raw.suggestedStatus
-        : null,
+        : null
+    ) as ChatProRoiEvaluation['suggestedStatus'],
     detectedContactName:
       typeof raw.detectedContactName === 'string' && raw.detectedContactName.trim().length >= 2
         ? raw.detectedContactName.trim().slice(0, 200)
@@ -217,11 +219,12 @@ function readEvaluationResult(raw: Record<string, unknown> | null | undefined): 
         ? raw.detectedEmail.trim().toLowerCase().slice(0, 320)
         : null,
     roiNotes: typeof raw.roiNotes === 'string' ? raw.roiNotes : '',
-    followUpPriority:
+    followUpPriority: (
       raw.followUpPriority === 'low' || raw.followUpPriority === 'medium' || raw.followUpPriority === 'high'
         ? raw.followUpPriority
-        : 'low',
-  };
+        : 'low'
+    ) as ChatProRoiEvaluation['followUpPriority'],
+  });
 }
 
 function resolveSpendForCampaign(campaign: string, spendMap: CampaignSpendMap) {
