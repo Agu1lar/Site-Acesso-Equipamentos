@@ -42,6 +42,29 @@ describe('parseChatProWebhookPayload', () => {
     expect(isChatProClientReply(event!)).toBe(true);
   });
 
+  it('parses alt_message transcription for voice notes', () => {
+    const event = parseChatProWebhookPayload({
+      event: 'received_message',
+      message_data: {
+        from_me: false,
+        number: '5531999988770@s.whatsapp.net',
+        type: 'ptt',
+        alt_message: 'Preciso de plataforma tesoura por 30 dias',
+        url: 'https://cdn.chatpro.com.br/media/voice.ogg',
+        mimetype: 'audio/ogg',
+      },
+    });
+
+    expect(event).toMatchObject({
+      messagePreview: 'Preciso de plataforma tesoura por 30 dias',
+      media: {
+        mediaType: 'ptt',
+        mediaUrl: 'https://cdn.chatpro.com.br/media/voice.ogg',
+        mediaMimetype: 'audio/ogg',
+      },
+    });
+  });
+
   it('parses document attachment fields', () => {
     const event = parseChatProWebhookPayload({
       event: 'received_message',

@@ -1,6 +1,8 @@
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
+export type LocalWhisperMode = 'off' | 'transformers' | 'cli';
+
 export type LocalConfig = {
   apiBaseUrl: string;
   internalApiSecret: string;
@@ -9,9 +11,14 @@ export type LocalConfig = {
   consumeIntervalMs: number;
   dashboardNetworkHeartbeatMs: number;
   debounceMs: number;
+  openAiApiKey: string | null;
   anthropicApiKey: string | null;
   anthropicModel: string;
   pdfAllowedHostSuffixes: string[];
+  localWhisperMode: LocalWhisperMode;
+  localWhisperModel: string;
+  whisperCliPath: string | null;
+  whisperModelPath: string | null;
 };
 
 /** Loads key=value pairs from chatpro-local/.env into process.env (no override). */
@@ -52,6 +59,14 @@ function readRequired(name: string) {
   return value;
 }
 
+function readLocalWhisperMode(raw: string | undefined): LocalWhisperMode {
+  const value = raw?.trim().toLowerCase();
+  if (value === 'transformers' || value === 'cli' || value === '1' || value === 'true') {
+    return value === 'cli' ? 'cli' : 'transformers';
+  }
+  return 'off';
+}
+
 /** Loads environment for the local ChatPro ROI consumer. */
 export function loadLocalConfig(): LocalConfig {
   const apiBaseUrlOverride = process.env.CHATPRO_LOCAL_API_URL_OVERRIDE?.trim();
@@ -73,9 +88,14 @@ export function loadLocalConfig(): LocalConfig {
     dashboardNetworkHeartbeatMs: Number(process.env.DASHBOARD_NETWORK_HEARTBEAT_MS ?? 6 * 60 * 60 * 1000),
     debounceMs: Number(process.env.CHATPRO_LOCAL_DEBOUNCE_MS ?? 1_800_000),
     anthropicApiKey: process.env.ANTHROPIC_API_KEY?.trim() || null,
+    openAiApiKey: process.env.OPENAI_API_KEY?.trim() || null,
     anthropicModel: process.env.ANTHROPIC_MODEL?.trim() || 'claude-haiku-4-5-20251001',
     pdfAllowedHostSuffixes: pdfAllowlistRaw
       ? pdfAllowlistRaw.split(',').map((entry) => entry.trim()).filter(Boolean)
       : [],
+    localWhisperMode: readLocalWhisperMode(process.env.CHATPRO_LOCAL_WHISPER),
+    localWhisperModel: process.env.CHATPRO_LOCAL_WHISPER_MODEL?.trim() || 'Xenova/whisper-small',
+    whisperCliPath: process.env.WHISPER_CLI?.trim() || null,
+    whisperModelPath: process.env.WHISPER_MODEL?.trim() || null,
   };
 }

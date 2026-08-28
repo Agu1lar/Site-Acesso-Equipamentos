@@ -48,13 +48,17 @@ function readMediaFromRecord(record: Record<string, unknown> | null): ChatProMed
   }
 
   const nestedMedia = asRecord(record.media) ?? asRecord(record.attachment) ?? asRecord(record.document);
+  const payload = asRecord(record.payload);
 
   return {
     mediaType:
       readString(record.type)
       ?? readString(record.message_type)
       ?? readString(record.messageType)
-      ?? readString(nestedMedia?.type),
+      ?? readString(record.file_type)
+      ?? readString(record.fileType)
+      ?? readString(nestedMedia?.type)
+      ?? readString(payload?.type),
     mediaUrl:
       readString(record.media_url)
       ?? readString(record.mediaUrl)
@@ -62,20 +66,49 @@ function readMediaFromRecord(record: Record<string, unknown> | null): ChatProMed
       ?? readString(record.fileUrl)
       ?? readString(record.url)
       ?? readString(nestedMedia?.url)
-      ?? readString(nestedMedia?.media_url),
+      ?? readString(nestedMedia?.media_url)
+      ?? readString(payload?.url),
     mediaFilename:
       readString(record.filename)
       ?? readString(record.file_name)
       ?? readString(record.fileName)
+      ?? readString(record.title)
       ?? readString(nestedMedia?.filename)
-      ?? readString(nestedMedia?.file_name),
+      ?? readString(nestedMedia?.file_name)
+      ?? readString(payload?.filename),
     mediaMimetype:
       readString(record.mimetype)
       ?? readString(record.mime_type)
       ?? readString(record.mimeType)
       ?? readString(nestedMedia?.mimetype)
-      ?? readString(nestedMedia?.mime_type),
+      ?? readString(nestedMedia?.mime_type)
+      ?? readString(payload?.mimetype),
   };
+}
+
+function readMessagePreview(record: Record<string, unknown> | null) {
+  if (!record) {
+    return null;
+  }
+
+  const message = readString(record.message);
+  if (message) {
+    return message.slice(0, 2000);
+  }
+
+  const altMessage = readString(record.alt_message) ?? readString(record.altMessage);
+  if (altMessage) {
+    return altMessage.slice(0, 2000);
+  }
+
+  const payload = asRecord(record.payload);
+  const payloadText =
+    readString(payload?.transcription)
+    ?? readString(payload?.transcript)
+    ?? readString(payload?.text)
+    ?? readString(payload?.caption);
+
+  return payloadText?.slice(0, 2000) ?? null;
 }
 
 function readExternalId(record: Record<string, unknown> | null, root: Record<string, unknown>) {
@@ -123,7 +156,7 @@ export function parseChatProWebhookPayload(payload: unknown): ChatProInboundEven
       event: event === 'unknown' ? 'received_message' : event,
       phoneKey: extractChatProPhone(number),
       fromMe,
-      messagePreview: readString(messageData?.message)?.slice(0, 2000) ?? null,
+      messagePreview: readMessagePreview(messageData),
       eventAt:
         parseEventDate(messageData?.ts_receive)
         ?? parseEventDate(root.event_ts)

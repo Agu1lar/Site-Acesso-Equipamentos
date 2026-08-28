@@ -5,10 +5,13 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts",
-    "status": "tsx src/status.ts"
+    "status": "tsx src/status.ts",
+    "test:whisper": "tsx src/test-audio-transcription.ts"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.7.2",
     "better-sqlite3": "^11.10.0",
+    "ffmpeg-static": "^5.2.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

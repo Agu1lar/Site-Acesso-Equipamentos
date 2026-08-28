@@ -18,6 +18,11 @@ describe('isPrivateOrLocalHost', () => {
 describe('isAllowedPdfFetchUrl', () => {
   it('allows HTTPS URLs on ChatPro hosts', () => {
     expect(isAllowedPdfFetchUrl('https://cdn.chatpro.com.br/media/contrato.pdf')).toBe(true);
+    expect(
+      isAllowedPdfFetchUrl(
+        'https://grlhzsc7ysex.compat.objectstorage.sa-saopaulo-1.oraclecloud.com/chatpro-files/voice.mp3',
+      ),
+    ).toBe(true);
   });
 
   it('blocks HTTP and private targets', () => {

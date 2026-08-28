@@ -8,6 +8,7 @@ import {
 import { ChatProRoiEvaluationSchema } from '../../src/validations/chatpro-roi.ts';
 import type { LocalConfig } from './config.js';
 import type { RemoteLeadContext } from './api-client.js';
+import { createLocalAudioTranscriber } from './whisper-local.js';
 
 /** Maps remote API JSON to Claude input types. */
 export function mapRemoteLeadContext(context: RemoteLeadContext) {
@@ -51,6 +52,7 @@ export async function analyzeLeadContext(context: RemoteLeadContext, config: Loc
 
   const { lead, messages, priorEvaluation } = mapRemoteLeadContext(context);
   const selected = selectMessagesForClaudeAnalysis(messages, priorEvaluation?.lastMessageId);
+  const transcribeAudio = createLocalAudioTranscriber(config);
 
   const evaluation = await evaluateChatProLeadWithClaude(
     lead,
@@ -59,6 +61,8 @@ export async function analyzeLeadContext(context: RemoteLeadContext, config: Loc
       apiKey: config.anthropicApiKey,
       model: config.anthropicModel,
       pdfAllowedHostSuffixes: config.pdfAllowedHostSuffixes,
+      openAiApiKey: config.openAiApiKey,
+      transcribeAudio,
     },
     priorEvaluation,
   );

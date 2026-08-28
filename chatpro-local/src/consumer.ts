@@ -1,6 +1,7 @@
 import type { ChatProRemoteApi } from './api-client.js';
 import { analyzeLeadContext } from './analyze.js';
 import type { LocalConfig } from './config.js';
+import { logWorkerError, logWorkerWarning, RemoteApiError } from './diagnostics.js';
 import type { LocalQueue, QueuedJob } from './queue.js';
 
 const RETRY_DELAY_MS = 5 * 60 * 1000;
@@ -41,7 +42,9 @@ export async function consumeReadyLeadGroups(
     }
 
     if (!group.lead_id) {
-      console.warn('[chatpro-local] skip — no lead_id for phone', group.phone_key);
+      logWorkerWarning('lead ignorado', 'Evento sem lead_id; mensagens serão confirmadas sem análise.', {
+        phoneKey: group.phone_key,
+      });
       await ackJobsOutbox(api, jobs);
       queue.markJobsDone(jobs.map((job) => job.id));
       queue.reconcileLeadDebounce(group.group_key);
@@ -51,14 +54,16 @@ export async function consumeReadyLeadGroups(
     }
 
     if (!config.anthropicApiKey) {
-      console.error('[chatpro-local] consumer paused — ANTHROPIC_API_KEY not set');
+      logWorkerError('consumo pausado até reiniciar', new Error('anthropic_not_configured'));
       return { processed, skipped, failed, acked, blocked: 'anthropic_not_configured' };
     }
 
     try {
       const context = await api.fetchLeadContext(group.lead_id);
       if (context.messageCount === 0) {
-        console.warn('[chatpro-local] skip — no messages in Neon', { leadId: group.lead_id });
+        logWorkerWarning('lead ignorado', 'O lead não possui mensagens persistidas para análise.', {
+          leadId: group.lead_id,
+        });
         await ackJobsOutbox(api, jobs);
         queue.markJobsDone(jobs.map((job) => job.id));
         queue.reconcileLeadDebounce(group.group_key);
@@ -105,11 +110,18 @@ export async function consumeReadyLeadGroups(
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
       if (reason === 'anthropic_auth_invalid') {
-        console.error('[chatpro-local] consumer paused — invalid Anthropic API key');
+        logWorkerError('consumo pausado até reiniciar', error, { leadId: group.lead_id });
         return { processed, skipped, failed, acked, blocked: reason };
       }
-      if (reason.includes('fetch_lead_context_failed:403')) {
-        console.warn('[chatpro-local] skip — lead not eligible for ROI', { leadId: group.lead_id, reason });
+      if (
+        error instanceof RemoteApiError
+        && error.details.operation === 'fetch_lead_context'
+        && error.details.status === 403
+      ) {
+        logWorkerWarning('lead ignorado', 'O servidor informou que o lead não é elegível para ROI.', {
+          leadId: group.lead_id,
+          http: 403,
+        });
         await ackJobsOutbox(api, jobs);
         queue.markJobsDone(jobs.map((job) => job.id));
         queue.reconcileLeadDebounce(group.group_key);
@@ -118,7 +130,11 @@ export async function consumeReadyLeadGroups(
         continue;
       }
       failed += 1;
-      console.error('[chatpro-local] analysis failed', { leadId: group.lead_id, reason });
+      logWorkerError('análise do lead', error, {
+        leadId: group.lead_id,
+        tentativasAnteriores: Math.max(...jobs.map(job => job.attempts), 0),
+        novaTentativaEm: `${RETRY_DELAY_MS / 60_000} min`,
+      });
       for (const job of jobs) {
         queue.incrementJobAttempts(job.id);
       }

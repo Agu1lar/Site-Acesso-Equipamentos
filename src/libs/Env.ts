@@ -28,6 +28,8 @@ export const Env = createEnv({
     INTERNAL_API_SECRET: z.string().min(24).optional(),
     ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-').optional(),
     ANTHROPIC_MODEL: z.string().min(1).default('claude-haiku-4-5-20251001'),
+    /** OpenAI Whisper — transcrição de áudios ChatPro sem alt_message. */
+    OPENAI_API_KEY: z.string().startsWith('sk-').optional(),
     /** Google Ads API — campaign spend for ROI report (server-only). */
     GOOGLE_ADS_DEVELOPER_TOKEN: z.string().min(1).optional(),
     GOOGLE_ADS_CUSTOMER_ID: z.string().min(1).optional(),
@@ -72,6 +74,7 @@ export const Env = createEnv({
     INTERNAL_API_SECRET: process.env.INTERNAL_API_SECRET,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     GOOGLE_ADS_DEVELOPER_TOKEN: process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
     GOOGLE_ADS_CUSTOMER_ID: process.env.GOOGLE_ADS_CUSTOMER_ID,
     GOOGLE_ADS_LOGIN_CUSTOMER_ID: process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID,

@@ -4,6 +4,7 @@ const DEFAULT_ALLOWED_HOST_SUFFIXES = [
   'chatpro.com.br',
   'chatpro.com',
   'chatpro.io',
+  'oraclecloud.com',
 ];
 
 /**

@@ -2,6 +2,21 @@ import Database from 'better-sqlite3';
 import { randomBytes } from 'node:crypto';
 import { hostname } from 'node:os';
 import type { RemoteOutboxEvent } from './api-client.js';
+import { WorkerAlreadyRunningError } from './worker-instance-error.js';
+
+export { WorkerAlreadyRunningError } from './worker-instance-error.js';
+
+function isProcessRunning(pid: number) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if (typeof error === 'object' && error !== null && Reflect.get(error, 'code') === 'EPERM') {
+      return true;
+    }
+    return false;
+  }
+}
 
 export type QueuedJob = {
   id: number;
@@ -17,6 +32,8 @@ export type QueuedJob = {
 
 export class LocalQueue {
   private readonly db: Database.Database;
+  private readonly instanceToken = randomBytes(16).toString('hex');
+  private ownsInstanceLock = false;
 
   constructor(sqlitePath: string) {
     this.db = new Database(sqlitePath);
@@ -60,12 +77,61 @@ export class LocalQueue {
         value TEXT NOT NULL
       );
 
+      CREATE TABLE IF NOT EXISTS worker_instance_lock (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        pid INTEGER NOT NULL,
+        owner_token TEXT NOT NULL,
+        started_at TEXT NOT NULL
+      );
+
       CREATE INDEX IF NOT EXISTS jobs_status_scheduled_idx ON jobs(status, scheduled_at);
     `);
   }
 
   close() {
+    if (this.ownsInstanceLock) {
+      this.db
+        .prepare('DELETE FROM worker_instance_lock WHERE id = 1 AND owner_token = ?')
+        .run(this.instanceToken);
+      this.ownsInstanceLock = false;
+    }
     this.db.close();
+  }
+
+  /** Claims the singleton worker slot for this SQLite queue. */
+  acquireInstanceLock(pid = process.pid) {
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const existing = this.db
+        .prepare(`
+          SELECT pid, owner_token AS ownerToken, started_at AS startedAt
+          FROM worker_instance_lock
+          WHERE id = 1
+        `)
+        .get() as { pid: number; ownerToken: string; startedAt: string } | undefined;
+
+      if (
+        existing
+        && existing.ownerToken !== this.instanceToken
+        && isProcessRunning(existing.pid)
+      ) {
+        throw new WorkerAlreadyRunningError(existing.pid, existing.startedAt);
+      }
+
+      this.db.prepare(`
+        INSERT INTO worker_instance_lock (id, pid, owner_token, started_at)
+        VALUES (1, ?, ?, datetime('now'))
+        ON CONFLICT(id) DO UPDATE SET
+          pid = excluded.pid,
+          owner_token = excluded.owner_token,
+          started_at = excluded.started_at
+      `).run(pid, this.instanceToken);
+      this.db.exec('COMMIT');
+      this.ownsInstanceLock = true;
+    } catch (error) {
+      this.db.exec('ROLLBACK');
+      throw error;
+    }
   }
 
   /** Stable id used to claim outbox leases on the remote API. */

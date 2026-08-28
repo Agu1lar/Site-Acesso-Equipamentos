@@ -1,6 +1,10 @@
 import 'server-only';
 
 import { eq } from 'drizzle-orm';
+import {
+  isChatProAudioMedia,
+  transcribeChatProAudioUrl,
+} from '@/lib/chatpro-audio-transcription';
 import { enqueueChatProOutboxEvent } from '@/lib/chatpro-outbox';
 import {
   buildChatProMessageDedupKey,
@@ -11,6 +15,7 @@ import { isLeadEligibleForClaudeAnalysis } from '@/lib/chatpro-roi-context';
 import { leadHasCampaignAttribution } from '@/lib/chatpro-roi-eligibility';
 import { loadLastRoiEvaluationStage } from '@/lib/chatpro-roi-last-evaluation';
 import { db } from '@/libs/DB';
+import { Env } from '@/libs/Env';
 import { logger } from '@/libs/Logger';
 import { chatproMessagesSchema } from '@/models/Schema';
 
@@ -24,6 +29,52 @@ export type PersistChatProMessageResult =
 
 async function loadLastEvaluationStage(leadId: number) {
   return loadLastRoiEvaluationStage(leadId);
+}
+
+function parsePdfHostAllowlist(raw: string | undefined) {
+  if (!raw?.trim()) {
+    return [];
+  }
+  return raw.split(',').map((entry) => entry.trim()).filter(Boolean);
+}
+
+async function resolveMessageText(event: ChatProInboundEvent) {
+  if (event.messagePreview?.trim()) {
+    return event.messagePreview.trim();
+  }
+
+  if (!isChatProAudioMedia(event.media) || !event.media.mediaUrl) {
+    return null;
+  }
+
+  const openAiKey = Env.OPENAI_API_KEY;
+  if (!openAiKey) {
+    logger.info('ChatPro ROI: audio without transcription — configure OPENAI_API_KEY or enable ChatPro alt_message', {
+      phoneKey: event.phoneKey,
+      mediaType: event.media.mediaType,
+    });
+    return null;
+  }
+
+  try {
+    const transcription = await transcribeChatProAudioUrl(
+      event.media.mediaUrl,
+      openAiKey,
+      parsePdfHostAllowlist(Env.CHATPRO_PDF_URL_ALLOWLIST),
+    );
+    logger.info('ChatPro ROI: audio transcribed on ingest', {
+      phoneKey: event.phoneKey,
+      chars: transcription.length,
+    });
+    return transcription;
+  } catch (error) {
+    logger.warn('ChatPro ROI: audio transcription failed on ingest', {
+      phoneKey: event.phoneKey,
+      mediaType: event.media.mediaType,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
 }
 
 /**
@@ -67,6 +118,8 @@ export async function persistChatProMessage(
     return { ok: true, inserted: false, reason };
   }
 
+  const messageText = await resolveMessageText(event);
+
   const inserted = await db
     .insert(chatproMessagesSchema)
     .values({
@@ -74,7 +127,7 @@ export async function persistChatProMessage(
       phoneKey: event.phoneKey,
       chatproEvent: event.event,
       fromMe: event.fromMe,
-      messageText: event.messagePreview,
+      messageText,
       mediaType: event.media.mediaType,
       mediaUrl: event.media.mediaUrl,
       mediaFilename: event.media.mediaFilename,

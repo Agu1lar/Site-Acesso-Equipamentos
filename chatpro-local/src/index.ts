@@ -1,17 +1,43 @@
 import { ChatProRemoteApi } from './api-client.js';
 import { loadLocalConfig } from './config.js';
 import { consumeReadyLeadGroups } from './consumer.js';
+import { logWorkerError } from './diagnostics.js';
 import { pollRemoteOutbox } from './poll.js';
-import { LocalQueue } from './queue.js';
+import { LocalQueue, WorkerAlreadyRunningError } from './queue.js';
 
 const config = loadLocalConfig();
 const api = new ChatProRemoteApi(config.apiBaseUrl, config.internalApiSecret);
 const queue = new LocalQueue(config.sqlitePath);
 
+if (config.localWhisperMode !== 'off') {
+  console.info('[chatpro-local] local audio transcription enabled', {
+    mode: config.localWhisperMode,
+    model: config.localWhisperMode === 'transformers' ? config.localWhisperModel : config.whisperModelPath,
+  });
+}
+
+try {
+  queue.acquireInstanceLock();
+} catch (error) {
+  const context = error instanceof WorkerAlreadyRunningError
+    ? { pidExistente: error.existingPid, iniciadoEm: error.existingStartedAt }
+    : {};
+  logWorkerError('inicialização', error, context);
+  queue.close();
+  process.exit(1);
+}
+
 let polling = false;
 let consuming = false;
 let renewingDashboardNetwork = false;
 let consumeBlockedReason: string | null = null;
+
+function retryContext(intervalMs: number) {
+  return {
+    novaTentativaEm: `${Math.max(1, Math.round(intervalMs / 60_000))} min`,
+    proximaTentativa: new Date(Date.now() + intervalMs).toISOString(),
+  };
+}
 
 async function renewDashboardNetwork() {
   if (renewingDashboardNetwork) {
@@ -25,9 +51,12 @@ async function renewDashboardNetwork() {
       label: `chatpro-local ${consumerId}`,
       ttlHours: 36,
     });
-    console.log('[chatpro-local] dashboard network renewed', result);
+    console.log('[chatpro-local] rede do painel renovada', {
+      ok: result.ok,
+      expiresAt: result.expiresAt,
+    });
   } catch (error) {
-    console.error('[chatpro-local] dashboard network heartbeat failed', error);
+    logWorkerError('heartbeat da rede do painel', error, retryContext(config.dashboardNetworkHeartbeatMs));
   } finally {
     renewingDashboardNetwork = false;
   }
@@ -44,7 +73,7 @@ async function runPollCycle() {
       console.log('[chatpro-local] poll', result);
     }
   } catch (error) {
-    console.error('[chatpro-local] poll failed', error);
+    logWorkerError('poll da outbox', error, retryContext(config.pollIntervalMs));
   } finally {
     polling = false;
   }
@@ -59,15 +88,13 @@ async function runConsumeCycle() {
     const result = await consumeReadyLeadGroups(queue, config, api);
     if (result.blocked) {
       consumeBlockedReason = result.blocked;
-      console.error('[chatpro-local] consumption disabled until restart', {
-        reason: consumeBlockedReason,
-      });
+      logWorkerError('consumo pausado até reiniciar', new Error(consumeBlockedReason));
     }
     if (result.processed > 0) {
       console.log('[chatpro-local] consume', result);
     }
   } catch (error) {
-    console.error('[chatpro-local] consume failed', error);
+    logWorkerError('consumo da fila', error, retryContext(config.consumeIntervalMs));
   } finally {
     consuming = false;
   }
@@ -83,6 +110,7 @@ console.log('[chatpro-local] started', {
   debounceMs: config.debounceMs,
   anthropicModel: config.anthropicModel,
   anthropicConfigured: Boolean(config.anthropicApiKey),
+  singleInstanceLock: true,
 });
 
 function shutdown(signal: string) {

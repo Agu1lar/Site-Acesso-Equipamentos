@@ -3,6 +3,10 @@ import {
   ChatProRoiEvaluationSchema,
   type ChatProRoiEvaluation,
 } from '../validations/chatpro-roi';
+import {
+  isChatProAudioMedia,
+  transcribeChatProAudioUrl,
+} from './chatpro-audio-transcription';
 import { isAllowedPdfFetchUrl } from './chatpro-pdf-url';
 import { sanitizeChatProRoiEvaluationProse } from './chatpro-roi-prose';
 
@@ -13,11 +17,25 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_MEDIA_ATTACHMENTS = 3;
 const CHATPRO_ROI_TIME_ZONE = 'America/Sao_Paulo';
 
+export type ChatProAudioTranscriptionInput = {
+  mediaUrl: string;
+  mediaMimetype: string | null;
+  mediaFilename: string | null;
+};
+
+export type ChatProAudioTranscriber = (
+  input: ChatProAudioTranscriptionInput,
+) => Promise<string>;
+
 export type ChatProRoiAiConfig = {
   apiKey: string;
   model: string;
   /** Extra PDF host suffixes (from CHATPRO_PDF_URL_ALLOWLIST). */
   pdfAllowedHostSuffixes?: string[];
+  /** OpenAI key for Whisper when audio messages lack text. */
+  openAiApiKey?: string | null;
+  /** Local or custom transcriber — runs before OpenAI when set. */
+  transcribeAudio?: ChatProAudioTranscriber | null;
 };
 
 export type ChatProPriorEvaluation = {
@@ -153,7 +171,49 @@ function resolveImageMediaType(
 }
 
 function messageHasMediaAttachment(message: ChatProConversationMessage) {
-  return Boolean(message.mediaUrl && (isPdfAttachment(message) || isImageAttachment(message)));
+  return Boolean(
+    message.mediaUrl
+    && (isPdfAttachment(message) || isImageAttachment(message) || isChatProAudioMedia(message)),
+  );
+}
+
+/**
+ * Fills missing messageText for audio attachments using a custom or OpenAI transcriber.
+ */
+export async function enrichMessagesWithAudioTranscriptions(
+  messages: ChatProConversationMessage[],
+  config: ChatProRoiAiConfig,
+) {
+  const customTranscriber = config.transcribeAudio;
+  const openAiKey = config.openAiApiKey?.trim();
+  if (!customTranscriber && !openAiKey) {
+    return messages;
+  }
+
+  const allowedHosts = config.pdfAllowedHostSuffixes ?? [];
+  return Promise.all(
+    messages.map(async (message) => {
+      if (message.messageText?.trim() || !message.mediaUrl || !isChatProAudioMedia(message)) {
+        return message;
+      }
+
+      try {
+        const transcription = customTranscriber
+          ? await customTranscriber({
+            mediaUrl: message.mediaUrl,
+            mediaMimetype: message.mediaMimetype,
+            mediaFilename: message.mediaFilename,
+          })
+          : await transcribeChatProAudioUrl(message.mediaUrl, openAiKey!, allowedHosts);
+        return {
+          ...message,
+          messageText: transcription,
+        };
+      } catch {
+        return message;
+      }
+    }),
+  );
 }
 
 /**
@@ -422,8 +482,9 @@ export async function evaluateChatProLeadWithClaude(
     throw new Error('chatpro_no_messages');
   }
 
+  const enrichedMessages = await enrichMessagesWithAudioTranscriptions(messages, config);
   const selected = selectMessagesForClaudeAnalysis(
-    messages,
+    enrichedMessages,
     priorEvaluation?.lastMessageId,
   );
   const conversation = formatConversation(selected.messages);
@@ -581,6 +642,6 @@ export async function evaluateChatProLeadWithClaude(
 
   const evaluation = ChatProRoiEvaluationSchema.parse(JSON.parse(text));
   return sanitizeChatProRoiEvaluationProse(
-    applyExplicitCustomerLossGuardrail(applyRoleGuardrails(evaluation, messages), messages),
+    applyExplicitCustomerLossGuardrail(applyRoleGuardrails(evaluation, enrichedMessages), enrichedMessages),
   );
 }

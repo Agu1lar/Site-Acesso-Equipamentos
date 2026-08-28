@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   applyExplicitCustomerLossGuardrail,
   applyRoleGuardrails,
+  enrichMessagesWithAudioTranscriptions,
   evaluateChatProLeadWithClaude,
   selectMessagesForClaudeAnalysis,
 } from '@/lib/chatpro-roi-ai-core';
@@ -87,6 +88,114 @@ describe('selectMessagesForClaudeAnalysis', () => {
     const selected = selectMessagesForClaudeAnalysis(withImage, 3);
     expect(selected.mode).toBe('full');
     expect(selected.messages).toHaveLength(4);
+  });
+
+  it('reprocesses full thread when incremental batch has audio without text', () => {
+    const withAudio = [
+      ...messages,
+      {
+        id: 4,
+        fromMe: false,
+        messageText: null,
+        mediaType: 'ptt',
+        mediaFilename: 'voice.ogg',
+        mediaMimetype: 'audio/ogg',
+        mediaUrl: 'https://cdn.chatpro.com.br/voice.ogg',
+        eventAt: new Date('2026-08-12T14:03:00.000Z'),
+      },
+    ];
+    const selected = selectMessagesForClaudeAnalysis(withAudio, 3);
+    expect(selected.mode).toBe('full');
+    expect(selected.messages).toHaveLength(4);
+  });
+});
+
+describe('enrichMessagesWithAudioTranscriptions', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('fills messageText for audio when OpenAI key is configured', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.startsWith('https://cdn.chatpro.com.br/')) {
+          return new Response(new Uint8Array([1, 2, 3]), {
+            status: 200,
+            headers: { 'content-type': 'audio/ogg', 'content-length': '3' },
+          });
+        }
+        if (url === 'https://api.openai.com/v1/audio/transcriptions') {
+          return Response.json({ text: 'Quero orçamento de plataforma' });
+        }
+        throw new Error(`unexpected fetch: ${url}`);
+      }),
+    );
+
+    const enriched = await enrichMessagesWithAudioTranscriptions(
+      [
+        {
+          id: 1,
+          fromMe: false,
+          messageText: null,
+          mediaType: 'ptt',
+          mediaFilename: 'voice.ogg',
+          mediaMimetype: 'audio/ogg',
+          mediaUrl: 'https://cdn.chatpro.com.br/voice.ogg',
+          eventAt: new Date('2026-08-12T14:00:00.000Z'),
+        },
+      ],
+      { apiKey: 'sk-ant-test', model: 'claude-haiku-4-5-20251001', openAiApiKey: 'sk-openai-test' },
+    );
+
+    expect(enriched[0]?.messageText).toBe('Quero orçamento de plataforma');
+  });
+
+  it('leaves messages unchanged without OpenAI key', async () => {
+    const messages = [
+      {
+        id: 1,
+        fromMe: false,
+        messageText: null,
+        mediaType: 'ptt',
+        mediaFilename: 'voice.ogg',
+        mediaMimetype: 'audio/ogg',
+        mediaUrl: 'https://cdn.chatpro.com.br/voice.ogg',
+        eventAt: new Date('2026-08-12T14:00:00.000Z'),
+      },
+    ];
+
+    const enriched = await enrichMessagesWithAudioTranscriptions(
+      messages,
+      { apiKey: 'sk-ant-test', model: 'claude-haiku-4-5-20251001' },
+    );
+
+    expect(enriched).toEqual(messages);
+  });
+
+  it('uses custom transcriber without OpenAI key', async () => {
+    const enriched = await enrichMessagesWithAudioTranscriptions(
+      [
+        {
+          id: 1,
+          fromMe: false,
+          messageText: null,
+          mediaType: 'ptt',
+          mediaFilename: 'voice.ogg',
+          mediaMimetype: 'audio/ogg',
+          mediaUrl: 'https://cdn.chatpro.com.br/voice.ogg',
+          eventAt: new Date('2026-08-12T14:00:00.000Z'),
+        },
+      ],
+      {
+        apiKey: 'sk-ant-test',
+        model: 'claude-haiku-4-5-20251001',
+        transcribeAudio: async () => 'Orçamento de plataforma tesoura',
+      },
+    );
+
+    expect(enriched[0]?.messageText).toBe('Orçamento de plataforma tesoura');
   });
 });
 

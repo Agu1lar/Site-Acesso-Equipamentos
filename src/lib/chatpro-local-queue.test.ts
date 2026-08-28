@@ -3,7 +3,7 @@ import { rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { LocalQueue } from '../../chatpro-local/src/queue';
+import { LocalQueue, WorkerAlreadyRunningError } from '../../chatpro-local/src/queue';
 
 const sqlitePaths: string[] = [];
 
@@ -62,5 +62,22 @@ describe('LocalQueue debounce reconciliation', () => {
     expect(queue.listReadyLeadGroups()).toEqual([]);
 
     queue.close();
+  });
+});
+
+describe('LocalQueue worker instance lock', () => {
+  it('rejects a second worker using the same SQLite queue', () => {
+    const sqlitePath = join(tmpdir(), `chatpro-local-${randomUUID()}.db`);
+    sqlitePaths.push(sqlitePath);
+    const firstQueue = new LocalQueue(sqlitePath);
+    const secondQueue = new LocalQueue(sqlitePath);
+
+    firstQueue.acquireInstanceLock();
+
+    expect(() => secondQueue.acquireInstanceLock()).toThrow(WorkerAlreadyRunningError);
+
+    firstQueue.close();
+    expect(() => secondQueue.acquireInstanceLock()).not.toThrow();
+    secondQueue.close();
   });
 });

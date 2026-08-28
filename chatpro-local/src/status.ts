@@ -1,5 +1,6 @@
 import { ChatProRemoteApi } from './api-client.js';
 import { loadLocalConfig } from './config.js';
+import { logWorkerError } from './diagnostics.js';
 
 type SummaryResponse = {
   pendingOutboxEvents: number;
@@ -10,7 +11,7 @@ type SummaryResponse = {
   unclaimedWhatsAppTokens: number;
   recentEvaluations: number;
   closedWonSignals: number;
-  evaluations: Array<{
+  evaluations: {
     id: number;
     leadId: number;
     leadName: string;
@@ -22,7 +23,7 @@ type SummaryResponse = {
     stage: string | null;
     dealLikelihood: number | null;
     contractDetected: boolean | null;
-  }>;
+  }[];
 };
 
 /**
@@ -33,22 +34,7 @@ async function main() {
   const api = new ChatProRemoteApi(config.apiBaseUrl, config.internalApiSecret);
 
   const events = await api.fetchEvents(0, 20);
-  const summaryResponse = await fetch(
-    new URL('/api/internal/v1/chatpro-roi/summary?limit=10', config.apiBaseUrl),
-    {
-      headers: {
-        authorization: `Bearer ${config.internalApiSecret}`,
-      },
-      signal: AbortSignal.timeout(60_000),
-    },
-  );
-
-  if (!summaryResponse.ok) {
-    const body = await summaryResponse.text();
-    throw new Error(`summary_failed:${summaryResponse.status} ${body}`);
-  }
-
-  const summary = (await summaryResponse.json()) as SummaryResponse;
+  const summary = await api.fetchSummary<SummaryResponse>();
 
   console.log('[chatpro-local] status');
   console.log(`  api: ${config.apiBaseUrl}`);
@@ -72,7 +58,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error('[chatpro-local] status failed', error instanceof Error ? error.message : error);
+try {
+  await main();
+} catch (error) {
+  logWorkerError('consulta de status', error);
   process.exit(1);
-});
+}

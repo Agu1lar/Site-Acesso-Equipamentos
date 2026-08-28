@@ -43,6 +43,7 @@ export async function evaluateChatProLeadWithClaude(
       apiKey: Env.ANTHROPIC_API_KEY,
       model: Env.ANTHROPIC_MODEL,
       pdfAllowedHostSuffixes: parsePdfHostAllowlist(Env.CHATPRO_PDF_URL_ALLOWLIST),
+      openAiApiKey: Env.OPENAI_API_KEY ?? null,
     },
     priorEvaluation,
   );

@@ -27,6 +27,55 @@ npm start
 | `CHATPRO_LOCAL_CONSUME_MS` | Processamento da fila local (padrão acompanha o poll = 15 min) |
 | `DASHBOARD_NETWORK_HEARTBEAT_MS` | Renovação do IP autorizado do painel (padrão 21600000 = 6h) |
 | `CHATPRO_LOCAL_DEBOUNCE_MS` | Espera antes de analisar (padrão 1800000 = 30 min) |
+| `CHATPRO_LOCAL_WHISPER` | Transcrição local de áudio: `off`, `transformers` ou `cli` |
+| `CHATPRO_LOCAL_WHISPER_MODEL` | Modelo Hugging Face (padrão `Xenova/whisper-small`) |
+| `WHISPER_CLI` | Caminho do `whisper-cli` (modo `cli`) |
+| `WHISPER_MODEL` | Caminho do modelo `.bin` (modo `cli`) |
+
+## Transcrição local de áudio (sem OpenAI)
+
+O worker pode transcrever áudios **na sua máquina** antes do Claude analisar. Não precisa de `OPENAI_API_KEY`.
+
+### Modo recomendado — Transformers (Node)
+
+No `.env`:
+
+```env
+CHATPRO_LOCAL_WHISPER=transformers
+# opcional — modelo menor e mais rápido:
+# CHATPRO_LOCAL_WHISPER_MODEL=Xenova/whisper-tiny
+```
+
+Na primeira transcrição, o modelo é baixado (~150 MB para `whisper-small`). Depois fica em cache.
+
+Reinstale dependências após atualizar (`npm install` inclui ffmpeg embutido):
+
+```powershell
+cd chatpro-local
+npm install
+npm run test:whisper -- 91
+npm start
+```
+
+`npm run test:whisper -- {leadId}` transcreve áudios sem texto de um lead (dry-run, não chama Claude).
+
+### Modo alternativo — whisper.cpp (CLI)
+
+Se você já tem [whisper.cpp](https://github.com/ggerganov/whisper.cpp) instalado:
+
+```env
+CHATPRO_LOCAL_WHISPER=cli
+WHISPER_CLI=C:\caminho\whisper-cli.exe
+WHISPER_MODEL=C:\caminho\ggml-small.bin
+```
+
+### Fluxo
+
+1. Lead manda áudio no WhatsApp → webhook salva `media_url` (texto pode ficar vazio).
+2. Worker local puxa a conversa → baixa o áudio → Whisper local transcreve.
+3. Claude recebe o texto transcrito na análise ROI.
+
+A transcrição **não** é gravada de volta no Neon hoje — só entra na análise. Se quiser persistir, avise.
 
 ## IP autorizado do painel
 
@@ -63,6 +112,8 @@ Isso deixa margem dentro do Free. Para gastar ainda menos, use `CHATPRO_LOCAL_PO
 
 Não rode `scripts/chatpro-roi-worker.mjs` ao mesmo tempo que este consumer (duplica Claude).
 
+O consumer também aceita somente **uma instância por arquivo SQLite**. Se outro `npm start` já estiver usando a mesma fila, a segunda inicialização encerra com `worker_already_running`, mostrando o PID existente. Use `npm run status` para consultar o pipeline sem abrir outro worker.
+
 ## Windows — rodar com o PC
 
 Agendador de Tarefas no logon, ou PM2/nssm para manter o processo ativo.
@@ -79,6 +130,29 @@ npm start
 ```
 
 Ver pending: `GET /api/internal/v1/chatpro-roi/summary` (ou `npm run status`).
+
+### Como ler erros do terminal
+
+Erros agora mostram `categoria`, `codigo`, se haverá nova tentativa, endpoint seguro e uma ação recomendada. Headers, `INTERNAL_API_SECRET`, chave Anthropic e query sensível nunca aparecem.
+
+| Categoria | Significado | Ação usual |
+|---|---|---|
+| `network` | DNS, conexão recusada/interrompida ou internet | conferir rede/URL; retry automático |
+| `timeout` | servidor não respondeu em 30 segundos | retry automático |
+| `authentication` | HTTP 401/403 ou chave Anthropic inválida | conferir secrets; Anthropic inválida pausa até reiniciar |
+| `not_found` | rota HTTP 404 | conferir URL e deploy |
+| `rate_limit` | HTTP 429 | aguardar retry automático |
+| `remote_server` | HTTP 5xx | conferir deploy/banco se persistir |
+| `invalid_response` | resposta não é JSON/contrato esperado | conferir URL e versão publicada |
+| `configuration` | variável ausente, mídia bloqueada ou worker duplicado | corrigir `.env`/processo e reiniciar |
+
+Exemplo:
+
+```text
+[chatpro-local] ERRO poll da outbox — Não foi possível conectar ao servidor remoto.
+  detalhes: { categoria: 'network', codigo: 'fetch_events_fetch_failed', repetira: 'sim', ... }
+  ação: Confira a internet e a URL; o worker tentará novamente.
+```
 
 ### Heartbeat do dashboard
 
