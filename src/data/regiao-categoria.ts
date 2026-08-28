@@ -1,4 +1,5 @@
 import { getRegiaoBySlug, type RegiaoContent } from '@/data/regioes';
+import { applyIndustrialCategoryEnrichment } from '@/data/regiao-categoria-enrichment';
 import { CATEGORY_LABELS, isEquipmentCategory } from '@/types/equipment';
 
 /** Cities included in the S4 city × category matrix (v1). */
@@ -896,10 +897,10 @@ export function buildRegiaoCategoriaContent(
     return applyLagoaSantaPlataformasOverride(base);
   }
 
-  return base;
+  return applyIndustrialCategoryEnrichment(base, regiao);
 }
 
-/** All static params for the S4 matrix (10 cities × 4 categories = 40 combos). */
+/** All static params for the S4 matrix (12 cities × 4 categories = 48 combos). */
 export function getAllRegiaoCategoriaParams() {
   const params: { slug: RegiaoCategoriaCitySlug; categoria: RegiaoCategoriaCategorySlug }[] = [];
   for (const slug of REGIAO_CATEGORIA_CITY_SLUGS) {

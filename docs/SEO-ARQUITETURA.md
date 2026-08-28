@@ -26,7 +26,7 @@ Home → Categorias / Equipamentos → Soluções → Regiões → Dicas / FAQ �
 
 **Categorias:** plataformas-elevatorias, guindaste-industrial, manipuladores-telescopicos, andaimes
 
-Enrichment long-form prioritário em `plataformas-elevatorias` para cidades industriais/mineração; demais combos usam template com intro + FAQ únicos por slots.
+Enrichment long-form prioritário em **plataformas-elevatorias** (6 cidades) e em **guindaste / manipulador / andaimes** (6 cidades industriais ou metropolitanas cada). Demais combos usam template com intro + FAQ por slots.
 
 ## Interlinks implementados
 
@@ -57,6 +57,6 @@ Enrichment long-form prioritário em `plataformas-elevatorias` para cidades indu
 
 ## Próximos incrementos opcionais
 
-1. Enrichment S4 para guindaste/manipulador/andaimes nas cidades top
+1. Enrichment S4 para guindaste/manipulador/andaimes nas demais cidades da matriz
 2. Breadcrumbs em `/sobre`, `/contato`, `/faq`
 3. Cases reais (S3) quando houver conteúdo autorizado
