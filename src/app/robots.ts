@@ -3,7 +3,7 @@ import { AI_CRAWLER_USER_AGENTS } from '@/lib/ai-discovery';
 import { shouldBlockSearchIndexing } from '@/utils/deployment';
 import { getBaseUrl } from '@/utils/Helpers';
 
-const PUBLIC_DISALLOW = ['/dashboard', '/sign-in', '/api/'];
+const PUBLIC_DISALLOW = ['/dashboard', '/sign-in', '/api/', '/_next/'];
 
 type RobotsRule = {
   userAgent: string | string[];

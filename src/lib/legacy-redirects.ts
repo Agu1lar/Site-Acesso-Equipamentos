@@ -39,13 +39,9 @@ const prefixRules = (legacyRedirectsData.prefixRedirects as LegacyPrefixRedirect
 );
 
 /**
- * Resolves a permanent redirect destination for WordPress legacy URLs.
- * @param pathname Request pathname (with or without trailing slash).
- * @returns Destination path on this site, or null if no rule matches.
+ * Resolves redirect destination for a normalized pathname.
  */
-export function resolveLegacyRedirect(pathname: string) {
-  const normalized = normalizeLegacyPathname(pathname);
-
+function resolveLegacyRedirectPath(normalized: string) {
   const exact = exactMap.get(normalized);
   if (exact) {
     return exact;
@@ -58,6 +54,28 @@ export function resolveLegacyRedirect(pathname: string) {
   }
 
   return null;
+}
+
+/**
+ * Resolves a permanent redirect destination for WordPress legacy URLs.
+ * @param pathname Request pathname (with or without trailing slash).
+ * @returns Destination path on this site, or null if no rule matches.
+ */
+export function resolveLegacyRedirect(pathname: string) {
+  const normalized = normalizeLegacyPathname(pathname);
+
+  if (normalized.endsWith('/feed')) {
+    const parent = normalized.slice(0, -'/feed'.length);
+    if (parent) {
+      const parentDestination = resolveLegacyRedirectPath(normalizeLegacyPathname(parent));
+      if (parentDestination) {
+        return parentDestination;
+      }
+    }
+    return '/';
+  }
+
+  return resolveLegacyRedirectPath(normalized);
 }
 
 /**

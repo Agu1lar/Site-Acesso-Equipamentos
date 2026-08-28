@@ -281,6 +281,11 @@
       "source": "/index.php",
       "destination": "/",
       "note": "Front controller legado WordPress"
+    },
+    {
+      "source": "/Home",
+      "destination": "/",
+      "note": "Slug legado com capitalização incorreta"
     }
   ],
   "prefixRedirects": [
@@ -323,6 +328,11 @@
       "sourcePrefix": "/wp-includes",
       "destination": "/",
       "note": "Assets WordPress legado"
+    },
+    {
+      "sourcePrefix": "/blog/page",
+      "destination": "/dicas",
+      "note": "Paginação do hub /blog WP (/blog/page/3, …)"
     },
     {
       "sourcePrefix": "/page",

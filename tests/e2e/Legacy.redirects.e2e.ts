@@ -43,6 +43,20 @@ test.describe('WordPress legacy 301 redirects', () => {
     expect(response.headers().location).toMatch(/\/dicas$/u);
   });
 
+  test('redirects blog pagination to dicas', async ({ request }) => {
+    const response = await request.get('/blog/page/3', { maxRedirects: 0 });
+
+    expect(response.status()).toBe(301);
+    expect(response.headers().location).toMatch(/\/dicas$/u);
+  });
+
+  test('redirects legacy home slug to root', async ({ request }) => {
+    const response = await request.get('/Home', { maxRedirects: 0 });
+
+    expect(response.status()).toBe(301);
+    expect(response.headers().location).toMatch(/\/$/u);
+  });
+
   test('leaves marketing routes unchanged', async ({ request }) => {
     const response = await request.get('/orcamento', { maxRedirects: 0 });
 

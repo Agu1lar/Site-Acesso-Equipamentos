@@ -73,6 +73,21 @@ describe('resolve legacy redirect', () => {
   it('redirects wp pagination to dicas', () => {
     expect(resolveLegacyRedirect('/page/2')).toBe('/dicas');
     expect(resolveLegacyRedirect('/page/2/')).toBe('/dicas');
+    expect(resolveLegacyRedirect('/blog/page/3')).toBe('/dicas');
+  });
+
+  it('redirects legacy home slug and post feeds', () => {
+    expect(resolveLegacyRedirect('/Home')).toBe('/');
+    expect(
+      resolveLegacyRedirect(
+        '/aluguel-andaimes-multidirecionais-para-manutencao-de-fachada-bh/feed',
+      ),
+    ).toBe('/dicas/andaime-ou-plataforma-elevatoria-reforma');
+    expect(
+      resolveLegacyRedirect(
+        '/equipamentos-em-conformidade-com-a-nr12-seguranca-e-qualidade-para-sua-obra/feed',
+      ),
+    ).toBe('/dicas/nr-12-trabalho-em-altura-locacao');
   });
 
   it('redirects wp technical endpoints to home', () => {

@@ -81,6 +81,8 @@ export default async function proxy(request: NextRequest, _event: NextFetchEvent
     || pathname === '/apple-touch-icon.png'
     || pathname === '/googled15fcfdfbf7088b2.html'
     || pathname === '/googlebe00fcec1288fe85.html'
+    || pathname === '/opengraph-image'
+    || pathname.endsWith('/opengraph-image')
   ) {
     return NextResponse.next();
   }
