@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-08",
+  "generatedAt": "2026-08-28",
   "source": "acessoequipamentos.com.br — Yoast sitemap (46 URLs, 100% cobertura 2026-06-08) + prefixos WP; complementar com export GSC via docs/scripts/import-gsc-urls.mjs",
   "redirects": [
     {
@@ -226,6 +226,61 @@
       "source": "/feed",
       "destination": "/",
       "note": "Feed RSS — redirect para home"
+    },
+    {
+      "source": "/wp-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "note": "Sitemap índice Yoast WP — evita soft 404 HTML no Next"
+    },
+    {
+      "source": "/post-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "note": "Sitemap filho Yoast WP"
+    },
+    {
+      "source": "/page-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "note": "Sitemap filho Yoast WP"
+    },
+    {
+      "source": "/category-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "note": "Sitemap filho Yoast WP"
+    },
+    {
+      "source": "/post_tag-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "note": "Sitemap filho Yoast WP"
+    },
+    {
+      "source": "/author-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "note": "Sitemap filho Yoast WP"
+    },
+    {
+      "source": "/web-story-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "note": "Sitemap filho Yoast WP"
+    },
+    {
+      "source": "/sitemap_index.xml",
+      "destination": "/sitemap.xml",
+      "note": "Alias Yoast sitemap index"
+    },
+    {
+      "source": "/xmlrpc.php",
+      "destination": "/",
+      "note": "Endpoint legado WordPress"
+    },
+    {
+      "source": "/wp-login.php",
+      "destination": "/",
+      "note": "Login legado WordPress"
+    },
+    {
+      "source": "/index.php",
+      "destination": "/",
+      "note": "Front controller legado WordPress"
     }
   ],
   "prefixRedirects": [
@@ -268,6 +323,16 @@
       "sourcePrefix": "/wp-includes",
       "destination": "/",
       "note": "Assets WordPress legado"
+    },
+    {
+      "sourcePrefix": "/page",
+      "destination": "/dicas",
+      "note": "Paginação de arquivo WP (/page/2, …)"
+    },
+    {
+      "sourcePrefix": "/comments",
+      "destination": "/dicas",
+      "note": "Feeds de comentários WP em posts legados"
     }
   ]
 }

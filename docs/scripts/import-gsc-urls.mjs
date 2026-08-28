@@ -63,6 +63,7 @@ function suggestDestination(pathname) {
   if (pathname.includes('martelete')) return '/categorias/demolicao-perfuracao';
   if (pathname.includes('privacidade') || pathname.includes('cookies')) return '/privacidade';
   if (pathname.includes('blog') || pathname.includes('web-stories')) return '/dicas';
+  if (pathname.startsWith('/page/')) return '/dicas';
   return '/equipamentos';
 }
 

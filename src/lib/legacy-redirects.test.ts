@@ -65,6 +65,21 @@ describe('resolve legacy redirect', () => {
     expect(resolveLegacyRedirect('/wp-content/uploads/2023/foo.jpg')).toBe('/');
   });
 
+  it('redirects wp sitemap index to next sitemap', () => {
+    expect(resolveLegacyRedirect('/wp-sitemap.xml')).toBe('/sitemap.xml');
+    expect(resolveLegacyRedirect('/post-sitemap.xml')).toBe('/sitemap.xml');
+  });
+
+  it('redirects wp pagination to dicas', () => {
+    expect(resolveLegacyRedirect('/page/2')).toBe('/dicas');
+    expect(resolveLegacyRedirect('/page/2/')).toBe('/dicas');
+  });
+
+  it('redirects wp technical endpoints to home', () => {
+    expect(resolveLegacyRedirect('/xmlrpc.php')).toBe('/');
+    expect(resolveLegacyRedirect('/wp-login.php')).toBe('/');
+  });
+
   it('returns null for unknown marketing path', () => {
     expect(resolveLegacyRedirect('/orcamento')).toBeNull();
   });

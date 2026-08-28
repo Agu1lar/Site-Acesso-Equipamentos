@@ -29,6 +29,20 @@ test.describe('WordPress legacy 301 redirects', () => {
     expect(response.headers().location).toMatch(/\/equipamentos$/u);
   });
 
+  test('redirects wp sitemap index to sitemap.xml', async ({ request }) => {
+    const response = await request.get('/wp-sitemap.xml', { maxRedirects: 0 });
+
+    expect(response.status()).toBe(301);
+    expect(response.headers().location).toMatch(/\/sitemap\.xml$/u);
+  });
+
+  test('redirects wp pagination to dicas', async ({ request }) => {
+    const response = await request.get('/page/2', { maxRedirects: 0 });
+
+    expect(response.status()).toBe(301);
+    expect(response.headers().location).toMatch(/\/dicas$/u);
+  });
+
   test('leaves marketing routes unchanged', async ({ request }) => {
     const response = await request.get('/orcamento', { maxRedirects: 0 });
 
