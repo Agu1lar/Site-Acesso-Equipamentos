@@ -40,12 +40,8 @@ export const brand = {
     'Sabará',
     'Ibirité',
     'Lagoa Santa',
-    'Raposos',
-    'Matozinhos',
     'Sarzedo',
     'Brumadinho',
-    'Confins',
-    'Pedro Leopoldo',
   ],
 } as const;
 

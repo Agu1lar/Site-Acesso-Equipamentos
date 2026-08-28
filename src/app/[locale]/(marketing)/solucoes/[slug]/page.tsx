@@ -402,7 +402,12 @@ export default async function SolucaoDetailPage(props: SolucaoPageProps) {
             ))}
           </ul>
 
-          <RegiaoLinks className="mt-14" regioes={regioes} title={t('regions_title')} />
+          <RegiaoLinks
+            categorySlug={solucao.featuredCategorySlugs[0]}
+            className="mt-14"
+            regioes={regioes}
+            title={t('regions_title')}
+          />
         </div>
       </section>
 

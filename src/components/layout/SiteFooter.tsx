@@ -13,6 +13,9 @@ const FOOTER_REGION_SLUGS = [
   'contagem',
   'betim',
   'nova-lima',
+  'ibirite',
+  'ribeirao-das-neves',
+  'brumadinho',
 ] as const;
 
 export async function SiteFooter() {
@@ -75,6 +78,11 @@ export async function SiteFooter() {
             <li>
               <Link className="hover:text-white" href="/privacidade">
                 {t('privacy_link')}
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:text-white" href="/termos">
+                {t('terms_link')}
               </Link>
             </li>
             <li>

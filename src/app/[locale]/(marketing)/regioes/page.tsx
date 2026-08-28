@@ -2,7 +2,9 @@ import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ConversionCtas } from '@/components/marketing/ConversionCtas';
+import { MarketingBreadcrumb } from '@/components/marketing/MarketingBreadcrumb';
 import { RegiaoCityCard } from '@/components/marketing/RegiaoCityCard';
+import { SeoPillarCrossLink } from '@/components/marketing/SeoPillarCrossLink';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { getAllRegioes } from '@/data/regioes';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
@@ -48,6 +50,17 @@ export default async function RegioesPage(props: RegioesPageProps) {
   return (
     <>
       <JsonLd data={buildRegioesIndexJsonLd(regioes)} />
+
+      <div className="border-b border-neutral-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+          <MarketingBreadcrumb
+            items={[
+              { label: t('breadcrumb_home'), href: '/' },
+              { label: t('hero_title') },
+            ]}
+          />
+        </div>
+      </div>
 
       {/* Split hero — light copy panel + bright photo, no dark overlay. */}
       <section
@@ -125,6 +138,13 @@ export default async function RegioesPage(props: RegioesPageProps) {
           </ul>
         </div>
       </section>
+
+      <SeoPillarCrossLink
+        description={t('cross_link_solucoes_description')}
+        href="/solucoes"
+        linkLabel={t('cross_link_solucoes_cta')}
+        title={t('cross_link_solucoes_title')}
+      />
     </>
   );
 }

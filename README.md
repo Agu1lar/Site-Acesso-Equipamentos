@@ -56,7 +56,7 @@ Variáveis: [.env.example](.env.example) · e-mail leads: `RESEND_*` · analytic
 
 ### Site público
 - **Catálogo e orçamento:** home, `/equipamentos`, categorias, fichas, carrinho multi-item → lead no banco → WhatsApp + e-mail comercial (**Resend**).
-- **SEO regional (S4):** landings por cidade × equipamento em `/regioes/{cidade}/{equipamento}` (BH, Contagem, Betim, Nova Lima, Santa Luzia, Ibirité, Vespasiano, Lagoa Santa, etc.) com JSON-LD e matriz de URLs indexáveis.
+- **SEO regional (S4):** landings por cidade × categoria em `/regioes/{cidade}/{categoria}` — **12 cidades × 4 categorias = 48 URLs** indexáveis (BH, Contagem, Betim, Nova Lima, Santa Luzia, Ibirité, Vespasiano, Lagoa Santa, Sabará, Sarzedo, etc.).
 - **Conteúdo:** blog `/dicas` (CMS TipTap), FAQ, contato, redirects 301 do WordPress (`legacy-redirects.json`), sitemap, `llms.txt` / `catalog.json`.
 
 ### Rastreamento e campanhas
@@ -109,6 +109,7 @@ Variáveis obrigatórias em **Production:** Clerk, `DATABASE_URL`, `NEXT_PUBLIC_
 | ChatPro ROI e worker local | [docs/CHATPRO-ROI-WORKER.md](docs/CHATPRO-ROI-WORKER.md) |
 | API interna para app externo | [docs/INTERNAL-ADS-QUALITY-API.md](docs/INTERNAL-ADS-QUALITY-API.md) |
 | Migração SEO WordPress | [docs/MIGRACAO-SEO-WP.md](docs/MIGRACAO-SEO-WP.md) |
+| Arquitetura SEO (regiões, S4, interlinks) | [docs/SEO-ARQUITETURA.md](docs/SEO-ARQUITETURA.md) |
 | GEO / IAs (`llms.txt`) | [docs/GEO-AI-SEARCH.md](docs/GEO-AI-SEARCH.md) |
 | Fotos de equipamentos | [docs/SPRINT-9-FOTOS.md](docs/SPRINT-9-FOTOS.md) |
 | Validação do preview | [docs/PREVIEW-VALIDACAO.md](docs/PREVIEW-VALIDACAO.md) |

@@ -7,6 +7,7 @@ import { ConversionCtas } from '@/components/marketing/ConversionCtas';
 import { FaqAccordion } from '@/components/marketing/FaqAccordion';
 import { SetMobileDockConfig } from '@/components/marketing/mobile-dock-config';
 import { RegiaoCityCard } from '@/components/marketing/RegiaoCityCard';
+import { SolucaoLinks } from '@/components/marketing/SolucaoLinks';
 import { JsonLd } from '@/components/seo/JsonLd';
 import {
   ALL_REGIAO_SLUGS,
@@ -16,6 +17,7 @@ import {
   isRegiaoSlug,
 } from '@/data/regioes';
 import { isRegiaoCategoriaCombo } from '@/data/regiao-categoria';
+import { getSolucoesForRegiaoFocus } from '@/data/solucoes';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
 import { buildRegiaoPageJsonLd } from '@/lib/regioes-json-ld';
 import { buildMarketingMetadata } from '@/lib/seo-metadata';
@@ -68,6 +70,7 @@ export default async function RegiaoDetailPage(props: RegiaoPageProps) {
     namespace: 'RegiaoDetail',
   });
   const nearby = getNearbyRegioes(regiao.slug);
+  const solucoes = getSolucoesForRegiaoFocus(regiao.focus, 3);
   const faqItems = regiao.faqs.map((item, index) => ({
     id: `${regiao.slug}-faq-${index}`,
     question: item.question,
@@ -299,6 +302,12 @@ export default async function RegiaoDetailPage(props: RegiaoPageProps) {
           </div>
         </section>
       ) : null}
+
+      <section className="border-t border-neutral-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <SolucaoLinks solucoes={solucoes} title={t('solutions_title')} />
+        </div>
+      </section>
 
       <section
         aria-labelledby="regiao-faq-title"

@@ -8,6 +8,7 @@ import { EquipmentCard } from '@/components/marketing/EquipmentCard';
 import { FaqAccordion } from '@/components/marketing/FaqAccordion';
 import { MarketingBreadcrumb } from '@/components/marketing/MarketingBreadcrumb';
 import { SetMobileDockConfig } from '@/components/marketing/mobile-dock-config';
+import { RegiaoLinks } from '@/components/marketing/RegiaoLinks';
 import { SolucaoLinks } from '@/components/marketing/SolucaoLinks';
 import { JsonLd } from '@/components/seo/JsonLd';
 import {
@@ -15,6 +16,7 @@ import {
   getAllRegiaoCategoriaParams,
   isRegiaoCategoriaCombo,
 } from '@/data/regiao-categoria';
+import { getNearbyRegioes } from '@/data/regioes';
 import { getSolucoesForCategory } from '@/data/solucoes';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '@/lib/brand';
 import { getEquipmentByCategory } from '@/lib/equipment';
@@ -79,6 +81,7 @@ export default async function RegiaoCategoriaPage(props: RegiaoCategoriaPageProp
   ]);
   const featuredEquipment = equipment.slice(0, 6);
   const solucoes = getSolucoesForCategory(content.categorySlug, 3);
+  const nearbyRegioes = getNearbyRegioes(content.citySlug);
   const faqItems = content.faqs.map((item, index) => ({
     id: `${content.citySlug}-${content.categorySlug}-faq-${index}`,
     question: item.question,
@@ -322,6 +325,12 @@ export default async function RegiaoCategoriaPage(props: RegiaoCategoriaPageProp
       <section className="bg-white">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
           <SolucaoLinks solucoes={solucoes} title={t('solutions_title')} />
+          <RegiaoLinks
+            categorySlug={content.categorySlug}
+            className="mt-8"
+            regioes={nearbyRegioes}
+            title={t('nearby_title')}
+          />
         </div>
       </section>
 

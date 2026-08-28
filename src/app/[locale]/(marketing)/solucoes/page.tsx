@@ -2,6 +2,8 @@ import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ConversionCtas } from '@/components/marketing/ConversionCtas';
+import { MarketingBreadcrumb } from '@/components/marketing/MarketingBreadcrumb';
+import { SeoPillarCrossLink } from '@/components/marketing/SeoPillarCrossLink';
 import { SolucaoSegmentGrid } from '@/components/marketing/SolucaoSegmentGrid';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { getAllSolucoes } from '@/data/solucoes';
@@ -48,6 +50,17 @@ export default async function SolucoesPage(props: SolucoesPageProps) {
   return (
     <>
       <JsonLd data={buildSolucoesIndexJsonLd(solucoes)} />
+
+      <div className="border-b border-neutral-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+          <MarketingBreadcrumb
+            items={[
+              { label: t('breadcrumb_home'), href: '/' },
+              { label: t('hero_title') },
+            ]}
+          />
+        </div>
+      </div>
 
       <section
         aria-labelledby="solucoes-hero-title"
@@ -110,6 +123,13 @@ export default async function SolucoesPage(props: SolucoesPageProps) {
           />
         </div>
       </section>
+
+      <SeoPillarCrossLink
+        description={t('cross_link_regioes_description')}
+        href="/regioes"
+        linkLabel={t('cross_link_regioes_cta')}
+        title={t('cross_link_regioes_title')}
+      />
     </>
   );
 }

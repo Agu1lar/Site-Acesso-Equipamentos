@@ -64,7 +64,13 @@ describe('buildRegiaoCategoriaContent', () => {
     const paths = getAllRegiaoCategoriaPaths();
     expect(paths).toContain('/regioes/vespasiano/plataformas-elevatorias');
     expect(paths).toContain('/regioes/lagoa-santa/plataformas-elevatorias');
-    expect(paths).toHaveLength(40);
+    expect(paths).toHaveLength(48);
+  });
+
+  it('includes Sabará and Sarzedo in the S4 city matrix', () => {
+    const paths = getAllRegiaoCategoriaPaths();
+    expect(paths).toContain('/regioes/sabara/plataformas-elevatorias');
+    expect(paths).toContain('/regioes/sarzedo/plataformas-elevatorias');
   });
 
   it('enriches Ibirité plataformas with industrial shutdown context', () => {

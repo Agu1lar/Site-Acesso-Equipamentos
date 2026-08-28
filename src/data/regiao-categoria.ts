@@ -13,6 +13,8 @@ export const REGIAO_CATEGORIA_CITY_SLUGS = [
   'santa-luzia',
   'vespasiano',
   'lagoa-santa',
+  'sabara',
+  'sarzedo',
 ] as const;
 
 /** Categories included in the S4 matrix (v1). */

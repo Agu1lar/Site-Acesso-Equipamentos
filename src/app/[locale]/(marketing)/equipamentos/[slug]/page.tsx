@@ -7,6 +7,7 @@ import { EquipmentCard } from '@/components/marketing/EquipmentCard';
 import { EquipmentDetailImage } from '@/components/marketing/EquipmentDetailImage';
 import { EquipmentLaudoLink } from '@/components/marketing/EquipmentLaudoLink';
 import { ExpandableParagraphs } from '@/components/marketing/ExpandableParagraphs';
+import { FaqAccordion } from '@/components/marketing/FaqAccordion';
 import { MarketingBreadcrumb } from '@/components/marketing/MarketingBreadcrumb';
 import { RegiaoLinks } from '@/components/marketing/RegiaoLinks';
 import { SolucaoLinks } from '@/components/marketing/SolucaoLinks';
@@ -17,6 +18,7 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { getRegioesForCategory } from '@/data/regioes';
 import { getSolucoesForCategory } from '@/data/solucoes';
 import { buildEquipmentWhatsAppUrl, equipmentSeoTitle } from '@/lib/brand';
+import { getCategorySeo } from '@/lib/categories-seo';
 import {
   getAllSlugs,
   getEquipmentBySlug,
@@ -89,6 +91,12 @@ export default async function EquipmentDetailPage(props: EquipmentDetailProps) {
     getEquipmentGalleryImages(equipment.slug, equipment.name),
   ]);
   const seoExtra = getEquipmentSeoExtra(equipment);
+  const categorySeo = getCategorySeo(equipment.category);
+  const categoryFaqItems = (categorySeo.faqs ?? []).map((item, index) => ({
+    id: `${equipment.slug}-category-faq-${index}`,
+    question: item.question,
+    answer: item.answer,
+  }));
   const pageBodyDescription = getEquipmentPageBodyDescription(equipment);
   const showTechnicalSection = hasEquipmentLongDescription(equipment);
   const laudoHref = equipment.laudoUrl?.trim() || null;
@@ -252,6 +260,23 @@ export default async function EquipmentDetailPage(props: EquipmentDetailProps) {
             whatsappOrigin="site-detalhe-cta"
           />
         </section>
+
+        {categoryFaqItems.length > 0 ? (
+          <section
+            aria-labelledby="equipment-category-faq-title"
+            className="mt-12 border-t border-neutral-200 pt-10 sm:mt-16 sm:pt-12"
+          >
+            <h2
+              className="font-heading text-xl font-bold text-neutral-900 sm:text-2xl"
+              id="equipment-category-faq-title"
+            >
+              {categorySeo.faqTitle ?? t('category_faq_title', { category: CATEGORY_LABELS[equipment.category] })}
+            </h2>
+            <div className="mt-6">
+              <FaqAccordion items={categoryFaqItems} />
+            </div>
+          </section>
+        ) : null}
 
         {related.length > 0 && (
           <section className="mt-12 border-t border-neutral-200 pt-10 sm:mt-16 sm:pt-12">

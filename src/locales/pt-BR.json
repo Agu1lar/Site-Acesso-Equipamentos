@@ -36,6 +36,7 @@
   "RegioesPage": {
     "meta_title": "Regiões atendidas na RMBH | Acesso Equipamentos",
     "meta_description": "Locação de equipamentos em Belo Horizonte, Contagem, Betim, Nova Lima e cidades da região metropolitana. Frota revisada e orçamento rápido.",
+    "breadcrumb_home": "Início",
     "hero_eyebrow": "Área de atendimento",
     "hero_title": "Regiões atendidas pela Acesso Equipamentos",
     "hero_subtitle": "Locação de plataformas, andaimes, guindastes e ferramentas na região metropolitana de Belo Horizonte, com entrega na obra e orientação técnica.",
@@ -43,7 +44,10 @@
     "cta_whatsapp": "Falar no WhatsApp",
     "list_title": "Cidades com página dedicada",
     "list_subtitle": "Escolha a cidade da obra para ver frota recomendada, logística e perguntas frequentes.",
-    "card_cta": "Ver região →"
+    "card_cta": "Ver região →",
+    "cross_link_solucoes_title": "Soluções por segmento industrial",
+    "cross_link_solucoes_description": "Veja como atendemos mineração, indústria, construção civil, logística e manutenção com a mesma frota revisada.",
+    "cross_link_solucoes_cta": "Explorar soluções por segmento"
   },
   "RegiaoDetail": {
     "breadcrumb_home": "Início",
@@ -57,6 +61,7 @@
     "categories_subtitle": "Linhas com demanda frequente nesta cidade. Veja o catálogo completo e solicite orçamento.",
     "nearby_title": "Cidades próximas",
     "nearby_subtitle": "Também atendemos municípios vizinhos com a mesma base logística.",
+    "solutions_title": "Soluções para esta região",
     "card_cta": "Ver região →",
     "faq_title": "Perguntas frequentes — {city}",
     "cta_block_title": "Precisa de equipamentos em {city}?",
@@ -74,6 +79,7 @@
     "equipment_title": "Modelos de {category}",
     "equipment_subtitle": "Itens da frota nesta linha — disponibilidade sob consulta para entrega na cidade.",
     "solutions_title": "Soluções relacionadas",
+    "nearby_title": "Mesma categoria em cidades próximas",
     "faq_title": "Perguntas frequentes — {category} em {city}",
     "cta_block_title": "Precisa de {category} em {city}?",
     "cta_block_subtitle": "Resposta em horário comercial com disponibilidade e condições sob consulta."
@@ -81,6 +87,7 @@
   "SolucoesPage": {
     "meta_title": "Soluções por segmento | Acesso Equipamentos",
     "meta_description": "Locação de equipamentos para mineração, indústria, construção civil, logística e manutenção na RMBH. Frota revisada e orçamento rápido.",
+    "breadcrumb_home": "Início",
     "hero_eyebrow": "Soluções por segmento",
     "hero_title": "Locação de equipamentos para o seu segmento",
     "hero_subtitle": "Mineração, indústria, construção civil, logística e mais — com frota adequada, orientação técnica e entrega na região metropolitana de BH.",
@@ -89,7 +96,10 @@
     "cta_whatsapp": "Falar no WhatsApp",
     "list_title": "Segmentos atendidos",
     "list_subtitle": "Escolha o segmento para ver cenários, processo de locação, categorias e regiões atendidas.",
-    "card_cta": "Ver solução"
+    "card_cta": "Ver solução",
+    "cross_link_regioes_title": "Regiões atendidas na RMBH",
+    "cross_link_regioes_description": "Consulte páginas por cidade com frota recomendada, logística local e long-tail por categoria.",
+    "cross_link_regioes_cta": "Ver regiões atendidas"
   },
   "SolucaoDetail": {
     "breadcrumb_home": "Início",
@@ -256,6 +266,7 @@
     "back": "Voltar ao catálogo",
     "back_to_category": "Voltar para {category}",
     "related_title": "Equipamentos relacionados",
+    "category_faq_title": "Perguntas frequentes sobre {category}",
     "regions_title": "Atendemos em",
     "solutions_title": "Soluções relacionadas",
     "gallery_label": "Fotos de {name}",
@@ -284,6 +295,7 @@
     "address": "Endereço",
     "hours": "Horário",
     "privacy_link": "Privacidade",
+    "terms_link": "Termos de uso",
     "ai_discovery_link": "Guia para IAs (llms.txt)",
     "admin_area_link": "Área restrita",
     "support_title": "Suporte técnico",
@@ -348,6 +360,39 @@
     "contact_line": "Dúvidas sobre privacidade:",
     "orcamento_link_prefix": "Para orçamentos, use",
     "orcamento_link": "Solicitar orçamento"
+  },
+  "TermosPage": {
+    "meta_title": "Termos de uso do site",
+    "meta_description": "Condições gerais de uso do site e solicitação de orçamentos da Acesso Equipamentos.",
+    "breadcrumb_home": "Início",
+    "title": "Termos de uso",
+    "updated_at": "Última atualização: agosto de 2026.",
+    "intro": "Estes termos regem o uso do site acessoequipamentos.com.br e a solicitação de orçamentos online. A locação de equipamentos é formalizada em contrato comercial separado, após contato com nossa equipe.",
+    "sections": {
+      "service": {
+        "title": "Objeto do site",
+        "body": "O site apresenta o catálogo de equipamentos para locação, conteúdo institucional e formulários para solicitação de orçamento e contato. Informações de disponibilidade, preço e condições são confirmadas pelo comercial em horário útil."
+      },
+      "quotes": {
+        "title": "Orçamentos e propostas",
+        "body": "O envio de formulário ou mensagem pelo WhatsApp não constitui contrato de locação. Propostas válidas dependem de confirmação escrita, análise de disponibilidade da frota, prazo, logística e documentação exigida para a operação segura do equipamento."
+      },
+      "use": {
+        "title": "Uso adequado",
+        "body": "Você concorda em usar o site de forma lícita, sem tentar comprometer a segurança, sobrecarregar a infraestrutura ou coletar dados de terceiros de forma automatizada não autorizada."
+      },
+      "liability": {
+        "title": "Limitações",
+        "body": "Esforçamo-nos para manter informações técnicas atualizadas, mas especificações podem variar conforme revisão da frota. Imagens ilustrativas. Não nos responsabilizamos por indisponibilidade temporária do site por manutenção ou falhas de terceiros."
+      },
+      "changes": {
+        "title": "Alterações",
+        "body": "Podemos atualizar estes termos ou o conteúdo do site. A data de revisão será indicada nesta página. O uso continuado após alterações implica ciência das novas condições."
+      }
+    },
+    "contact_line": "Dúvidas sobre estes termos:",
+    "privacy_link_prefix": "Veja também a",
+    "privacy_link": "política de privacidade"
   },
   "UnauthorizedPage": {
     "meta_title": "Acesso não autorizado",

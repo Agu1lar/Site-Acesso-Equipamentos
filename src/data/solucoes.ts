@@ -1,3 +1,4 @@
+import type { RegiaoFocus } from '@/data/regioes';
 import type { EquipmentCategory } from '@/types/equipment';
 
 export type SolucaoFaq = {
@@ -791,4 +792,20 @@ export function getSolucoesForCategory(category: EquipmentCategory, limit = 3) {
     0,
     limit,
   );
+}
+
+const FOCUS_SOLUCAO_SLUGS: Record<RegiaoFocus, string[]> = {
+  metropole: ['construcao-civil', 'logistica', 'montagens-industriais'],
+  industria: ['industria', 'manutencao-industrial', 'montagens-industriais'],
+  mineracao: ['mineracao', 'siderurgia', 'manutencao-industrial'],
+};
+
+/**
+ * Returns solution pages aligned with a region's industrial profile.
+ */
+export function getSolucoesForRegiaoFocus(focus: RegiaoFocus, limit = 3) {
+  return FOCUS_SOLUCAO_SLUGS[focus]
+    .map((slug) => getSolucaoBySlug(slug))
+    .filter((solucao): solucao is SolucaoContent => Boolean(solucao))
+    .slice(0, limit);
 }
