@@ -106,9 +106,18 @@ Isso deixa margem dentro do Free. Para gastar ainda menos, use `CHATPRO_LOCAL_PO
 1. `GET …/chatpro-roi/events` — puxa outbox pendente
 2. Enfileira no SQLite (`job_id` = `externalId`, idempotente)
 3. Após debounce → `GET …/leads/{id}/context` — lead + histórico (+ evaluation anterior)
-4. Claude analisa (1ª vez: conversa completa; depois: só msgs novas)
-5. `POST …/chatpro-roi/evaluations` — salva no Neon
-6. `POST …/chatpro-roi/events` — **ack só depois** da análise (ou skip seguro)
+4. Whisper local (se `CHATPRO_LOCAL_WHISPER` ativo) transcreve áudios sem texto
+5. Claude analisa (1ª vez: conversa completa; depois: só msgs novas; full de novo se houver mídia)
+6. `POST …/chatpro-roi/evaluations` — salva no Neon
+7. `POST …/chatpro-roi/events` — **ack só depois** da análise (ou skip seguro)
+
+Comandos de teste:
+
+| Comando | Função |
+|---------|--------|
+| `npm run status` | Fila + evaluations recentes na produção |
+| `npm run test:whisper -- {leadId}` | Transcreve áudios de um lead (dry-run) |
+| `npx tsx src/test-analyze-with-audio.ts {leadId}` | Transcreve + Claude (não grava no Neon) |
 
 Não rode `scripts/chatpro-roi-worker.mjs` ao mesmo tempo que este consumer (duplica Claude).
 

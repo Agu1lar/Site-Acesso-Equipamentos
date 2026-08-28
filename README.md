@@ -54,11 +54,31 @@ Variáveis: [.env.example](.env.example) · e-mail leads: `RESEND_*` · analytic
 
 ## O que o projeto faz (resumo)
 
-- **Público:** home, catálogo (`/equipamentos`), categorias, fichas, blog (`/dicas`), orçamento, FAQ, contato.
-- **Orçamento:** carrinho multi-item → lead no banco → WhatsApp + e-mail comercial.
-- **Rastreamento comercial:** origem Google Ads/GA4, clique no WhatsApp, abertura do WhatsApp no envio do orçamento e resposta real do cliente via webhook ChatPro.
-- **Admin:** leads (semana + consulta), métricas (`/dashboard/analytics`), CRUD equipamentos com fotos (Blob), CMS de dicas (TipTap).
-- **SEO / migração:** redirects 301 do WordPress (`legacy-redirects.json`), sitemap, JSON-LD, `llms.txt` / `catalog.json`.
+### Site público
+- **Catálogo e orçamento:** home, `/equipamentos`, categorias, fichas, carrinho multi-item → lead no banco → WhatsApp + e-mail comercial (**Resend**).
+- **SEO regional (S4):** landings por cidade × equipamento em `/regioes/{cidade}/{equipamento}` (BH, Contagem, Betim, Nova Lima, Santa Luzia, Ibirité, Vespasiano, Lagoa Santa, etc.) com JSON-LD e matriz de URLs indexáveis.
+- **Conteúdo:** blog `/dicas` (CMS TipTap), FAQ, contato, redirects 301 do WordPress (`legacy-redirects.json`), sitemap, `llms.txt` / `catalog.json`.
+
+### Rastreamento e campanhas
+- **Atribuição paga:** origem Google Ads/GA4 (`gclid`, UTM), clique no WhatsApp, abertura do WhatsApp no envio do orçamento.
+- **Ponte clique → lead:** código `Cód. AB12CD34` no prefill do `wa.me` liga visitante de campanha ao lead mesmo sem formulário (`whatsapp_attribution_tokens`).
+- **Resposta real:** webhook **ChatPro** marca `whatsapp_replied_at` no CRM para qualquer lead.
+
+### ChatPro ROI (leads de campanha)
+Pipeline **fora do painel** — só leads com atribuição paga (`gclid`/`gbraid`/`wbraid` ou `utm_medium` cpc/ppc/paid):
+
+1. **Vercel** recebe webhook → grava `chatpro_messages` + outbox (texto, PDF, imagem, **áudio**).
+2. **Worker local** (`chatpro-local/`) faz poll da outbox, debounce por lead, chama **Claude** e grava evaluation no Neon.
+3. **Análise incremental:** 1ª vez lê a conversa inteira; depois só mensagens novas (reprocessa tudo se chegar PDF/imagem/áudio).
+4. **Áudio:** webhook usa `alt_message` do ChatPro quando disponível; no worker, **Whisper local** (sem OpenAI) transcreve áudios antes do Claude. Opcional na Vercel: `OPENAI_API_KEY` para Whisper na ingestão.
+5. **Painel:** `/dashboard/chatpro-roi` — histórico de evaluations, estágio do funil, deal likelihood, equipamentos mencionados.
+6. **Relatório Ads:** API/CLI cruza evaluations × CRM won × gasto Google Ads por campanha.
+
+Detalhes: **[docs/CHATPRO-ROI-WORKER.md](docs/CHATPRO-ROI-WORKER.md)** · setup worker: **[chatpro-local/README.md](chatpro-local/README.md)**
+
+### Admin (`/dashboard`, Clerk)
+- Leads (semana + consulta), métricas operacionais (`/dashboard/analytics`), CRUD equipamentos com fotos (**Vercel Blob**), CMS de dicas.
+- **IP dinâmico:** worker local renova autorização de rede via heartbeat (36 h) — não precisa editar allowlist a cada mudança de IP.
 
 Histórico de sprints: **[CHANGELOG.md](CHANGELOG.md)** · planejamento: **[ROADMAP.temp.md](ROADMAP.temp.md)**
 

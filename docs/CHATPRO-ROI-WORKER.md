@@ -15,6 +15,7 @@ chatpro-local/ (sua máquina)
             ├─ fila SQLite (job_id = externalId, dedup)
             ├─ debounce 30 min por lead
             ├─ GET …/leads/{id}/context (403 se não for campanha)
+            ├─ Whisper local (opcional) transcreve áudios sem texto
             ├─ Claude → POST …/evaluations
             └─ POST …/events { outboxIds } — ack **após** análise
 ```
@@ -105,7 +106,28 @@ Ele **não** reavalia leads sem mensagens novas (exceto `--lead=… --force`).
 
 `last_message_id` é o maior ID das mensagens do lead, não a última mensagem por `event_at`. Isso evita duplicidade ou perda incremental quando o ChatPro entrega eventos com horário fora de ordem.
 
-PDFs baixados para Claude usam allowlist de hosts (`chatpro.com.br`, etc.) + `CHATPRO_PDF_URL_ALLOWLIST` opcional. HTTP e IPs privados são bloqueados.
+PDFs e áudios baixados para Claude usam allowlist de hosts (`chatpro.com.br`, `oraclecloud.com`, etc.) + `CHATPRO_PDF_URL_ALLOWLIST` opcional. HTTP e IPs privados são bloqueados.
+
+## Áudio (WhatsApp voice notes)
+
+Mensagens de áudio chegam com `media_url` (Oracle Cloud / ChatPro) e muitas vezes **sem** `message_text`.
+
+| Camada | Comportamento |
+|--------|----------------|
+| **Webhook (Vercel)** | Lê `message`, depois `alt_message` (transcrição nativa ChatPro). Se vazio e existir `OPENAI_API_KEY`, transcreve com Whisper na ingestão. |
+| **Worker local** | `CHATPRO_LOCAL_WHISPER=transformers` (padrão recomendado) ou `cli` (whisper.cpp). Baixa o áudio, decodifica com ffmpeg embutido, roda Whisper **na sua máquina** — **sem OpenAI**. |
+| **Claude** | `enrichMessagesWithAudioTranscriptions` preenche texto faltante antes da análise. Áudio novo dispara reprocessamento da conversa inteira (como PDF/imagem). |
+
+A transcrição local **entra na analysis**; ainda **não** persiste de volta em `chatpro_messages.message_text` (só em memória no worker).
+
+Teste local:
+
+```powershell
+cd chatpro-local
+npm run test:whisper -- {leadId}
+```
+
+Ver **[chatpro-local/README.md](../chatpro-local/README.md)** — seção *Transcrição local de áudio*.
 
 ## Fase 2 (Claude local)
 
