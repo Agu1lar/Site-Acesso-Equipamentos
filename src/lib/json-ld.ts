@@ -73,11 +73,11 @@ function organizationNode(baseUrl: string) {
     foundingDate: String(brand.foundedYear),
     logo: {
       '@type': 'ImageObject',
-      url: `${baseUrl}/assets/brand/logo-acesso.png`,
-      width: 200,
-      height: 200,
+      url: `${baseUrl}/assets/brand/logo-acesso-header.png`,
+      width: 1002,
+      height: 280,
     },
-    image: `${baseUrl}/assets/brand/logo-acesso.png`,
+    image: `${baseUrl}/assets/brand/logo-acesso-header.png`,
     sameAs: [brand.instagramUrl, brand.linkedinUrl],
     address: postalAddress(),
   };

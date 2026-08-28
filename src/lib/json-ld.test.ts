@@ -45,10 +45,10 @@ describe('build marketing graph json-ld', () => {
       image?: string;
     };
     expect(organization.logo?.['@type']).toBe('ImageObject');
-    expect(organization.logo?.url).toContain('/assets/brand/logo-acesso.png');
-    expect(organization.logo?.width).toBe(200);
-    expect(organization.logo?.height).toBe(200);
-    expect(organization.image).toContain('/assets/brand/logo-acesso.png');
+    expect(organization.logo?.url).toContain('/assets/brand/logo-acesso-header.png');
+    expect(organization.logo?.width).toBe(1002);
+    expect(organization.logo?.height).toBe(280);
+    expect(organization.image).toContain('/assets/brand/logo-acesso-header.png');
 
     const webSite = graph.find((node) => node['@type'] === 'WebSite') as {
       potentialAction?: { '@type'?: string };
