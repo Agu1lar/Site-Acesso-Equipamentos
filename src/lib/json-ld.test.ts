@@ -13,7 +13,7 @@ import {
   buildFaqPageJsonLd,
   buildLocalBusinessJsonLd,
   buildMarketingGraphJsonLd,
-  buildProductJsonLd,
+  buildServiceJsonLd,
   buildTrainingCourseJsonLd,
 } from '@/lib/json-ld';
 import { getEquipmentSchemaDescription } from '@/lib/equipment-meta-description';
@@ -83,46 +83,44 @@ describe('build local business json-ld', () => {
   });
 });
 
-describe('build product json-ld', () => {
-  it('maps equipment to Product schema with sku and offer', () => {
-    const json = buildProductJsonLd(equipment);
+describe('build service json-ld', () => {
+  it('maps equipment to Service schema with provider and serviceType', () => {
+    const json = buildServiceJsonLd(equipment);
 
-    expect(json['@type']).toBe('Product');
+    expect(json['@type']).toBe('Service');
     expect(json.name).toBe('Betoneira');
     expect(json.description).toBe(getEquipmentSchemaDescription(equipment));
-    expect(json.sku).toBe('betoneira');
-    expect(json.offers).toMatchObject({
-      '@type': 'Offer',
-      priceCurrency: 'BRL',
-    });
+    expect(json.serviceType).toBe('Ferramentas elétricas');
+    expect(json.provider).toMatchObject({ '@id': expect.stringContaining('#organization') });
+    expect(json.offers).toBeUndefined();
   });
 
   it('includes absolute image URL when imagePath is provided', () => {
-    const json = buildProductJsonLd(equipment, '/equipamentos/betoneira.webp');
+    const json = buildServiceJsonLd(equipment, '/equipamentos/betoneira.webp');
 
     expect(json.image).toEqual(['http://localhost:3000/equipamentos/betoneira.webp']);
   });
 
   it('keeps remote blob image URL unchanged', () => {
     const remote = 'https://example.public.blob.vercel-storage.com/betoneira.webp';
-    const json = buildProductJsonLd(equipment, remote);
+    const json = buildServiceJsonLd(equipment, remote);
 
     expect(json.image).toEqual([remote]);
   });
 
   it('omits image when imagePath is missing', () => {
-    const json = buildProductJsonLd(equipment);
+    const json = buildServiceJsonLd(equipment);
 
     expect(json.image).toBeUndefined();
   });
 });
 
 describe('build equipment page json-ld', () => {
-  it('combines Product and BreadcrumbList in a graph', () => {
+  it('combines Service and BreadcrumbList in a graph', () => {
     const json = buildEquipmentPageJsonLd(equipment, '/equipamentos/betoneira.webp');
     const graph = json['@graph'] as Record<string, unknown>[];
 
-    expect(graph.some((node) => node['@type'] === 'Product')).toBeTruthy();
+    expect(graph.some((node) => node['@type'] === 'Service')).toBeTruthy();
     expect(graph.some((node) => node['@type'] === 'BreadcrumbList')).toBeTruthy();
   });
 });

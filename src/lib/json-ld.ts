@@ -176,9 +176,9 @@ function buildBreadcrumbListJsonLd(items: BreadcrumbItem[]) {
 }
 
 /**
- * Product schema for equipment rental (price on request — no numeric price).
+ * Service schema for equipment rental (no fixed price — quote on request).
  */
-export function buildProductJsonLd(equipment: Equipment, imagePath?: string | string[] | null) {
+export function buildServiceJsonLd(equipment: Equipment, imagePath?: string | string[] | null) {
   const baseUrl = getBaseUrl();
   const path = `/equipamentos/${equipment.slug}`;
   const url = `${baseUrl}${path}`;
@@ -190,34 +190,22 @@ export function buildProductJsonLd(equipment: Equipment, imagePath?: string | st
 
   return {
     '@context': SCHEMA_CONTEXT,
-    '@type': 'Product',
-    '@id': entityId(path, '#product'),
+    '@type': 'Service',
+    '@id': entityId(path, '#service'),
     name: equipment.name,
     description: getEquipmentSchemaDescription(equipment),
-    category: CATEGORY_LABELS[equipment.category],
+    serviceType: CATEGORY_LABELS[equipment.category],
     url,
-    sku: equipment.slug,
     ...(imagePaths.length > 0
       ? { image: imagePaths.map((pathItem) => equipmentImageUrl(pathItem)) }
       : {}),
-    brand: {
-      '@type': 'Brand',
-      name: brand.name,
-    },
-    offers: {
-      '@type': 'Offer',
-      '@id': entityId(path, '#offer'),
-      url,
-      priceCurrency: 'BRL',
-      availability: 'https://schema.org/InStock',
-      description: 'Valor de locação sob consulta com a equipe comercial.',
-      seller: { '@id': `${baseUrl}/#organization` },
-    },
+    provider: { '@id': `${baseUrl}/#organization` },
+    areaServed: buildAreaServedNodes(),
   };
 }
 
 /**
- * Equipment detail @graph: Product + BreadcrumbList.
+ * Equipment detail @graph: Service + BreadcrumbList.
  */
 export function buildEquipmentPageJsonLd(equipment: Equipment, imagePath?: string | string[] | null) {
   const categoryLabel = CATEGORY_LABELS[equipment.category];
@@ -225,7 +213,7 @@ export function buildEquipmentPageJsonLd(equipment: Equipment, imagePath?: strin
   return {
     '@context': SCHEMA_CONTEXT,
     '@graph': [
-      buildProductJsonLd(equipment, imagePath),
+      buildServiceJsonLd(equipment, imagePath),
       buildBreadcrumbListJsonLd([
         { name: 'Início', path: '/' },
         { name: 'Equipamentos', path: '/equipamentos' },

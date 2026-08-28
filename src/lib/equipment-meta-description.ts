@@ -105,7 +105,7 @@ export function getEquipmentPageBodyDescription(equipment: Equipment) {
 }
 
 /**
- * Product/schema summary — prefer technical long copy over catalog blurb.
+ * Service/schema summary — prefer technical long copy over catalog blurb.
  */
 export function getEquipmentSchemaDescription(equipment: Equipment) {
   return getEquipmentPageBodyDescription(equipment);
