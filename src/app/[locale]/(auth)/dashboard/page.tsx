@@ -1,6 +1,6 @@
 import { setRequestLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
-import { requireDashboardAccess } from '@/lib/auth-roles';
+import { dashboardAccessFailurePath, requireDashboardAccess } from '@/lib/auth-roles';
 import { resolveAppLocale } from '@/utils/locale';
 
 export default async function DashboardPage(props: { params: Promise<{ locale: string }> }) {
@@ -9,7 +9,7 @@ export default async function DashboardPage(props: { params: Promise<{ locale: s
   const access = await requireDashboardAccess();
 
   if (!access.ok) {
-    redirect(access.status === 403 ? '/unauthorized' : '/sign-in');
+    redirect(dashboardAccessFailurePath(access));
   }
 
   redirect('/dashboard/leads');

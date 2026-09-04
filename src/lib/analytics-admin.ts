@@ -564,6 +564,24 @@ async function countLeadReplyFunnel(from: Date, to: Date): Promise<LeadReplyFunn
 }
 
 /**
+ * Counts WhatsApp click events in a date range. Returns 0 if analytics is unavailable.
+ */
+export async function countWhatsAppClicksForPeriod(filters: {
+  dateFrom?: string;
+  dateTo?: string;
+} = {}) {
+  const period = resolveAnalyticsPeriod(filters);
+
+  try {
+    return await withAnalyticsSchema(0, () =>
+      countEvents('whatsapp_click', period.from, period.to),
+    );
+  } catch {
+    return 0;
+  }
+}
+
+/**
  * Loads operational dashboard metrics from Neon conversion tables.
  */
 export async function getOperationalDashboard(

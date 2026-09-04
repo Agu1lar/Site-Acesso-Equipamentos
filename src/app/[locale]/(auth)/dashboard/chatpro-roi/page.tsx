@@ -54,6 +54,7 @@ export default async function ChatProRoiAdminPage(props: ChatProRoiPageProps) {
     closed_won: t('stage_closed_won'),
     closed_lost: t('stage_closed_lost'),
     stalled: t('stage_stalled'),
+    diverted: t('stage_diverted'),
     unknown: t('stage_unknown'),
   };
 
@@ -135,6 +136,7 @@ export default async function ChatProRoiAdminPage(props: ChatProRoiPageProps) {
           formatEstimatedValue: (value) => t('estimated_value_brl', { value }),
           viewLead: t('view_lead'),
           stageLabels,
+          divertedWithPhone: (phone) => t('stage_diverted_with_phone', { phone }),
           priorityLabels,
           statusLabels,
         }}

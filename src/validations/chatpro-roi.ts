@@ -8,6 +8,7 @@ export const ChatProRoiStageSchema = z.enum([
   'closed_won',
   'closed_lost',
   'stalled',
+  'diverted',
   'unknown',
 ]);
 
@@ -41,6 +42,13 @@ export const ChatProRoiEvaluationSchema = z.object({
     .nullable()
     .optional()
     .transform((value) => value ?? null),
+  divertedToPhone: z
+    .string()
+    .trim()
+    .max(32)
+    .nullable()
+    .optional()
+    .transform((value) => value ?? null),
   roiNotes: z.string().max(800),
   followUpPriority: z.enum(['low', 'medium', 'high']),
 });
@@ -61,6 +69,7 @@ export function buildChatProRoiOutputSchema() {
           'closed_won',
           'closed_lost',
           'stalled',
+          'diverted',
           'unknown',
         ],
       },
@@ -109,6 +118,16 @@ export function buildChatProRoiOutputSchema() {
           { type: 'null' },
         ],
       },
+      divertedToPhone: {
+        anyOf: [
+          {
+            type: 'string',
+            description:
+              'Número comercial para o qual o vendedor desviou o lead (WhatsApp ou telefone). Null se não houver desvio.',
+          },
+          { type: 'null' },
+        ],
+      },
       roiNotes: { type: 'string', description: 'Notas curtas para ROI / campanha Ads.' },
       followUpPriority: { type: 'string', enum: ['low', 'medium', 'high'] },
     },
@@ -125,6 +144,7 @@ export function buildChatProRoiOutputSchema() {
       'suggestedStatus',
       'detectedContactName',
       'detectedEmail',
+      'divertedToPhone',
       'roiNotes',
       'followUpPriority',
     ],

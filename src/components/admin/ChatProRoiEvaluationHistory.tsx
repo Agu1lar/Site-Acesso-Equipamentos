@@ -1,4 +1,5 @@
 import { formatDateTimeBrasilia } from '@/lib/app-datetime';
+import { formatRoiStageLabel } from '@/lib/chatpro-roi-diverted';
 import type { ChatProRoiDashboardEvaluation } from '@/lib/chatpro-roi-dashboard-types';
 
 type ChatProRoiEvaluationHistoryLabels = {
@@ -13,6 +14,7 @@ type ChatProRoiEvaluationHistoryLabels = {
   suggestedStatusHint: string;
   formatEstimatedValue: (value: number) => string;
   stageLabels: Record<ChatProRoiDashboardEvaluation['stage'], string>;
+  divertedWithPhone: (phone: string) => string;
   statusLabels: Record<NonNullable<ChatProRoiDashboardEvaluation['suggestedStatus']>, string>;
 };
 
@@ -41,7 +43,14 @@ export function ChatProRoiEvaluationHistory(props: ChatProRoiEvaluationHistoryPr
                   {formatDateTimeBrasilia(row.evaluatedAt)}
                 </span>
                 <span className="text-neutral-500"> · </span>
-                <span className="text-neutral-700">{props.labels.stageLabels[row.stage]}</span>
+                <span className="text-neutral-700">
+                  {formatRoiStageLabel({
+                    stage: row.stage,
+                    divertedToPhone: row.divertedToPhone,
+                    stageLabels: props.labels.stageLabels,
+                    divertedWithPhone: props.labels.divertedWithPhone,
+                  })}
+                </span>
                 <span className="text-neutral-500"> · </span>
                 <span className="tabular-nums text-neutral-700">{row.dealLikelihood}%</span>
                 <span className="text-neutral-500"> · </span>
@@ -52,7 +61,14 @@ export function ChatProRoiEvaluationHistory(props: ChatProRoiEvaluationHistoryPr
               <dl className="grid gap-2 border-t border-neutral-200 px-3 py-3 text-sm sm:grid-cols-2">
                 <div>
                   <dt className="text-neutral-500">{props.labels.colStage}</dt>
-                  <dd>{props.labels.stageLabels[row.stage]}</dd>
+                  <dd>
+                    {formatRoiStageLabel({
+                      stage: row.stage,
+                      divertedToPhone: row.divertedToPhone,
+                      stageLabels: props.labels.stageLabels,
+                      divertedWithPhone: props.labels.divertedWithPhone,
+                    })}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-neutral-500">{props.labels.colLikelihood}</dt>

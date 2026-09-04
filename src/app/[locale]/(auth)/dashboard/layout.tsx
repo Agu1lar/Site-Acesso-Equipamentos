@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { requireDashboardAccess } from '@/lib/auth-roles';
+import { dashboardAccessFailurePath, requireDashboardAccess } from '@/lib/auth-roles';
 import { redirect } from 'next/navigation';
 import { resolveAppLocale } from '@/utils/locale';
 
@@ -29,7 +29,7 @@ export default async function DashboardLayout(props: DashboardLayoutProps) {
 
   const access = await requireDashboardAccess();
   if (!access.ok) {
-    redirect(access.status === 403 ? '/unauthorized' : '/sign-in');
+    redirect(dashboardAccessFailurePath(access));
   }
 
   const t = await getTranslations('DashboardLayout');

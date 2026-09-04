@@ -7,7 +7,7 @@ import { LeadsTable } from '@/components/admin/LeadsTable';
 import { StaleLeadsAlert } from '@/components/admin/StaleLeadsAlert';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { countArchivableCommercialLeads } from '@/lib/leads-auto-archive';
-import { getOperationalDashboard } from '@/lib/analytics-admin';
+import { countWhatsAppClicksForPeriod } from '@/lib/analytics-admin';
 import { Button } from '@/components/ui/Button';
 import {
   buildContactOrderCounts,
@@ -24,6 +24,8 @@ import { resolveAppLocale } from '@/utils/locale';
 type LeadsPageProps = {
   params: Promise<{ locale: string }>;
 };
+
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(props: LeadsPageProps): Promise<Metadata> {
   const { locale } = await props.params;
@@ -51,12 +53,12 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
 
   const weekRange = currentWeekRange();
 
-  const [queueResult, weekResult, staleLeads, weekMetrics, weekWhatsAppOpened, archivableCount] =
+  const [queueResult, weekResult, staleLeads, weekWhatsAppClicks, weekWhatsAppOpened, archivableCount] =
     await Promise.all([
     listCommercialQueue(),
     listWeekOperationalLeads(),
     listStaleNewLeads(),
-    getOperationalDashboard({
+    countWhatsAppClicksForPeriod({
       dateFrom: weekRange.dateFrom,
       dateTo: weekRange.dateTo,
     }),
@@ -85,9 +87,9 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
       <ArchiveStaleLeadsButton pendingCount={archivableCount} />
 
       <AnalyticsWhatsappWeekStrip
-        clicks={weekMetrics.whatsappClicks}
+        clicks={weekWhatsAppClicks}
         clicksLabel={tAnalytics('whatsapp_hero_clicks_label', {
-          count: weekMetrics.whatsappClicks,
+          count: weekWhatsAppClicks,
         })}
         detailHref="/dashboard/analytics"
         detailLabel={t('week_whatsapp_detail_link')}

@@ -9,6 +9,7 @@ const ROI_PROSE_TOKEN_REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = [
   [/\bcontract_sent\b/giu, 'contrato enviado'],
   [/\bclosed_won\b/giu, 'ganho'],
   [/\bclosed_lost\b/giu, 'perdido'],
+  [/\bdiverted\b/giu, 'desviado'],
   [/\bfollowUpPriority\b/giu, 'prioridade de follow-up'],
   [/\bdealLikelihood\b/giu, 'chance de fechamento'],
   [/\bestimatedMonthlyValueBrl\b/giu, 'valor mensal estimado'],

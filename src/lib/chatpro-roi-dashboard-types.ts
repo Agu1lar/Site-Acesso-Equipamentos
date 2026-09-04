@@ -13,6 +13,7 @@ export type ChatProRoiDashboardEvaluation = {
   dealLikelihood: number;
   followUpPriority: ChatProRoiEvaluation['followUpPriority'];
   suggestedStatus: ChatProRoiEvaluation['suggestedStatus'];
+  divertedToPhone: string | null;
   contractDetected: boolean;
   estimatedMonthlyValueBrl: number | null;
   summary: string;

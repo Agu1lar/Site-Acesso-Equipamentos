@@ -5,6 +5,7 @@ import { ChatProRoiEvaluationHistory } from '@/components/admin/ChatProRoiEvalua
 import { ChatProRoiFrozenBadge } from '@/components/admin/ChatProRoiFrozenBadge';
 import { formatDateTimeBrasilia } from '@/lib/app-datetime';
 import { listChatProRoiEvaluationsForLead } from '@/lib/chatpro-roi-dashboard';
+import { formatRoiStageLabel } from '@/lib/chatpro-roi-diverted';
 import { isRoiJourneyFrozen, leadHasCampaignAttribution } from '@/lib/chatpro-roi-eligibility';
 import type { LeadRecord } from '@/lib/leads-admin';
 import { LEAD_STATUSES, type LeadStatus } from '@/lib/lead-status';
@@ -51,8 +52,11 @@ export async function LeadChatProRoiSection(props: LeadChatProRoiSectionProps) {
     closed_won: t('stage_closed_won'),
     closed_lost: t('stage_closed_lost'),
     stalled: t('stage_stalled'),
+    diverted: t('stage_diverted'),
     unknown: t('stage_unknown'),
   };
+
+  const divertedWithPhone = (phone: string) => t('stage_diverted_with_phone', { phone });
 
   const priorityLabels = {
     low: t('priority_low'),
@@ -92,7 +96,14 @@ export async function LeadChatProRoiSection(props: LeadChatProRoiSectionProps) {
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-neutral-500">{t('col_stage')}</dt>
-              <dd className="font-medium text-neutral-900">{stageLabels[latest.stage]}</dd>
+              <dd className="font-medium text-neutral-900">
+                {formatRoiStageLabel({
+                  stage: latest.stage,
+                  divertedToPhone: latest.divertedToPhone,
+                  stageLabels,
+                  divertedWithPhone,
+                })}
+              </dd>
             </div>
             <div>
               <dt className="text-neutral-500">{t('col_likelihood')}</dt>
@@ -158,6 +169,7 @@ export async function LeadChatProRoiSection(props: LeadChatProRoiSectionProps) {
                 suggestedStatusHint: t('suggested_status_hint'),
                 formatEstimatedValue: (value) => t('estimated_value_brl', { value }),
                 stageLabels,
+                divertedWithPhone,
                 statusLabels,
               }}
               previous={evaluations.slice(1)}

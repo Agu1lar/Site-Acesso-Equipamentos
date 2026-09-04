@@ -113,6 +113,7 @@ export function QuoteForm(props: QuoteFormProps) {
       response = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(20_000),
         body: JSON.stringify({
           ...data,
           cartItems,

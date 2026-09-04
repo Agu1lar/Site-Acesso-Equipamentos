@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  dashboardAccessFailurePath,
   isAdminOnlyDashboardPath,
   isDeferredDashboardPath,
 } from '@/lib/auth-roles';
@@ -10,6 +11,26 @@ describe('dashboard password hashing', () => {
     const hash = hashDashboardPassword('TecnoAcesso123');
     expect(verifyDashboardPassword('TecnoAcesso123', hash)).toBe(true);
     expect(verifyDashboardPassword('wrong', hash)).toBe(false);
+  });
+});
+
+describe('dashboardAccessFailurePath', () => {
+  it('sends untrusted network to the restricted page', () => {
+    expect(dashboardAccessFailurePath({ ok: false, status: 403, reason: 'network' })).toBe(
+      '/network-restricted',
+    );
+  });
+
+  it('sends missing session to sign-in', () => {
+    expect(dashboardAccessFailurePath({ ok: false, status: 401, reason: 'unauthenticated' })).toBe(
+      '/sign-in',
+    );
+  });
+
+  it('sends forbidden role to unauthorized', () => {
+    expect(dashboardAccessFailurePath({ ok: false, status: 403, reason: 'forbidden_role' })).toBe(
+      '/unauthorized',
+    );
   });
 });
 

@@ -146,6 +146,7 @@ export async function notifyLeadByEmail(lead: LeadRecord) {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
+    signal: AbortSignal.timeout(8_000),
     body: JSON.stringify({
       from,
       to,

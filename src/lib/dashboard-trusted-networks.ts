@@ -77,23 +77,26 @@ export async function isDashboardTrustedNetworkRequest(headers: Headers) {
     return true;
   }
 
-  await ensureDashboardTrustedNetworksSchema();
   const clientIp = resolveDashboardClientIp(headers);
   if (!clientIp) {
     return false;
   }
 
-  const now = new Date();
-  const rows = await db
-    .select({ id: dashboardTrustedNetworksSchema.id })
-    .from(dashboardTrustedNetworksSchema)
-    .where(
-      and(
-        eq(dashboardTrustedNetworksSchema.ipAddress, clientIp),
-        gt(dashboardTrustedNetworksSchema.expiresAt, now),
-      ),
-    )
-    .limit(1);
+  try {
+    const now = new Date();
+    const rows = await db
+      .select({ id: dashboardTrustedNetworksSchema.id })
+      .from(dashboardTrustedNetworksSchema)
+      .where(
+        and(
+          eq(dashboardTrustedNetworksSchema.ipAddress, clientIp),
+          gt(dashboardTrustedNetworksSchema.expiresAt, now),
+        ),
+      )
+      .limit(1);
 
-  return Boolean(rows[0]);
+    return Boolean(rows[0]);
+  } catch {
+    return false;
+  }
 }

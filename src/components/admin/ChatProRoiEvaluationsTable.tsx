@@ -4,6 +4,7 @@ import { ChatProRoiEvaluationHistory } from '@/components/admin/ChatProRoiEvalua
 import { ChatProRoiFrozenBadge } from '@/components/admin/ChatProRoiFrozenBadge';
 import { formatDateTimeBrasilia } from '@/lib/app-datetime';
 import { isRoiJourneyFrozen } from '@/lib/chatpro-roi-eligibility';
+import { formatRoiStageLabel } from '@/lib/chatpro-roi-diverted';
 import type { ChatProRoiDashboardEvaluation } from '@/lib/chatpro-roi-dashboard-types';
 import type { ChatProRoiLeadEvaluationGroup } from '@/lib/chatpro-roi-group';
 import { Link } from '@/libs/I18nNavigation';
@@ -33,6 +34,7 @@ type ChatProRoiEvaluationsTableProps = {
     formatEstimatedValue: (value: number) => string;
     viewLead: string;
     stageLabels: Record<ChatProRoiDashboardEvaluation['stage'], string>;
+    divertedWithPhone: (phone: string) => string;
     priorityLabels: Record<ChatProRoiDashboardEvaluation['followUpPriority'], string>;
     statusLabels: Record<NonNullable<ChatProRoiDashboardEvaluation['suggestedStatus']>, string>;
   };
@@ -99,7 +101,12 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
                         {row.utmCampaign?.trim() || '—'}
                       </td>
                       <td className="px-5 py-3 text-neutral-700">
-                        {props.labels.stageLabels[row.stage]}
+                        {formatRoiStageLabel({
+                          stage: row.stage,
+                          divertedToPhone: row.divertedToPhone,
+                          stageLabels: props.labels.stageLabels,
+                          divertedWithPhone: props.labels.divertedWithPhone,
+                        })}
                       </td>
                       <td className="px-5 py-3 tabular-nums text-neutral-700">
                         {row.dealLikelihood}%
@@ -158,6 +165,7 @@ export function ChatProRoiEvaluationsTable(props: ChatProRoiEvaluationsTableProp
                                   suggestedStatusHint: props.labels.suggestedStatusHint,
                                   formatEstimatedValue: props.labels.formatEstimatedValue,
                                   stageLabels: props.labels.stageLabels,
+                                  divertedWithPhone: props.labels.divertedWithPhone,
                                   statusLabels: props.labels.statusLabels,
                                 }}
                                 previous={group.previous}

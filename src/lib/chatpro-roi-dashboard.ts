@@ -67,6 +67,7 @@ function mapEvaluationRow(row: Awaited<ReturnType<typeof listRecentChatProRoiEva
     dealLikelihood: result?.dealLikelihood ?? 0,
     followUpPriority: result?.followUpPriority ?? 'low',
     suggestedStatus: result?.suggestedStatus ?? null,
+    divertedToPhone: result?.divertedToPhone ?? null,
     contractDetected: result?.contractDetected ?? false,
     estimatedMonthlyValueBrl: result?.estimatedMonthlyValueBrl ?? null,
     summary: sanitizeChatProRoiProse(result?.summary ?? ''),

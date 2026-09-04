@@ -96,6 +96,7 @@ export const POST = async (request: Request) => {
         await fetch(`${apiUrl}/widgets/${widgetKey}/capture`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(4_000),
           body: JSON.stringify({
             phone: phoneWithCountry,
             name: normalized.name,

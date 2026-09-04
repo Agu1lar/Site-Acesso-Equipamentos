@@ -55,4 +55,15 @@ describe('ChatProRoiEvaluationSchema', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('accepts a diverted commercial phone handoff', () => {
+    const parsed = ChatProRoiEvaluationSchema.parse({
+      ...baseEvaluation,
+      stage: 'diverted',
+      divertedToPhone: '(31) 99470-0201',
+    });
+
+    expect(parsed.stage).toBe('diverted');
+    expect(parsed.divertedToPhone).toBe('(31) 99470-0201');
+  });
 });

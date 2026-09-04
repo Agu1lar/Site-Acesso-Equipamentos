@@ -9,6 +9,7 @@ import {
 } from './chatpro-audio-transcription';
 import { isAllowedPdfFetchUrl } from './chatpro-pdf-url';
 import { sanitizeChatProRoiEvaluationProse } from './chatpro-roi-prose';
+import { applyCommercialHandoffGuardrail } from './chatpro-roi-diverted';
 
 const ANTHROPIC_MESSAGES_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -249,6 +250,7 @@ function formatPriorEvaluationBlock(prior: ChatProPriorEvaluation) {
     `- Avaliado em: ${stamp}`,
     `- Até messageId: ${prior.lastMessageId ?? '—'} (${prior.messageCount} msgs)`,
     `- Stage anterior: ${result.stage}`,
+    `- Desvio para outro número: ${result.divertedToPhone ?? 'não'}`,
     `- Intent/deal anteriores: ${result.intentScore}/${result.dealLikelihood}`,
     `- Contrato detectado antes: ${result.contractDetected ? 'sim' : 'não'}`,
     `- Valor mensal anterior: ${result.estimatedMonthlyValueBrl ?? 'null'}`,
@@ -336,11 +338,16 @@ const ROI_ANALYSIS_GUIDANCE = [
   '- "resolveu/resolvi de outra forma", "não preciso mais" ou contratação de outro fornecedor significam closed_lost e suggestedStatus lost.',
   '- Agradecimento ou encerramento cordial não transforma uma solução externa em venda. "Muito obrigado" após "resolveu de outra forma" continua sendo perda.',
   '- Não confunda transferência de contato com transferência do negócio. Só marque ganho quando houver evidência de locação com a Acesso Equipamentos.',
+  'Desvio para outro WhatsApp ou telefone comercial (este chat de campanha para de atender):',
+  '- Se o vendedor pedir para continuar em outro número (desviar, encaminhar, "chama no", wa.me, número do comercial), stage = diverted.',
+  '- divertedToPhone é o número citado, no formato (31) 99470-0201. Null se não houver desvio.',
+  '- diverted não é ganho nem perdido: o lead saiu deste chat. suggestedStatus = contacted.',
+  '- Se o cliente continuar negociando NESTE mesmo chat depois do número, não use diverted.',
   'Valores: estimatedMonthlyValueBrl somente quando aparecerem na conversa, NF, contrato ou anexo legível. Não invente.',
   'suggestedStatus espelha o CRM (new, contacted, quoted, won, lost) — é sugestão, não altera o sistema.',
   'Em summary, roiNotes e contractNotes escreva só em português claro para o comercial.',
-  'Nunca use códigos internos no texto livre (proposal_sent, contract_sent, closed_won, closed_lost, inquiry, negotiation, quoted, contacted, gclid, utm_campaign, suggestedStatus, etc.).',
-  'No texto livre diga "proposta enviada", "contrato enviado", "ganho", "perdido", "consulta", "negociação", "orçamento enviado", "clique pago do Google".',
+  'Nunca use códigos internos no texto livre (proposal_sent, contract_sent, closed_won, closed_lost, diverted, inquiry, negotiation, quoted, contacted, gclid, utm_campaign, suggestedStatus, etc.).',
+  'No texto livre diga "proposta enviada", "contrato enviado", "ganho", "perdido", "desviado", "consulta", "negociação", "orçamento enviado", "clique pago do Google".',
   'Contato: detectedContactName só se o cliente se identificar claramente (ex.: "meu nome é João Silva"). Não use o placeholder do CRM como nome real.',
   'detectedEmail só se um e-mail explícito aparecer na conversa. Nunca invente e-mail.',
 ].join('\n');
@@ -611,6 +618,7 @@ export async function evaluateChatProLeadWithClaude(
         'Quando houver contexto anterior da mesma conversa, atualize a partir dele e das mensagens novas.',
         'Menção clara de emissão/envio de NF pela empresa costuma indicar acordo fechado — trate como closed_won salvo contexto contrário.',
         'Extraia detectedContactName e detectedEmail apenas com evidência explícita na conversa; caso contrário null.',
+        'Se o vendedor desviar o lead para outro WhatsApp ou telefone comercial, use stage diverted e divertedToPhone com o número.',
         'Seja conservador em closed_lost e em valores; não marque closed_won só por perguntas sobre NF.',
       ].join(' '),
       messages: [{ role: 'user', content: contentBlocks }],
@@ -642,6 +650,9 @@ export async function evaluateChatProLeadWithClaude(
 
   const evaluation = ChatProRoiEvaluationSchema.parse(JSON.parse(text));
   return sanitizeChatProRoiEvaluationProse(
-    applyExplicitCustomerLossGuardrail(applyRoleGuardrails(evaluation, enrichedMessages), enrichedMessages),
+    applyExplicitCustomerLossGuardrail(
+      applyCommercialHandoffGuardrail(applyRoleGuardrails(evaluation, enrichedMessages), enrichedMessages),
+      enrichedMessages,
+    ),
   );
 }

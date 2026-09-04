@@ -407,7 +407,7 @@
     "meta_title": "Acesso fora da rede",
     "meta_description": "Esta área só pode ser acessada pela rede autorizada da Acesso Equipamentos.",
     "title": "Acesso disponível apenas na rede autorizada",
-    "message": "Se você trabalha na Acesso Equipamentos, avise o setor de tecnologia para liberar seu acesso."
+    "message": "Se você trabalha na Acesso Equipamentos, deixe o worker local ligado neste PC (ele autoriza o IP da internet) e recarregue. Se o IP mudou, avise o setor de tecnologia."
   },
   "SignIn": {
     "meta_title": "Entrar",
@@ -1082,6 +1082,8 @@
     "stage_closed_won": "Ganho",
     "stage_closed_lost": "Perdido",
     "stage_stalled": "Parado",
+    "stage_diverted": "Desviado",
+    "stage_diverted_with_phone": "Desviado {phone}",
     "stage_unknown": "Indefinido",
     "priority_low": "Baixa",
     "priority_medium": "Média",

@@ -12,7 +12,19 @@ export type DashboardRole = (typeof DASHBOARD_ROLES)[number];
 
 type DashboardAccessResult =
   | { ok: true; userId: string; role: DashboardRole; email: string }
-  | { ok: false; status: 401 | 403 };
+  | { ok: false; status: 401 | 403; reason?: 'unauthenticated' | 'forbidden_role' | 'network' };
+
+/**
+ * Path to send a denied dashboard visitor to, without bouncing sign-in ↔ leads.
+ */
+export function dashboardAccessFailurePath(
+  access: Extract<DashboardAccessResult, { ok: false }>,
+) {
+  if (access.reason === 'network') {
+    return '/network-restricted';
+  }
+  return access.status === 403 ? '/unauthorized' : '/sign-in';
+}
 
 /**
  * Ensures the request is from an authenticated dashboard user.
@@ -20,12 +32,12 @@ type DashboardAccessResult =
 export async function requireDashboardAccess(): Promise<DashboardAccessResult> {
   const requestHeaders = await headers();
   if (!await isDashboardTrustedNetworkRequest(requestHeaders)) {
-    return { ok: false, status: 401 };
+    return { ok: false, status: 403, reason: 'network' };
   }
 
   const session = await getDashboardSession();
   if (!session) {
-    return { ok: false, status: 401 };
+    return { ok: false, status: 401, reason: 'unauthenticated' };
   }
 
   return {
@@ -44,7 +56,7 @@ export function requireDashboardAccessFromRequest(
 ): DashboardAccessResult {
   const session = getDashboardSessionFromRequest(request);
   if (!session) {
-    return { ok: false, status: 401 };
+    return { ok: false, status: 401, reason: 'unauthenticated' };
   }
 
   return {
@@ -64,7 +76,7 @@ export async function requireAdminAccess(): Promise<DashboardAccessResult> {
     return access;
   }
   if (access.role !== 'admin') {
-    return { ok: false, status: 403 };
+    return { ok: false, status: 403, reason: 'forbidden_role' };
   }
   return access;
 }

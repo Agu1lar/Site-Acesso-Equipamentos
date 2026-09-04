@@ -16,6 +16,7 @@ function makeEval(
     dealLikelihood: 30,
     followUpPriority: 'medium',
     suggestedStatus: 'contacted',
+    divertedToPhone: null,
     contractDetected: false,
     estimatedMonthlyValueBrl: null,
     summary: 'resumo',

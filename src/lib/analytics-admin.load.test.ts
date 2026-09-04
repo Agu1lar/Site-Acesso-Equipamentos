@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getOperationalDashboard, probeAnalyticsDashboard } from '@/lib/analytics-admin';
+import {
+  countWhatsAppClicksForPeriod,
+  getOperationalDashboard,
+  probeAnalyticsDashboard,
+} from '@/lib/analytics-admin';
 import { parseAnalyticsDashboardFailure } from '@/lib/analytics-dashboard-errors';
 
 const hasDatabase = Boolean(process.env.DATABASE_URL?.trim());
@@ -45,5 +49,10 @@ describe.skipIf(!hasDatabase)('analytics dashboard load', () => {
     }
 
     expect(dashboard?.period.dateFrom).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('counts WhatsApp clicks without throwing', async () => {
+    const clicks = await countWhatsAppClicksForPeriod();
+    expect(clicks).toBeGreaterThanOrEqual(0);
   });
 });

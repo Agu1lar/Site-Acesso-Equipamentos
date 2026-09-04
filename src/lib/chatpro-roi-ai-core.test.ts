@@ -21,6 +21,7 @@ const sampleEvaluation = {
   suggestedStatus: 'quoted',
   detectedContactName: null,
   detectedEmail: null,
+  divertedToPhone: null,
   roiNotes: 'Lead quente com valor mensal informado; acompanhar envio de contrato.',
   followUpPriority: 'high',
 };

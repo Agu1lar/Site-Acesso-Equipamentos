@@ -22,6 +22,12 @@ describe('sanitizeChatProRoiProse', () => {
     );
   });
 
+  it('replaces diverted with desviado', () => {
+    expect(sanitizeChatProRoiProse('Lead diverted para o comercial.')).toBe(
+      'Lead desviado para o comercial.',
+    );
+  });
+
   it('sanitizes evaluation free-text fields together', () => {
     const result = sanitizeChatProRoiEvaluationProse({
       summary: 'Avançou de inquiry para negotiation.',

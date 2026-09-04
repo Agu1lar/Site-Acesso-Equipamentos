@@ -218,6 +218,10 @@ function readEvaluationResult(raw: Record<string, unknown> | null | undefined): 
       typeof raw.detectedEmail === 'string' && raw.detectedEmail.includes('@')
         ? raw.detectedEmail.trim().toLowerCase().slice(0, 320)
         : null,
+    divertedToPhone:
+      typeof raw.divertedToPhone === 'string' && raw.divertedToPhone.trim()
+        ? raw.divertedToPhone.trim().slice(0, 32)
+        : null,
     roiNotes: typeof raw.roiNotes === 'string' ? raw.roiNotes : '',
     followUpPriority: (
       raw.followUpPriority === 'low' || raw.followUpPriority === 'medium' || raw.followUpPriority === 'high'
