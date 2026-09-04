@@ -30,9 +30,8 @@ export default async function NetworkRestrictedPage(props: NetworkRestrictedPage
   });
 
   return (
-    <main className="mx-auto max-w-lg space-y-4 px-6 py-12 text-center">
+    <main className="mx-auto max-w-lg px-6 py-12 text-center">
       <h1 className="font-heading text-2xl font-bold text-neutral-900">{t('title')}</h1>
-      <p className="text-base leading-7 text-neutral-700">{t('message')}</p>
     </main>
   );
 }

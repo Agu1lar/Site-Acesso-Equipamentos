@@ -406,8 +406,7 @@
   "NetworkRestrictedPage": {
     "meta_title": "Acesso fora da rede",
     "meta_description": "Esta área só pode ser acessada pela rede autorizada da Acesso Equipamentos.",
-    "title": "Acesso disponível apenas na rede autorizada",
-    "message": "Se você trabalha na Acesso Equipamentos, deixe o worker local ligado neste PC (ele autoriza o IP da internet) e recarregue. Se o IP mudou, avise o setor de tecnologia."
+    "title": "Acesso disponível apenas na rede autorizada"
   },
   "SignIn": {
     "meta_title": "Entrar",
