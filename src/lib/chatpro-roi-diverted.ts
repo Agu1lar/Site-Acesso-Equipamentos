@@ -117,7 +117,7 @@ export function formatRoiStageLabel(options: {
 export function applyCommercialHandoffGuardrail(
   evaluation: ChatProRoiEvaluation,
   messages: RoiHandoffMessage[],
-) {
+): ChatProRoiEvaluation {
   const formattedFromModel = formatDivertedPhoneDisplay(evaluation.divertedToPhone);
   const handoff = latestSellerHandoff(messages);
 
@@ -144,13 +144,16 @@ export function applyCommercialHandoffGuardrail(
     };
   }
 
+  const suggestedStatus: ChatProRoiEvaluation['suggestedStatus'] =
+    evaluation.suggestedStatus === 'won' || evaluation.suggestedStatus === 'lost'
+      ? evaluation.suggestedStatus
+      : 'contacted';
+
   return {
     ...evaluation,
-    stage: 'diverted' as const,
+    stage: 'diverted',
     divertedToPhone: phone,
-    suggestedStatus: evaluation.suggestedStatus === 'won' || evaluation.suggestedStatus === 'lost'
-      ? evaluation.suggestedStatus
-      : 'contacted',
+    suggestedStatus,
     followUpPriority: evaluation.followUpPriority === 'high' ? 'medium' : evaluation.followUpPriority,
     summary: /desvi|encaminh|outro (whats|zap|n[uú]mero)/iu.test(evaluation.summary)
       ? evaluation.summary
