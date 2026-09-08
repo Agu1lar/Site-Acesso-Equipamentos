@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ArchiveStaleLeadsButton } from '@/components/admin/ArchiveStaleLeadsButton';
+import { AnalyticsTrafficWeekStrip } from '@/components/admin/AnalyticsTrafficWeekStrip';
 import { AnalyticsWhatsappWeekStrip } from '@/components/admin/AnalyticsWhatsappWeekStrip';
 import { CommercialQueueSection } from '@/components/admin/CommercialQueueSection';
 import { LeadsTable } from '@/components/admin/LeadsTable';
@@ -11,6 +12,7 @@ import { countWhatsAppClicksForPeriod } from '@/lib/analytics-admin';
 import { Button } from '@/components/ui/Button';
 import {
   buildContactOrderCounts,
+  countWeekLeadsByTrafficChannel,
   countWeekWhatsAppOpenedLeads,
   listCommercialQueue,
   listWeekOperationalLeads,
@@ -53,7 +55,7 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
 
   const weekRange = currentWeekRange();
 
-  const [queueResult, weekResult, staleLeads, weekWhatsAppClicks, weekWhatsAppOpened, archivableCount] =
+  const [queueResult, weekResult, staleLeads, weekWhatsAppClicks, weekWhatsAppOpened, weekTraffic, archivableCount] =
     await Promise.all([
     listCommercialQueue(),
     listWeekOperationalLeads(),
@@ -63,6 +65,7 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
       dateTo: weekRange.dateTo,
     }),
     countWeekWhatsAppOpenedLeads(),
+    countWeekLeadsByTrafficChannel(),
     countArchivableCommercialLeads(),
   ]);
   const contactOrderCounts = await buildContactOrderCounts(weekResult.leads);
@@ -85,6 +88,20 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
       />
 
       <ArchiveStaleLeadsButton pendingCount={archivableCount} />
+
+      <AnalyticsTrafficWeekStrip
+        direct={weekTraffic.direct}
+        directLabel={t('week_traffic_direct')}
+        hint={t('week_traffic_hint')}
+        organic={weekTraffic.organic}
+        organicLabel={t('week_traffic_organic')}
+        paid={weekTraffic.paid}
+        paidLabel={t('week_traffic_paid')}
+        title={t('week_traffic_title')}
+        total={weekTraffic.total}
+        totalLabel={t('week_traffic_total')}
+        weekLabel={weekLabel}
+      />
 
       <AnalyticsWhatsappWeekStrip
         clicks={weekWhatsAppClicks}

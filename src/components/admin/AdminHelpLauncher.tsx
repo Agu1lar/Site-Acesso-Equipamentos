@@ -89,6 +89,7 @@ export function AdminHelpLauncher(props: AdminHelpLauncherProps) {
         { title: t('leads_status_title'), body: t('leads_status_body') },
         { title: t('leads_export_title'), body: t('leads_export_body') },
         { title: t('leads_attribution_title'), body: t('leads_attribution_body') },
+        { title: t('leads_traffic_counters_title'), body: t('leads_traffic_counters_body') },
       ],
     },
     {

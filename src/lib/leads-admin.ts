@@ -12,10 +12,12 @@ import { formatLeadCartItems } from '@/lib/lead-cart';
 import type { LeadStatus } from '@/lib/lead-status';
 import { scoreLeadIntent } from '@/lib/lead-intent-score';
 import { currentWeekRange } from '@/lib/leads-date-presets';
+import { tallyTrafficChannels, type TrafficChannelCounts } from '@/lib/traffic-channel';
 import { db } from '@/libs/DB';
 import { leadsSchema } from '@/models/Schema';
 
 export { formatLeadCartItems, parseLeadCartItems } from '@/lib/lead-cart';
+export type { TrafficChannelCounts } from '@/lib/traffic-channel';
 
 export type LeadRecord = InferSelectModel<typeof leadsSchema>;
 
@@ -298,6 +300,29 @@ export async function listWeekOperationalLeads(
     total: countRow[0]?.count ?? 0,
     weekRange,
   };
+}
+
+/**
+ * Counts weekly operational leads split by paid, organic, and direct traffic.
+ */
+export async function countWeekLeadsByTrafficChannel(): Promise<TrafficChannelCounts> {
+  const weekRange = currentWeekRange();
+  const activityWhere = buildActivityDateWhere(weekRange.dateFrom, weekRange.dateTo);
+  const where = excludeArchivedWhere(activityWhere);
+
+  const rows = await db
+    .select({
+      utmSource: leadsSchema.utmSource,
+      utmMedium: leadsSchema.utmMedium,
+      gclid: leadsSchema.gclid,
+      gbraid: leadsSchema.gbraid,
+      wbraid: leadsSchema.wbraid,
+      referrer: leadsSchema.referrer,
+    })
+    .from(leadsSchema)
+    .where(where);
+
+  return tallyTrafficChannels(rows);
 }
 
 /**
