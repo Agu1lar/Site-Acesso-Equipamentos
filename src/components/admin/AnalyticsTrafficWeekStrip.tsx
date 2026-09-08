@@ -6,10 +6,12 @@ type AnalyticsTrafficWeekStripProps = {
   paidLabel: string;
   organicLabel: string;
   directLabel: string;
+  registeredLabel: string;
   total: number;
   paid: number;
   organic: number;
   direct: number;
+  registered: number;
 };
 
 /**
@@ -29,7 +31,7 @@ function ChannelStat(props: { value: number; label: string; tone: string }) {
 }
 
 /**
- * Weekly lead counters split by traffic channel on the operational dashboard.
+ * Weekly WhatsApp-click counters split by traffic channel on the operational dashboard.
  */
 export function AnalyticsTrafficWeekStrip(props: AnalyticsTrafficWeekStripProps) {
   return (
@@ -47,6 +49,7 @@ export function AnalyticsTrafficWeekStrip(props: AnalyticsTrafficWeekStripProps)
           <ChannelStat label={props.paidLabel} tone="text-primary" value={props.paid} />
           <ChannelStat label={props.organicLabel} tone="text-emerald-700" value={props.organic} />
           <ChannelStat label={props.directLabel} tone="text-neutral-700" value={props.direct} />
+          <ChannelStat label={props.registeredLabel} tone="text-sky-800" value={props.registered} />
         </div>
       </div>
     </div>

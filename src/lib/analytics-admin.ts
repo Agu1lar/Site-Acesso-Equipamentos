@@ -29,6 +29,7 @@ import {
 } from '@/lib/campaign-analytics';
 import { mergeEquipmentConversionRows } from '@/lib/equipment-conversion-analytics';
 import { resolveAnalyticsPeriod, resolveComparisonPeriod } from '@/lib/analytics-period';
+import { tallyTrafficChannels, type TrafficChannelCounts } from '@/lib/traffic-channel';
 import type {
   AnalyticsDashboardFilters,
   AnalyticsDashboardProbeResult,
@@ -47,6 +48,7 @@ export type {
 } from '@/lib/analytics-admin-types';
 
 export { percentChange } from '@/lib/analytics-percent';
+export type { TrafficChannelCounts } from '@/lib/traffic-channel';
 
 type CountRow = { label: string; count: number };
 
@@ -578,6 +580,48 @@ export async function countWhatsAppClicksForPeriod(filters: {
     );
   } catch {
     return 0;
+  }
+}
+
+/**
+ * Counts WhatsApp clicks in a date range split by paid, organic, and direct traffic.
+ */
+export async function countWhatsAppClicksByTrafficChannel(filters: {
+  dateFrom?: string;
+  dateTo?: string;
+} = {}): Promise<TrafficChannelCounts> {
+  const empty: TrafficChannelCounts = {
+    total: 0,
+    paid: 0,
+    organic: 0,
+    direct: 0,
+  };
+  const period = resolveAnalyticsPeriod(filters);
+
+  try {
+    return await withAnalyticsSchema(empty, async () => {
+      const rows = await db
+        .select({
+          utmSource: analyticsEventsSchema.utmSource,
+          utmMedium: analyticsEventsSchema.utmMedium,
+          gclid: analyticsEventsSchema.gclid,
+          gbraid: analyticsEventsSchema.gbraid,
+          wbraid: analyticsEventsSchema.wbraid,
+          referrer: analyticsEventsSchema.referrer,
+        })
+        .from(analyticsEventsSchema)
+        .where(
+          and(
+            eq(analyticsEventsSchema.eventType, 'whatsapp_click'),
+            gte(analyticsEventsSchema.createdAt, period.from),
+            lte(analyticsEventsSchema.createdAt, period.to),
+          ),
+        );
+
+      return tallyTrafficChannels(rows);
+    });
+  } catch {
+    return empty;
   }
 }
 

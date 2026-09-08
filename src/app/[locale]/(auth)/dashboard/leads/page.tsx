@@ -8,11 +8,10 @@ import { LeadsTable } from '@/components/admin/LeadsTable';
 import { StaleLeadsAlert } from '@/components/admin/StaleLeadsAlert';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { countArchivableCommercialLeads } from '@/lib/leads-auto-archive';
-import { countWhatsAppClicksForPeriod } from '@/lib/analytics-admin';
+import { countWhatsAppClicksByTrafficChannel, countWhatsAppClicksForPeriod } from '@/lib/analytics-admin';
 import { Button } from '@/components/ui/Button';
 import {
   buildContactOrderCounts,
-  countWeekLeadsByTrafficChannel,
   countWeekWhatsAppOpenedLeads,
   listCommercialQueue,
   listWeekOperationalLeads,
@@ -65,7 +64,10 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
       dateTo: weekRange.dateTo,
     }),
     countWeekWhatsAppOpenedLeads(),
-    countWeekLeadsByTrafficChannel(),
+    countWhatsAppClicksByTrafficChannel({
+      dateFrom: weekRange.dateFrom,
+      dateTo: weekRange.dateTo,
+    }),
     countArchivableCommercialLeads(),
   ]);
   const contactOrderCounts = await buildContactOrderCounts(weekResult.leads);
@@ -97,6 +99,8 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
         organicLabel={t('week_traffic_organic')}
         paid={weekTraffic.paid}
         paidLabel={t('week_traffic_paid')}
+        registered={weekResult.total}
+        registeredLabel={t('week_traffic_registered')}
         title={t('week_traffic_title')}
         total={weekTraffic.total}
         totalLabel={t('week_traffic_total')}
