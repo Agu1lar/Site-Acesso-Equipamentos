@@ -95,11 +95,7 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
         organicLabel={t('week_traffic_organic')}
         paid={weekTraffic.paid}
         paidLabel={t('week_traffic_paid')}
-        registered={weekResult.total}
-        registeredLabel={t('week_traffic_registered')}
         title={t('week_traffic_title')}
-        total={weekTraffic.total}
-        totalLabel={t('week_traffic_total')}
         weekLabel={weekLabel}
       />
 

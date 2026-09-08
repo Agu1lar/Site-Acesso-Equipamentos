@@ -2,16 +2,12 @@ type AnalyticsTrafficWeekStripProps = {
   weekLabel: string;
   title: string;
   hint: string;
-  totalLabel: string;
   paidLabel: string;
   organicLabel: string;
   directLabel: string;
-  registeredLabel: string;
-  total: number;
   paid: number;
   organic: number;
   direct: number;
-  registered: number;
 };
 
 /**
@@ -45,11 +41,9 @@ export function AnalyticsTrafficWeekStrip(props: AnalyticsTrafficWeekStripProps)
           <p className="mt-1 text-xs leading-snug text-neutral-500">{props.hint}</p>
         </div>
         <div className="flex flex-wrap items-end gap-5 sm:gap-8">
-          <ChannelStat label={props.totalLabel} tone="text-neutral-900" value={props.total} />
           <ChannelStat label={props.paidLabel} tone="text-primary" value={props.paid} />
           <ChannelStat label={props.organicLabel} tone="text-emerald-700" value={props.organic} />
           <ChannelStat label={props.directLabel} tone="text-neutral-700" value={props.direct} />
-          <ChannelStat label={props.registeredLabel} tone="text-sky-800" value={props.registered} />
         </div>
       </div>
     </div>
