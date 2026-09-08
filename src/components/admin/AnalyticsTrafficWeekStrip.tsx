@@ -27,7 +27,7 @@ function ChannelStat(props: { value: number; label: string; tone: string }) {
 }
 
 /**
- * Weekly WhatsApp-click counters split by traffic channel on the operational dashboard.
+ * WhatsApp-click counters split by traffic channel for a week or filtered period.
  */
 export function AnalyticsTrafficWeekStrip(props: AnalyticsTrafficWeekStripProps) {
   return (

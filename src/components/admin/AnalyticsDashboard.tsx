@@ -8,6 +8,7 @@ import { AnalyticsEquipmentConversionTable } from '@/components/admin/AnalyticsE
 import { AnalyticsMetricSection } from '@/components/admin/AnalyticsMetricSection';
 import { AnalyticsTopPagesTable } from '@/components/admin/AnalyticsTopPagesTable';
 import { AnalyticsWhatsappHero } from '@/components/admin/AnalyticsWhatsappHero';
+import { AnalyticsTrafficWeekStrip } from '@/components/admin/AnalyticsTrafficWeekStrip';
 import { CampaignPerformanceSection } from '@/components/admin/CampaignPerformanceSection';
 import { AdminCallout } from '@/components/admin/AdminCallout';
 import { AdminKpiCard } from '@/components/admin/AdminKpiCard';
@@ -44,6 +45,11 @@ export type AnalyticsDashboardLabels = {
   whatsapp_hero_empty_hint: string;
   whatsapp_hero_rate: string;
   whatsapp_hero_previous_period: string;
+  traffic_channel_title: string;
+  traffic_channel_hint: string;
+  traffic_channel_paid: string;
+  traffic_channel_organic: string;
+  traffic_channel_direct: string;
   hint_kpi_whatsapp: string;
   kpi_page_views: string;
   hint_kpi_page_views: string;
@@ -232,6 +238,20 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
                 : undefined
             }
             title={t.whatsapp_hero_title}
+          />
+
+          <AnalyticsTrafficWeekStrip
+            direct={d.whatsappTraffic.direct}
+            directLabel={t.traffic_channel_direct}
+            hint={t.traffic_channel_hint}
+            organic={d.whatsappTraffic.organic}
+            organicLabel={t.traffic_channel_organic}
+            paid={d.whatsappTraffic.paid}
+            paidLabel={t.traffic_channel_paid}
+            title={t.traffic_channel_title}
+            weekLabel={t.whatsapp_hero_period
+              .replace('{from}', d.period.dateFrom)
+              .replace('{to}', d.period.dateTo)}
           />
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -443,6 +463,20 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
 
       {activeSection === 'trafego' ? (
         <div className="space-y-6">
+          <AnalyticsTrafficWeekStrip
+            direct={d.whatsappTraffic.direct}
+            directLabel={t.traffic_channel_direct}
+            hint={t.traffic_channel_hint}
+            organic={d.whatsappTraffic.organic}
+            organicLabel={t.traffic_channel_organic}
+            paid={d.whatsappTraffic.paid}
+            paidLabel={t.traffic_channel_paid}
+            title={t.traffic_channel_title}
+            weekLabel={t.whatsapp_hero_period
+              .replace('{from}', d.period.dateFrom)
+              .replace('{to}', d.period.dateTo)}
+          />
+
           <CampaignPerformanceSection
             campaigns={d.campaignPerformance}
             dailyLeads={d.campaignDailyLeads}

@@ -29,7 +29,7 @@ import {
 } from '@/lib/campaign-analytics';
 import { mergeEquipmentConversionRows } from '@/lib/equipment-conversion-analytics';
 import { resolveAnalyticsPeriod, resolveComparisonPeriod } from '@/lib/analytics-period';
-import { tallyTrafficChannels, type TrafficChannelCounts } from '@/lib/traffic-channel';
+import { tallyTrafficChannels, EMPTY_TRAFFIC_CHANNEL_COUNTS, type TrafficChannelCounts } from '@/lib/traffic-channel';
 import { collapseDuplicateWhatsAppClicks } from '@/lib/whatsapp-click-idempotency';
 import type {
   AnalyticsDashboardFilters,
@@ -624,21 +624,15 @@ export async function countWhatsAppClicksByTrafficChannel(filters: {
   dateFrom?: string;
   dateTo?: string;
 } = {}): Promise<TrafficChannelCounts> {
-  const empty: TrafficChannelCounts = {
-    total: 0,
-    paid: 0,
-    organic: 0,
-    direct: 0,
-  };
   const period = resolveAnalyticsPeriod(filters);
 
   try {
-    return await withAnalyticsSchema(empty, async () => {
+    return await withAnalyticsSchema(EMPTY_TRAFFIC_CHANNEL_COUNTS, async () => {
       const rows = await listWhatsAppClicksForPeriod(period.from, period.to);
       return tallyTrafficChannels(collapseDuplicateWhatsAppClicks(rows));
     });
   } catch {
-    return empty;
+    return EMPTY_TRAFFIC_CHANNEL_COUNTS;
   }
 }
 
@@ -679,6 +673,7 @@ function buildEmptyOperationalDashboard(
     totalActiveSecondsPrevious: 0,
     whatsappClicks: 0,
     whatsappClicksWithConsent: 0,
+    whatsappTraffic: EMPTY_TRAFFIC_CHANNEL_COUNTS,
     quoteSubmits: 0,
     cookieConsentLeads: 0,
     whatsappClicksPrevious: 0,
@@ -741,6 +736,7 @@ async function loadOperationalDashboard(
     engagementPrevious,
     whatsappClicks,
     whatsappClicksWithConsent,
+    whatsappTraffic,
     quoteSubmits,
     cookieConsentLeads,
     whatsappClicksPrevious,
@@ -786,6 +782,12 @@ async function loadOperationalDashboard(
     ),
     runAnalyticsDashboardStep('whatsapp_consent_current', 'WhatsApp com cookie analytics', () =>
       withAnalyticsSchema(0, () => countWhatsAppWithAnalyticsConsent(period.from, period.to)),
+    ),
+    runAnalyticsDashboardStep('whatsapp_traffic_channels', 'Cliques WhatsApp tráfego, orgânico e direto', () =>
+      countWhatsAppClicksByTrafficChannel({
+        dateFrom: period.dateFrom,
+        dateTo: period.dateTo,
+      }),
     ),
     runAnalyticsDashboardStep('quote_submits_current', 'Leads de orçamento (período)', () =>
       withAnalyticsSchema(0, () => countEvents('quote_submit', period.from, period.to)),
@@ -891,6 +893,7 @@ async function loadOperationalDashboard(
     totalActiveSecondsPrevious: engagementPrevious.totalActiveSeconds,
     whatsappClicks,
     whatsappClicksWithConsent,
+    whatsappTraffic,
     quoteSubmits,
     cookieConsentLeads,
     whatsappClicksPrevious,
@@ -968,6 +971,15 @@ export async function probeAnalyticsDashboard(
       id: 'whatsapp_current',
       label: 'Tabela analytics_events — WhatsApp',
       run: () => countUniqueWhatsAppClicks(period.from, period.to),
+    },
+    {
+      id: 'whatsapp_traffic_channels',
+      label: 'Tabela analytics_events — WhatsApp por origem',
+      run: () =>
+        countWhatsAppClicksByTrafficChannel({
+          dateFrom: period.dateFrom,
+          dateTo: period.dateTo,
+        }),
     },
     {
       id: 'cookie_consent_leads',

@@ -96,6 +96,11 @@ async function buildDashboardLabels(
     whatsapp_hero_previous_period: t('whatsapp_hero_previous_period', {
       count: dashboard.whatsappClicksPrevious,
     }),
+    traffic_channel_title: t('traffic_channel_title'),
+    traffic_channel_hint: t('traffic_channel_hint'),
+    traffic_channel_paid: t('traffic_channel_paid'),
+    traffic_channel_organic: t('traffic_channel_organic'),
+    traffic_channel_direct: t('traffic_channel_direct'),
     hint_kpi_whatsapp: t('hint_kpi_whatsapp'),
     kpi_page_views: t('kpi_page_views'),
     hint_kpi_page_views: t('hint_kpi_page_views'),

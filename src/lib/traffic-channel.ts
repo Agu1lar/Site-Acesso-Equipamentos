@@ -105,8 +105,15 @@ export type TrafficChannelCounts = {
   direct: number;
 };
 
+export const EMPTY_TRAFFIC_CHANNEL_COUNTS: TrafficChannelCounts = {
+  total: 0,
+  paid: 0,
+  organic: 0,
+  direct: 0,
+};
+
 /**
- * Tallies classified rows into geral / tráfego / orgânico / direto.
+ * Tallies classified rows into tráfego, orgânico, and direto.
  */
 export function tallyTrafficChannels(rows: TrafficChannelInput[]): TrafficChannelCounts {
   const counts: TrafficChannelCounts = {

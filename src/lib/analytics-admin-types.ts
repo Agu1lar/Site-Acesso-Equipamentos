@@ -8,6 +8,7 @@ import type {
   CampaignPerformanceRow,
 } from '@/lib/campaign-analytics';
 import type { EquipmentConversionRow } from '@/lib/equipment-conversion-analytics';
+import type { TrafficChannelCounts } from '@/lib/traffic-channel';
 
 export type AnalyticsDashboardFilters = {
   dateFrom?: string;
@@ -42,6 +43,7 @@ export type OperationalDashboard = {
   whatsappClicks: number;
   /** WhatsApp clicks with analytics cookies accepted (eligible for Google Ads). */
   whatsappClicksWithConsent: number;
+  whatsappTraffic: TrafficChannelCounts;
   quoteSubmits: number;
   cookieConsentLeads: number;
   whatsappClicksPrevious: number;
