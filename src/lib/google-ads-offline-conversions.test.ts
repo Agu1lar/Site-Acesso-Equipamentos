@@ -99,7 +99,7 @@ describe('google ads offline conversions', () => {
       conversionDateTime: '2026-08-21 14:13:00+00:00',
       conversionValue: 1,
       currencyCode: 'BRL',
-      orderId: 'wa-42',
+      orderId: 'wa-gclid-gclid-123',
       gclid: 'gclid-123',
     });
     expect(dbState.updates[0]).toMatchObject({ status: 'uploaded' });
@@ -122,7 +122,7 @@ describe('google ads offline conversions', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('deduplicates by analytics event order id', async () => {
+  it('deduplicates by click id order id', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce({
         ok: true,
@@ -143,7 +143,7 @@ describe('google ads offline conversions', () => {
       attribution: { gclid: 'gclid-123' },
     });
     const second = await uploadGoogleAdsOfflineClickConversion({
-      analyticsEventId: 42,
+      analyticsEventId: 99,
       attribution: { gclid: 'gclid-123' },
     });
 

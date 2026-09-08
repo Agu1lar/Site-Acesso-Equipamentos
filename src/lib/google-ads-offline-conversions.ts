@@ -180,7 +180,7 @@ export async function uploadGoogleAdsOfflineClickConversion(
     return { uploaded: false, reason: 'not_configured' };
   }
 
-  const orderId = `wa-${input.analyticsEventId}`;
+  const orderId = `wa-${clickId.type}-${clickId.value}`;
   const conversion = buildClickConversion({
     conversionAction,
     conversionDate: input.conversionDate ?? new Date(),

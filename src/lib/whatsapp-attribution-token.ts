@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { randomBytes } from 'node:crypto';
-import { and, eq, gt, isNull } from 'drizzle-orm';
+import { and, desc, eq, gt, isNull, sql } from 'drizzle-orm';
 import type { AttributionInput } from '@/lib/attribution';
 import { findLeadIdForChatProPhone, loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
 import {
@@ -17,6 +17,7 @@ import {
   attributionQualifiesForWhatsAppBridge,
   extractWhatsAppAttributionRefCode,
 } from '@/lib/whatsapp-attribution-bridge';
+import { WHATSAPP_CLICK_DEDUP_WINDOW_MS } from '@/lib/whatsapp-click-idempotency';
 import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { leadsSchema, whatsappAttributionTokensSchema } from '@/models/Schema';
@@ -87,6 +88,42 @@ function tokenRowToAttributionFields(row: typeof whatsappAttributionTokensSchema
   };
 }
 
+function tokenClickId(attribution: AttributionInput) {
+  return attribution.gclid?.trim() || attribution.gbraid?.trim() || attribution.wbraid?.trim() || '';
+}
+
+/**
+ * Returns an unclaimed campaign ref minted for the same click inside the dedup window.
+ */
+async function findRecentUnclaimedWhatsAppAttributionToken(input: MintWhatsAppAttributionTokenInput) {
+  const attribution = input.attribution;
+  if (!attribution) {
+    return null;
+  }
+
+  const since = new Date(Date.now() - WHATSAPP_CLICK_DEDUP_WINDOW_MS);
+  const clickId = tokenClickId(attribution);
+
+  const [row] = await db
+    .select({ token: whatsappAttributionTokensSchema.token })
+    .from(whatsappAttributionTokensSchema)
+    .where(
+      and(
+        sql`coalesce(trim(${whatsappAttributionTokensSchema.origin}), '') = ${input.origin.trim()}`,
+        isNull(whatsappAttributionTokensSchema.claimedAt),
+        gt(whatsappAttributionTokensSchema.expiresAt, new Date()),
+        gt(whatsappAttributionTokensSchema.createdAt, since),
+        sql`coalesce(trim(${whatsappAttributionTokensSchema.equipmentSlug}), '') = ${input.equipmentSlug?.trim() ?? ''}`,
+        sql`coalesce(trim(${whatsappAttributionTokensSchema.pathname}), '') = ${input.pathname?.trim() ?? ''}`,
+        sql`coalesce(nullif(trim(${whatsappAttributionTokensSchema.gclid}), ''), nullif(trim(${whatsappAttributionTokensSchema.gbraid}), ''), nullif(trim(${whatsappAttributionTokensSchema.wbraid}), ''), '') = ${clickId}`,
+      ),
+    )
+    .orderBy(desc(whatsappAttributionTokensSchema.createdAt))
+    .limit(1);
+
+  return row?.token ?? null;
+}
+
 /**
  * Stores a short-lived ref code for a campaign WhatsApp click.
  * @param input Click context and attribution from the browser.
@@ -95,6 +132,11 @@ export async function mintWhatsAppAttributionToken(input: MintWhatsAppAttributio
   const attribution = input.attribution;
   if (!attribution || !attributionQualifiesForWhatsAppBridge(attribution)) {
     return null;
+  }
+
+  const existing = await findRecentUnclaimedWhatsAppAttributionToken(input);
+  if (existing) {
+    return existing;
   }
 
   const expiresAt = new Date();

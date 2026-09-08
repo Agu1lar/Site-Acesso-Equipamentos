@@ -97,7 +97,7 @@
     "meta_description": "Demandes de devis envoyées depuis le site.",
     "title": "Leads de devis",
     "week_traffic_title": "Clics par origine",
-    "week_traffic_hint": "Général, trafic, organique et direct sont des clics WhatsApp. Enregistrement est qui est entré dans la liste de la semaine — chaque clic ne devient pas un lead.",
+    "week_traffic_hint": "Général, trafic, organique et direct sont des clics WhatsApp. Un appui répété sur le même bouton en quelques secondes compte une fois. Enregistrement est qui est entré dans la liste de la semaine — chaque clic ne devient pas un lead.",
     "week_traffic_total": "Général",
     "week_traffic_paid": "Trafic",
     "week_traffic_organic": "Organique",

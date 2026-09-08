@@ -33,7 +33,7 @@ export const POST = async (request: Request) => {
 
     let refCode: string | null = null;
     if (data.eventType === 'whatsapp_click') {
-      if (event?.id) {
+      if (event?.id && !event.reused) {
         await uploadGoogleAdsOfflineClickConversion({
           analyticsEventId: event.id,
           attribution: data.attribution,

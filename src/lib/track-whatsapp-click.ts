@@ -1,6 +1,5 @@
-import { readStoredAttribution } from '@/lib/attribution';
 import type { AttributionInput } from '@/lib/attribution';
-import { pickEssentialCampaignAttribution } from '@/lib/attribution';
+import { pickEssentialCampaignAttribution, readStoredAttribution } from '@/lib/attribution';
 import { readStoredVisitorGeo } from '@/lib/visitor-geo';
 import type { VisitorGeoInput } from '@/lib/visitor-geo';
 import {
@@ -12,7 +11,12 @@ import {
 } from '@/lib/google-analytics';
 import { fireAdsContactConversion } from '@/lib/ads-contact-conversion';
 import { captureWhatsAppClick, type WhatsAppClickInput } from '@/lib/posthog-events';
-import { appendWhatsAppAttributionRefToUrl } from '@/lib/whatsapp-attribution-bridge';
+import {
+  appendWhatsAppAttributionRefToUrl,
+} from '@/lib/whatsapp-attribution-bridge';
+import {
+  isWithinWhatsAppClickDedupWindow,
+} from '@/lib/whatsapp-click-idempotency';
 
 /**
  * Detects mobile vs desktop for analytics device breakdown.
@@ -81,6 +85,25 @@ export function buildWhatsAppClickAnalyticsPayload(options: {
   };
 }
 
+function currentPathname() {
+  return typeof window === 'undefined' ? '/' : window.location.pathname;
+}
+
+function trackDedupKey(input: WhatsAppClickInput) {
+  return `${input.origin}|${input.equipmentSlug?.trim() ?? ''}|${currentPathname()}`;
+}
+
+const recentTracks = new Map<string, { at: number; promise: Promise<string | null> }>();
+const inflightOpens = new Map<string, Promise<void>>();
+
+function pruneExpiredTracks(now = Date.now()) {
+  for (const [key, entry] of recentTracks) {
+    if (!isWithinWhatsAppClickDedupWindow(entry.at, now)) {
+      recentTracks.delete(key);
+    }
+  }
+}
+
 function buildWhatsAppClickRequestBody(input: WhatsAppClickInput) {
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
   const attribution = readStoredAttribution();
@@ -89,7 +112,7 @@ function buildWhatsAppClickRequestBody(input: WhatsAppClickInput) {
     origin: input.origin,
     equipmentSlug: input.equipmentSlug,
     equipmentName: input.equipmentName,
-    pathname: typeof window === 'undefined' ? '/' : window.location.pathname,
+    pathname: currentPathname(),
     device: detectDevice(),
     analyticsConsent,
     attribution,
@@ -102,6 +125,22 @@ function buildWhatsAppClickRequestBody(input: WhatsAppClickInput) {
  * @param input PostHog origin and optional equipment context.
  */
 export async function trackWhatsAppClickWithRef(input: WhatsAppClickInput) {
+  pruneExpiredTracks();
+  const key = trackDedupKey(input);
+  const cached = recentTracks.get(key);
+  if (cached && isWithinWhatsAppClickDedupWindow(cached.at)) {
+    return cached.promise;
+  }
+
+  const promise = sendWhatsAppClickAnalytics(input);
+  recentTracks.set(key, { at: Date.now(), promise });
+  return promise;
+}
+
+/**
+ * Sends one WhatsApp click to Ads, analytics, and Neon.
+ */
+async function sendWhatsAppClickAnalytics(input: WhatsAppClickInput) {
   syncGoogleAnalyticsConsentFromStorage();
   preparePaidSearchAdsConversion();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
@@ -154,9 +193,25 @@ export async function trackWhatsAppClickWithRef(input: WhatsAppClickInput) {
  * @param input Analytics origin context.
  */
 export async function openTrackedWhatsApp(href: string, input: WhatsAppClickInput) {
-  const refCode = await trackWhatsAppClickWithRef(input);
-  const target = refCode ? appendWhatsAppAttributionRefToUrl(href, refCode) : href;
-  window.open(target, '_blank', 'noopener,noreferrer');
+  const key = trackDedupKey(input);
+  const inflight = inflightOpens.get(key);
+  if (inflight) {
+    await inflight;
+    return;
+  }
+
+  const run = (async () => {
+    const refCode = await trackWhatsAppClickWithRef(input);
+    const target = refCode ? appendWhatsAppAttributionRefToUrl(href, refCode) : href;
+    window.open(target, '_blank', 'noopener,noreferrer');
+  })();
+
+  inflightOpens.set(key, run);
+  try {
+    await run;
+  } finally {
+    inflightOpens.delete(key);
+  }
 }
 
 /**

@@ -30,6 +30,7 @@ import {
 import { mergeEquipmentConversionRows } from '@/lib/equipment-conversion-analytics';
 import { resolveAnalyticsPeriod, resolveComparisonPeriod } from '@/lib/analytics-period';
 import { tallyTrafficChannels, type TrafficChannelCounts } from '@/lib/traffic-channel';
+import { collapseDuplicateWhatsAppClicks } from '@/lib/whatsapp-click-idempotency';
 import type {
   AnalyticsDashboardFilters,
   AnalyticsDashboardProbeResult,
@@ -566,7 +567,42 @@ async function countLeadReplyFunnel(from: Date, to: Date): Promise<LeadReplyFunn
 }
 
 /**
- * Counts WhatsApp click events in a date range. Returns 0 if analytics is unavailable.
+ * Loads WhatsApp click rows used by the weekly click counters.
+ */
+async function listWhatsAppClicksForPeriod(from: Date, to: Date) {
+  return db
+    .select({
+      createdAt: analyticsEventsSchema.createdAt,
+      origin: analyticsEventsSchema.origin,
+      equipmentSlug: analyticsEventsSchema.equipmentSlug,
+      pathname: analyticsEventsSchema.pathname,
+      utmSource: analyticsEventsSchema.utmSource,
+      utmMedium: analyticsEventsSchema.utmMedium,
+      gclid: analyticsEventsSchema.gclid,
+      gbraid: analyticsEventsSchema.gbraid,
+      wbraid: analyticsEventsSchema.wbraid,
+      referrer: analyticsEventsSchema.referrer,
+    })
+    .from(analyticsEventsSchema)
+    .where(
+      and(
+        eq(analyticsEventsSchema.eventType, 'whatsapp_click'),
+        gte(analyticsEventsSchema.createdAt, from),
+        lte(analyticsEventsSchema.createdAt, to),
+      ),
+    );
+}
+
+/**
+ * Counts unique WhatsApp clicks, collapsing duplicate taps inside the 10s window.
+ */
+async function countUniqueWhatsAppClicks(from: Date, to: Date) {
+  const rows = await listWhatsAppClicksForPeriod(from, to);
+  return collapseDuplicateWhatsAppClicks(rows).length;
+}
+
+/**
+ * Counts unique WhatsApp clicks in a date range. Duplicate taps within 10s count once.
  */
 export async function countWhatsAppClicksForPeriod(filters: {
   dateFrom?: string;
@@ -575,9 +611,7 @@ export async function countWhatsAppClicksForPeriod(filters: {
   const period = resolveAnalyticsPeriod(filters);
 
   try {
-    return await withAnalyticsSchema(0, () =>
-      countEvents('whatsapp_click', period.from, period.to),
-    );
+    return await withAnalyticsSchema(0, () => countUniqueWhatsAppClicks(period.from, period.to));
   } catch {
     return 0;
   }
@@ -600,25 +634,8 @@ export async function countWhatsAppClicksByTrafficChannel(filters: {
 
   try {
     return await withAnalyticsSchema(empty, async () => {
-      const rows = await db
-        .select({
-          utmSource: analyticsEventsSchema.utmSource,
-          utmMedium: analyticsEventsSchema.utmMedium,
-          gclid: analyticsEventsSchema.gclid,
-          gbraid: analyticsEventsSchema.gbraid,
-          wbraid: analyticsEventsSchema.wbraid,
-          referrer: analyticsEventsSchema.referrer,
-        })
-        .from(analyticsEventsSchema)
-        .where(
-          and(
-            eq(analyticsEventsSchema.eventType, 'whatsapp_click'),
-            gte(analyticsEventsSchema.createdAt, period.from),
-            lte(analyticsEventsSchema.createdAt, period.to),
-          ),
-        );
-
-      return tallyTrafficChannels(rows);
+      const rows = await listWhatsAppClicksForPeriod(period.from, period.to);
+      return tallyTrafficChannels(collapseDuplicateWhatsAppClicks(rows));
     });
   } catch {
     return empty;
@@ -765,7 +782,7 @@ async function loadOperationalDashboard(
       pageEngagementSummary(comparison.from, comparison.to),
     ),
     runAnalyticsDashboardStep('whatsapp_current', 'Cliques WhatsApp (período)', () =>
-      withAnalyticsSchema(0, () => countEvents('whatsapp_click', period.from, period.to)),
+      withAnalyticsSchema(0, () => countUniqueWhatsAppClicks(period.from, period.to)),
     ),
     runAnalyticsDashboardStep('whatsapp_consent_current', 'WhatsApp com cookie analytics', () =>
       withAnalyticsSchema(0, () => countWhatsAppWithAnalyticsConsent(period.from, period.to)),
@@ -777,7 +794,7 @@ async function loadOperationalDashboard(
       countCookieConsentLeads(period.from, period.to),
     ),
     runAnalyticsDashboardStep('whatsapp_previous', 'Cliques WhatsApp (período anterior)', () =>
-      withAnalyticsSchema(0, () => countEvents('whatsapp_click', comparison.from, comparison.to)),
+      withAnalyticsSchema(0, () => countUniqueWhatsAppClicks(comparison.from, comparison.to)),
     ),
     runAnalyticsDashboardStep('quote_submits_previous', 'Leads de orçamento (período anterior)', () =>
       withAnalyticsSchema(0, () => countEvents('quote_submit', comparison.from, comparison.to)),
@@ -950,7 +967,7 @@ export async function probeAnalyticsDashboard(
     {
       id: 'whatsapp_current',
       label: 'Tabela analytics_events — WhatsApp',
-      run: () => countEvents('whatsapp_click', period.from, period.to),
+      run: () => countUniqueWhatsAppClicks(period.from, period.to),
     },
     {
       id: 'cookie_consent_leads',

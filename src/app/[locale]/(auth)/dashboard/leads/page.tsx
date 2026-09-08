@@ -8,7 +8,7 @@ import { LeadsTable } from '@/components/admin/LeadsTable';
 import { StaleLeadsAlert } from '@/components/admin/StaleLeadsAlert';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { countArchivableCommercialLeads } from '@/lib/leads-auto-archive';
-import { countWhatsAppClicksByTrafficChannel, countWhatsAppClicksForPeriod } from '@/lib/analytics-admin';
+import { countWhatsAppClicksByTrafficChannel } from '@/lib/analytics-admin';
 import { Button } from '@/components/ui/Button';
 import {
   buildContactOrderCounts,
@@ -54,15 +54,11 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
 
   const weekRange = currentWeekRange();
 
-  const [queueResult, weekResult, staleLeads, weekWhatsAppClicks, weekWhatsAppOpened, weekTraffic, archivableCount] =
+  const [queueResult, weekResult, staleLeads, weekWhatsAppOpened, weekTraffic, archivableCount] =
     await Promise.all([
     listCommercialQueue(),
     listWeekOperationalLeads(),
     listStaleNewLeads(),
-    countWhatsAppClicksForPeriod({
-      dateFrom: weekRange.dateFrom,
-      dateTo: weekRange.dateTo,
-    }),
     countWeekWhatsAppOpenedLeads(),
     countWhatsAppClicksByTrafficChannel({
       dateFrom: weekRange.dateFrom,
@@ -108,9 +104,9 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
       />
 
       <AnalyticsWhatsappWeekStrip
-        clicks={weekWhatsAppClicks}
+        clicks={weekTraffic.total}
         clicksLabel={tAnalytics('whatsapp_hero_clicks_label', {
-          count: weekWhatsAppClicks,
+          count: weekTraffic.total,
         })}
         detailHref="/dashboard/analytics"
         detailLabel={t('week_whatsapp_detail_link')}
