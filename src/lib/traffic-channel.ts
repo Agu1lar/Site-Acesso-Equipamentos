@@ -1,5 +1,11 @@
 export type TrafficChannel = 'paid' | 'organic' | 'direct';
 
+export const TRAFFIC_CHANNEL_LABELS_PT: Record<TrafficChannel, string> = {
+  paid: 'Paga',
+  organic: 'Orgânico',
+  direct: 'Direto',
+};
+
 export type TrafficChannelInput = {
   utmSource?: string | null;
   utmMedium?: string | null;
@@ -96,6 +102,36 @@ export function classifyTrafficChannel(input: TrafficChannelInput): TrafficChann
   }
 
   return 'direct';
+}
+
+/** Portuguese label for the admin Origem column (Paga / Orgânico / Direto). */
+export function formatTrafficChannelLabel(input: TrafficChannelInput) {
+  return TRAFFIC_CHANNEL_LABELS_PT[classifyTrafficChannel(input)];
+}
+
+export function trafficChannelMessageKey(channel: TrafficChannel) {
+  return `origin_channel_${channel}` as const;
+}
+
+/** Parses filter values such as paid, paga, organico, direto. */
+export function parseTrafficChannelParam(value: string | null | undefined): TrafficChannel | null {
+  const normalized = value
+    ?.trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '');
+
+  if (normalized === 'paid' || normalized === 'paga') {
+    return 'paid';
+  }
+  if (normalized === 'organic' || normalized === 'organico') {
+    return 'organic';
+  }
+  if (normalized === 'direct' || normalized === 'direto') {
+    return 'direct';
+  }
+
+  return null;
 }
 
 export type TrafficChannelCounts = {

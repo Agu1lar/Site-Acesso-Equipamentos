@@ -18,6 +18,7 @@ import { resolveLeadWhatsAppStatus } from '@/lib/lead-whatsapp-status';
 import { scoreLeadIntent } from '@/lib/lead-intent-score';
 import { formatDateTimeBrasilia } from '@/lib/app-datetime';
 import { formatLeadCartItems, getLeadById, listRelatedLeads, parseLeadCartItems } from '@/lib/leads-admin';
+import { classifyTrafficChannel, trafficChannelMessageKey } from '@/lib/traffic-channel';
 import { resolveAppLocale } from '@/utils/locale';
 
 type LeadDetailPageProps = {
@@ -173,7 +174,7 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
             </div>
             <div>
               <dt className="text-neutral-500">{t('field_origin')}</dt>
-              <dd>{lead.origin}</dd>
+              <dd>{t(trafficChannelMessageKey(classifyTrafficChannel(lead)))}</dd>
             </div>
             <div>
               <dt className="text-neutral-500">{t('col_kind')}</dt>

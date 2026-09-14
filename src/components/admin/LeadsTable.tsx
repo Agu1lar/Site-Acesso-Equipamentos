@@ -6,6 +6,7 @@ import { scoreLeadIntent } from '@/lib/lead-intent-score';
 import type { LeadRecord } from '@/lib/leads-admin';
 import { formatLeadCartItems } from '@/lib/leads-admin';
 import { leadActivityTimestamp } from '@/lib/lead-contact';
+import { classifyTrafficChannel, trafficChannelMessageKey } from '@/lib/traffic-channel';
 import { AdminCard } from '@/components/admin/AdminCard';
 import { AdminDragScroll } from '@/components/admin/AdminDragScroll';
 import { LeadPriorityBadge } from '@/components/admin/LeadPriorityBadge';
@@ -78,6 +79,14 @@ export async function LeadsTable(props: LeadsTableProps) {
                       : whatsappStatus === 'not_applicable'
                         ? t('whatsapp_status_not_applicable')
                         : t('whatsapp_status_unknown');
+              const originChannel = classifyTrafficChannel(lead);
+              const originLabel = t(trafficChannelMessageKey(originChannel));
+              const originClass =
+                originChannel === 'paid'
+                  ? 'bg-primary-light text-primary'
+                  : originChannel === 'organic'
+                    ? 'bg-emerald-50 text-emerald-800'
+                    : 'bg-neutral-100 text-neutral-700';
               return (
                 <tr className="group transition-colors hover:bg-neutral-50/80" key={lead.id}>
                   <td className="px-4 py-3 whitespace-nowrap text-neutral-600">
@@ -108,10 +117,9 @@ export async function LeadsTable(props: LeadsTableProps) {
                     <LeadWhatsAppBadge compact label={whatsappLabel} status={whatsappStatus} />
                   </td>
                   <td className="px-4 py-3 text-xs">
-                    <p className="text-neutral-700">{lead.origin}</p>
-                    {lead.utmSource ? (
-                      <p className="mt-0.5 text-neutral-500">utm: {lead.utmSource}</p>
-                    ) : null}
+                    <span className={`inline-flex rounded-full px-2 py-0.5 font-medium ${originClass}`}>
+                      {originLabel}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-xs text-neutral-600">{t(kindKey)}</td>
                   <td className="px-4 py-3">

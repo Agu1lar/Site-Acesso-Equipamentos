@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { classifyTrafficChannel, tallyTrafficChannels } from '@/lib/traffic-channel';
+import {
+  classifyTrafficChannel,
+  formatTrafficChannelLabel,
+  parseTrafficChannelParam,
+  tallyTrafficChannels,
+} from '@/lib/traffic-channel';
 
 describe('classifyTrafficChannel', () => {
   it('marks google ads click ids as paid', () => {
@@ -40,6 +45,23 @@ describe('classifyTrafficChannel', () => {
         gclid: 'Cjw',
       }),
     ).toBe('paid');
+  });
+});
+
+describe('formatTrafficChannelLabel', () => {
+  it('returns Portuguese channel names', () => {
+    expect(formatTrafficChannelLabel({ gclid: '1' })).toBe('Paga');
+    expect(formatTrafficChannelLabel({ utmSource: 'google' })).toBe('Orgânico');
+    expect(formatTrafficChannelLabel({})).toBe('Direto');
+  });
+});
+
+describe('parseTrafficChannelParam', () => {
+  it('accepts English and Portuguese values', () => {
+    expect(parseTrafficChannelParam('paga')).toBe('paid');
+    expect(parseTrafficChannelParam('Orgânico')).toBe('organic');
+    expect(parseTrafficChannelParam('direto')).toBe('direct');
+    expect(parseTrafficChannelParam('site-orcamento')).toBeNull();
   });
 });
 

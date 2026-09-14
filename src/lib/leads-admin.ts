@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, count, desc, eq, ilike, inArray, isNull, ne, or, sql } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray, isNull, ne, not, or, sql } from 'drizzle-orm';
 import { APP_TIMEZONE, formatDateTimeBrasiliaExport } from '@/lib/app-datetime';
 import {
   GOOGLE_ADS_NO_UTM_KEY,
@@ -12,6 +12,7 @@ import { formatLeadCartItems } from '@/lib/lead-cart';
 import type { LeadStatus } from '@/lib/lead-status';
 import { scoreLeadIntent } from '@/lib/lead-intent-score';
 import { currentWeekRange } from '@/lib/leads-date-presets';
+import { parseTrafficChannelParam, formatTrafficChannelLabel, type TrafficChannel } from '@/lib/traffic-channel';
 import { db } from '@/libs/DB';
 import { leadsSchema } from '@/models/Schema';
 
@@ -140,7 +141,12 @@ function buildWhere(filters: LeadListFilters) {
     conditions.push(ilike(leadsSchema.city, `%${filters.city.trim()}%`));
   }
   if (filters.origin?.trim()) {
-    conditions.push(ilike(leadsSchema.origin, `%${filters.origin.trim()}%`));
+    const channel = parseTrafficChannelParam(filters.origin);
+    if (channel) {
+      conditions.push(trafficChannelWhere(channel));
+    } else {
+      conditions.push(ilike(leadsSchema.origin, `%${filters.origin.trim()}%`));
+    }
   }
   if (filters.campaignKey?.trim()) {
     const campaignKey = filters.campaignKey.trim();
@@ -189,6 +195,39 @@ function buildWhere(filters: LeadListFilters) {
   }
 
   return conditions.length > 0 ? and(...conditions) : undefined;
+}
+
+function paidTrafficSql() {
+  return or(
+    sql`nullif(trim(coalesce(${leadsSchema.gclid}, '')), '') is not null`,
+    sql`nullif(trim(coalesce(${leadsSchema.gbraid}, '')), '') is not null`,
+    sql`nullif(trim(coalesce(${leadsSchema.wbraid}, '')), '') is not null`,
+    sql`lower(trim(coalesce(${leadsSchema.utmMedium}, ''))) in ('cpc', 'ppc', 'paid', 'cpm', 'display', 'paid_social', 'paid-social', 'paidsocial', 'shopping')`,
+    sql`position('paid' in lower(trim(coalesce(${leadsSchema.utmMedium}, '')))) > 0`,
+  )!;
+}
+
+function organicTrafficSql() {
+  return or(
+    sql`lower(trim(coalesce(${leadsSchema.utmMedium}, ''))) in ('organic', 'seo', 'referral', 'social')`,
+    sql`lower(trim(coalesce(${leadsSchema.utmSource}, ''))) in ('google', 'bing', 'yahoo', 'duckduckgo', 'ecosia', 'facebook', 'instagram', 'youtube')`,
+    and(
+      sql`lower(coalesce(${leadsSchema.referrer}, '')) similar to '%(google.|bing.|yahoo.|duckduckgo.|ecosia.|facebook.|instagram.|youtube.)%'`,
+      sql`position('acessoequipamentos.com' in lower(coalesce(${leadsSchema.referrer}, ''))) = 0`,
+    )!,
+  )!;
+}
+
+function trafficChannelWhere(channel: TrafficChannel) {
+  if (channel === 'paid') {
+    return paidTrafficSql();
+  }
+
+  if (channel === 'organic') {
+    return and(not(paidTrafficSql()), organicTrafficSql())!;
+  }
+
+  return and(not(paidTrafficSql()), not(organicTrafficSql()))!;
 }
 
 function buildActivityDateWhere(dateFrom: string, dateTo: string) {
@@ -509,7 +548,7 @@ function leadToCsvRow(lead: LeadRecord): LeadCsvRow {
     rentalPeriod: lead.rentalPeriod ?? '',
     equipmentName: lead.equipmentName ?? '',
     items: formatLeadCartItems(lead.itemsJson),
-    origin: lead.origin,
+    origin: formatTrafficChannelLabel(lead),
     leadKind: lead.leadKind,
     status: lead.status,
     message: lead.message ?? '',

@@ -73,6 +73,7 @@
   "exclude": [
     "node_modules",
     "chatpro-local",
+    "chatpro-playbook",
     "**/*.test.ts",
     "**/*.integ.ts",
     "**/*.e2e.ts",

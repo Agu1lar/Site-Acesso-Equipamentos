@@ -62,13 +62,22 @@ export async function LeadsFiltersForm(props: LeadsFiltersFormProps) {
           name="city"
           placeholder={t('filter_city_placeholder')}
         />
-        <Input
-          defaultValue={filters.origin ?? ''}
-          id="origin"
-          label={t('filter_origin')}
-          name="origin"
-          placeholder={t('filter_origin_placeholder')}
-        />
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-neutral-700" htmlFor="origin">
+            {t('filter_origin')}
+          </label>
+          <select
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            defaultValue={filters.origin ?? ''}
+            id="origin"
+            name="origin"
+          >
+            <option value="">{t('filter_all')}</option>
+            <option value="paid">{t('origin_channel_paid')}</option>
+            <option value="organic">{t('origin_channel_organic')}</option>
+            <option value="direct">{t('origin_channel_direct')}</option>
+          </select>
+        </div>
         <div>
           <label className="mb-1.5 block text-sm font-medium text-neutral-700" htmlFor="campaignKey">
             {t('filter_campaign')}
