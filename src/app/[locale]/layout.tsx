@@ -14,15 +14,17 @@ import '@/styles/global.css';
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-plus-jakarta',
-  display: 'swap',
+  display: 'optional',
   weight: ['600', '700'],
+  adjustFontFallback: true,
 });
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-  display: 'swap',
+  display: 'optional',
   weight: ['400', '500', '600'],
+  adjustFontFallback: true,
 });
 
 export const metadata: Metadata = withSiteOpenGraph({
