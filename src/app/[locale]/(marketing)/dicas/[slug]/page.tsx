@@ -84,7 +84,7 @@ export default async function DicaArticlePage(props: DicaArticlePageProps) {
       <JsonLd data={buildDicaArticleJsonLd(article)} />
       <article>
         <div className="border-b border-neutral-200 bg-[linear-gradient(180deg,#f8f7f5_0%,#ffffff_100%)]">
-          <div className="mx-auto max-w-3xl px-4 pt-8 pb-10 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-3xl px-4 pt-8 pb-10 sm:px-6 lg:max-w-4xl lg:px-8">
             <nav aria-label="Breadcrumb" className="text-sm text-neutral-600">
               <ol className="flex flex-wrap items-center gap-1">
                 <li>
@@ -144,7 +144,7 @@ export default async function DicaArticlePage(props: DicaArticlePageProps) {
           </div>
         ) : null}
 
-        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:max-w-4xl lg:px-8">
           <BlogArticleBody content={article.content} />
 
           {article.relatedLinks.length > 0 ? (

@@ -66,7 +66,7 @@ function inlineNodesToMarkup(nodes: JSONContent[] | undefined): string {
       continue;
     }
     let chunk = node.text;
-    const marks = [...(node.marks ?? [])].reverse();
+    const marks = (node.marks ?? []).toReversed();
     for (const mark of marks) {
       chunk = applyMarkToText(chunk, mark);
     }
@@ -97,8 +97,9 @@ function tiptapBlockToMarkup(node: JSONContent, images: BlogEditorImage[]): stri
         .map((paragraph, index) => `${index + 1}. ${inlineNodesToMarkup(paragraph.content)}`);
       return `[lista-numerada]\n${items.join('\n')}\n[/lista-numerada]`;
     }
-    case 'blockquote':
+    case 'blockquote': {
       return `[citacao]${inlineNodesToMarkup(node.content?.[0]?.content)}[/citacao]`;
+    }
     case 'image': {
       images.push({
         id: newImageId(),
@@ -124,8 +125,23 @@ function tiptapBlockToMarkup(node: JSONContent, images: BlogEditorImage[]): stri
       const attrs = extras.length ? ` url="${escapeAttr(href)}" ${extras.join(' ')}` : ` url="${escapeAttr(href)}"`;
       return `[botao${attrs}]${label}[/botao]`;
     }
-    default:
+    case 'table': {
+      const rows = (node.content ?? [])
+        .filter((row) => row.type === 'tableRow')
+        .map((row) => {
+          const cells = (row.content ?? [])
+            .filter((cell) => cell.type === 'tableHeader' || cell.type === 'tableCell')
+            .map((cell) => {
+              const paragraph = cell.content?.find((child) => child.type === 'paragraph');
+              return inlineNodesToMarkup(paragraph?.content).replace(/\|/g, '\\|');
+            });
+          return cells.join(' | ');
+        });
+      return `[tabela]\n${rows.join('\n')}\n[/tabela]`;
+    }
+    default: {
       return null;
+    }
   }
 }
 
@@ -174,7 +190,7 @@ function mergeAdjacentTextNodes(nodes: JSONContent[]): JSONContent[] {
       merged.push(node);
       continue;
     }
-    const prev = merged[merged.length - 1];
+    const prev = merged.at(-1);
     if (prev?.type === 'text' && JSON.stringify(prev.marks ?? []) === JSON.stringify(node.marks ?? [])) {
       prev.text = `${prev.text ?? ''}${node.text ?? ''}`;
       continue;
@@ -273,6 +289,53 @@ function parseListItems(body: string, ordered: boolean): JSONContent[] {
   });
 }
 
+/** Splits a table row on unescaped pipe separators. */
+function splitTableCells(line: string): string[] {
+  const cells: string[] = [];
+  let current = '';
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index]!;
+    if (char === '\\' && line[index + 1] === '|') {
+      current += '|';
+      index += 1;
+      continue;
+    }
+    if (char === '|') {
+      cells.push(current.trim());
+      current = '';
+      continue;
+    }
+    current += char;
+  }
+  cells.push(current.trim());
+  return cells;
+}
+
+function parseTableBlock(body: string): JSONContent | null {
+  const lines = body
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !/^[-|:\s]+$/.test(line));
+
+  if (!lines.length) {
+    return null;
+  }
+
+  const rows = lines.map((line, rowIndex) => {
+    const cells = splitTableCells(line);
+    const cellType = rowIndex === 0 ? 'tableHeader' : 'tableCell';
+    return {
+      type: 'tableRow',
+      content: cells.map((cell) => ({
+        type: cellType,
+        content: [paragraphNode(parseInlineMarkup(cell))],
+      })),
+    };
+  });
+
+  return { type: 'table', content: rows };
+}
+
 function parseWrappedBlock(
   markup: string,
   tag: string,
@@ -293,7 +356,7 @@ function parseWrappedBlock(
 }
 
 function findParagraphEnd(markup: string): number {
-  const nextBlock = markup.search(/\n\s*\[(h2|h3|citacao|lista|img\d+|video|botao)/i);
+  const nextBlock = markup.search(/\n\s*\[(h2|h3|citacao|lista|tabela|img\d+|video|botao)/i);
   if (nextBlock === -1) {
     return markup.length;
   }
@@ -395,6 +458,10 @@ export function parseBlogTagMarkup(markup: string, images: BlogEditorImage[]): J
           type: 'orderedList',
           content: parseListItems(inner, true),
         }),
+      },
+      {
+        tag: 'tabela',
+        build: (inner) => parseTableBlock(inner),
       },
     ];
 

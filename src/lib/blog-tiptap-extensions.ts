@@ -1,7 +1,8 @@
 import { mergeAttributes, Node } from '@tiptap/core';
-import Image from '@tiptap/extension-image';
-import Link from '@tiptap/extension-link';
-import StarterKit from '@tiptap/starter-kit';
+import TiptapImage from '@tiptap/extension-image';
+import TiptapLink from '@tiptap/extension-link';
+import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table';
+import TiptapStarterKit from '@tiptap/starter-kit';
 import type { VideoEmbedProvider } from '@/lib/blog-tiptap-video';
 
 const linkClass = 'text-primary underline underline-offset-2';
@@ -14,7 +15,7 @@ const fileVideoClass = 'w-full rounded-xl';
 /**
  * Blog link mark with optional download and new-tab behavior.
  */
-export const BlogLink = Link.extend({
+export const BlogLink = TiptapLink.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -162,7 +163,7 @@ const figureCaptionClass =
  * Inline article images rendered as figure + caption (alt text).
  * Uses object-contain so product/editorial photos are not cropped.
  */
-export const BlogImage = Image.extend({
+export const BlogImage = TiptapImage.extend({
   renderHTML({ HTMLAttributes }) {
     const alt = typeof HTMLAttributes.alt === 'string' ? HTMLAttributes.alt.trim() : '';
     const imgAttrs = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
@@ -191,9 +192,13 @@ export const BlogImage = Image.extend({
 /**
  * Shared TipTap extensions for blog editor and public HTML render.
  */
+const tableClass = 'blog-table w-full border-collapse text-left text-sm';
+const tableCellClass = 'border border-neutral-200 px-3 py-2 align-top';
+const tableHeaderClass = `${tableCellClass} bg-neutral-100 font-semibold text-neutral-900`;
+
 export function createBlogTiptapExtensions() {
   return [
-    StarterKit.configure({
+    TiptapStarterKit.configure({
       heading: { levels: [2, 3] },
       link: false,
     }),
@@ -203,6 +208,17 @@ export function createBlogTiptapExtensions() {
     }),
     BlogImage.configure({
       HTMLAttributes: {},
+    }),
+    Table.configure({
+      resizable: false,
+      HTMLAttributes: { class: tableClass },
+    }),
+    TableRow,
+    TableHeader.configure({
+      HTMLAttributes: { class: tableHeaderClass },
+    }),
+    TableCell.configure({
+      HTMLAttributes: { class: tableCellClass },
     }),
     VideoEmbed,
     CtaButton,

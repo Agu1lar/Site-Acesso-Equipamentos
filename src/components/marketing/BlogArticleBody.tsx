@@ -10,15 +10,17 @@ type BlogArticleBodyProps = {
 const proseClassName = [
   'prose prose-neutral max-w-none',
   'prose-headings:font-heading prose-headings:scroll-mt-28 prose-headings:text-neutral-900',
-  'prose-h2:mt-14 prose-h2:mb-4 prose-h2:border-b prose-h2:border-neutral-200 prose-h2:pb-3 prose-h2:text-2xl',
-  'prose-h3:mt-10 prose-h3:mb-3 prose-h3:text-xl',
-  'prose-p:text-neutral-700 prose-p:leading-relaxed prose-p:text-[1.05rem]',
+  'prose-h2:mt-14 prose-h2:mb-4 prose-h2:border-b prose-h2:border-neutral-200 prose-h2:pb-3 prose-h2:text-2xl prose-h2:tracking-tight',
+  'prose-h3:mt-10 prose-h3:mb-3 prose-h3:text-xl prose-h3:tracking-tight',
+  'prose-p:text-neutral-700 prose-p:leading-relaxed prose-p:text-[1.0625rem]',
   'prose-li:text-neutral-700 prose-li:leading-relaxed',
   'prose-ul:my-6 prose-ol:my-6',
+  'prose-strong:font-semibold prose-strong:text-neutral-900',
   'prose-a:text-primary prose-a:font-medium',
   'prose-blockquote:my-8 prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-neutral-50',
   'prose-blockquote:py-3 prose-blockquote:pr-4 prose-blockquote:pl-5 prose-blockquote:not-italic',
   'prose-blockquote:text-neutral-700',
+  'prose-hr:my-12 prose-hr:border-neutral-200',
 ].join(' ');
 
 const ctaClassName =
@@ -98,6 +100,73 @@ function BlogImageFigure(props: { src: string; alt: string; priority?: boolean }
   );
 }
 
+function cellInnerText(cell: JSONContent, key: string): ReactNode {
+  const paragraphs = (cell.content ?? []).filter((child) => child.type === 'paragraph');
+  if (!paragraphs.length) {
+    return renderInline(cell.content, key);
+  }
+  if (paragraphs.length === 1) {
+    return renderInline(paragraphs[0]?.content, key);
+  }
+  return paragraphs.map((paragraph, index) => (
+    <p className="mb-1 last:mb-0" key={`${key}-p-${index}`}>
+      {renderInline(paragraph.content, `${key}-p-${index}`)}
+    </p>
+  ));
+}
+
+function isHeaderRow(row: JSONContent) {
+  const cells = row.content ?? [];
+  return cells.length > 0 && cells.every((cell) => cell.type === 'tableHeader');
+}
+
+function renderTable(node: JSONContent, key: string): ReactNode {
+  const rows = (node.content ?? []).filter((row) => row.type === 'tableRow');
+  if (!rows.length) {
+    return null;
+  }
+
+  const headerRows = rows.filter(isHeaderRow);
+  const bodyRows = rows.filter((row) => !isHeaderRow(row));
+
+  const renderRow = (row: JSONContent, rowKey: string, asHeader: boolean) => (
+    <tr className="border-b border-neutral-200 last:border-b-0" key={rowKey}>
+      {(row.content ?? []).map((cell, cellIndex) => {
+        const cellKey = `${rowKey}-c-${cellIndex}`;
+        const Tag = asHeader || cell.type === 'tableHeader' ? 'th' : 'td';
+        return (
+          <Tag
+            className={
+              Tag === 'th'
+                ? 'bg-neutral-100 px-3.5 py-3 text-left text-xs font-semibold tracking-wide text-neutral-800 uppercase sm:text-sm sm:normal-case sm:tracking-normal'
+                : 'px-3.5 py-3 align-top text-neutral-700'
+            }
+            key={cellKey}
+            scope={Tag === 'th' ? 'col' : undefined}
+          >
+            {cellInnerText(cell, cellKey)}
+          </Tag>
+        );
+      })}
+    </tr>
+  );
+
+  return (
+    <div className="not-prose my-10 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm" key={key}>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[32rem] border-collapse text-left text-sm leading-snug">
+          {headerRows.length > 0 ? (
+            <thead>{headerRows.map((row, index) => renderRow(row, `${key}-h-${index}`, true))}</thead>
+          ) : null}
+          <tbody className="divide-y divide-neutral-100">
+            {bodyRows.map((row, index) => renderRow(row, `${key}-b-${index}`, false))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function renderNode(node: JSONContent, key: string, imageIndex: { current: number }): ReactNode {
   switch (node.type) {
     case 'paragraph': {
@@ -138,6 +207,9 @@ function renderNode(node: JSONContent, key: string, imageIndex: { current: numbe
           {(node.content ?? []).map((child, index) => renderNode(child, `${key}-bq-${index}`, imageIndex))}
         </blockquote>
       );
+    }
+    case 'table': {
+      return renderTable(node, key);
     }
     case 'image': {
       const src = typeof node.attrs?.src === 'string' ? node.attrs.src : '';

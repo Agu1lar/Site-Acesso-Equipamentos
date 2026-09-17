@@ -63,4 +63,19 @@ describe('blog-tag-markup', () => {
     expect(state.markup).toContain('[h2]Título[/h2]');
     expect(state.markup).toContain('[negrito]mundo[/negrito]');
   });
+
+  it('parses pipe tables into TipTap table nodes', () => {
+    const doc = parseBlogTagMarkup(
+      '[tabela]\nTipo | Arquitetura\nTesoura | Pressão + ângulo\nLança | Célula + posição\n[/tabela]',
+      [],
+    );
+    const table = doc.content?.find((node) => node.type === 'table');
+    expect(table?.content?.length).toBe(3);
+    expect(table?.content?.[0]?.content?.[0]?.type).toBe('tableHeader');
+    expect(table?.content?.[1]?.content?.[0]?.type).toBe('tableCell');
+
+    const roundTrip = tiptapDocToBlogTagMarkup(doc);
+    expect(roundTrip.markup).toContain('[tabela]');
+    expect(roundTrip.markup).toContain('Tesoura | Pressão + ângulo');
+  });
 });

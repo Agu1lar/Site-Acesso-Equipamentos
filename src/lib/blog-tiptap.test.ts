@@ -64,6 +64,49 @@ describe('render blog content html', () => {
     expect(html).toContain('href="/orcamento"');
   });
 
+  it('renders table blocks', () => {
+    const html = renderBlogContentHtml({
+      type: 'doc',
+      content: [
+        {
+          type: 'table',
+          content: [
+            {
+              type: 'tableRow',
+              content: [
+                {
+                  type: 'tableHeader',
+                  content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Tipo' }] }],
+                },
+                {
+                  type: 'tableHeader',
+                  content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Arquitetura' }] }],
+                },
+              ],
+            },
+            {
+              type: 'tableRow',
+              content: [
+                {
+                  type: 'tableCell',
+                  content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Tesoura' }] }],
+                },
+                {
+                  type: 'tableCell',
+                  content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Pressão + ângulo' }] }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(html).toContain('<table');
+    expect(html).toContain('Tesoura');
+    expect(html).toContain('Pressão + ângulo');
+  });
+
   it('renders images as figure with caption from alt', () => {
     const html = renderBlogContentHtml({
       type: 'doc',
@@ -79,7 +122,8 @@ describe('render blog content html', () => {
     });
 
     expect(html).toContain('<figure');
-    expect(html).toContain('aspect-[16/9]');
+    expect(html).toContain('object-contain');
+    expect(html).toContain('min-h-[12rem]');
     expect(html).toContain('src="/blog/exemplo.jpg"');
     expect(html).toContain('width="1600"');
     expect(html).toContain('height="900"');

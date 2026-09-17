@@ -317,6 +317,16 @@ export function BlogTagEditor(props: BlogTagEditorProps) {
           <ToolbarButton label={t('toolbar_italic')} onClick={() => insertTagPair('[italico]', '[/italico]')} />
           <ToolbarButton label={t('toolbar_bullet_list')} onClick={() => insertListBlock('lista')} />
           <ToolbarButton label={t('toolbar_ordered_list')} onClick={() => insertListBlock('lista-numerada')} />
+          <ToolbarButton
+            label={t('toolbar_table')}
+            onClick={() =>
+              insertBlockTag(
+                '[tabela]\n',
+                '\n[/tabela]',
+                'Coluna A | Coluna B | Coluna C\nValor 1 | Valor 2 | Valor 3\nValor 4 | Valor 5 | Valor 6',
+              )
+            }
+          />
           <ToolbarButton label={t('toolbar_quote')} onClick={() => insertTagPair('[citacao]', '[/citacao]')} />
           <ToolbarButton
             label={t('toolbar_link')}
