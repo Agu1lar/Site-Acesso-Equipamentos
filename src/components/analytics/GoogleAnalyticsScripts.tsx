@@ -24,9 +24,9 @@ export function GoogleAnalyticsScripts() {
     <>
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${bootstrapId}`}
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       />
-      <Script id="google-analytics-consent-default" strategy="afterInteractive">
+      <Script id="google-analytics-consent-default" strategy="lazyOnload">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}

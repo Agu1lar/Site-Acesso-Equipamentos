@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { Suspense } from 'react';
+import { preload } from 'react-dom';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { CategoryHomeGrid } from '@/components/marketing/CategoryHomeGrid';
 import { ConversionCtas } from '@/components/marketing/ConversionCtas';
@@ -22,6 +24,8 @@ type IndexPageProps = {
   params: Promise<{ locale: string }>;
 };
 
+const HOME_HERO_SRC = '/assets/images/home-hero-background.webp';
+
 export async function generateMetadata(props: IndexPageProps): Promise<Metadata> {
   const locale = resolveAppLocale((await props.params)?.locale);
   const t = await getTranslations({
@@ -35,19 +39,25 @@ export async function generateMetadata(props: IndexPageProps): Promise<Metadata>
   });
 }
 
-export default async function HomePage(props: IndexPageProps) {
-  const locale = resolveAppLocale((await props.params)?.locale);
-  setRequestLocale(locale);
+type HomeBelowFoldProps = {
+  locale: string;
+  whatsappHome: string;
+};
+
+/**
+ * Catalog-backed sections — streamed after the hero so LCP is not blocked by DB.
+ */
+async function HomeBelowFold(props: HomeBelowFoldProps) {
   const t = await getTranslations({
-    locale,
+    locale: props.locale,
     namespace: 'Index',
   });
   const tLayout = await getTranslations({
-    locale,
+    locale: props.locale,
     namespace: 'RootLayout',
   });
   const tServiceArea = await getTranslations({
-    locale,
+    locale: props.locale,
     namespace: 'ServiceArea',
   });
   const [imageBySlug, equipment] = await Promise.all([
@@ -56,47 +66,9 @@ export default async function HomePage(props: IndexPageProps) {
   ]);
   const categoryImagePools = buildHomeCategoryImagePools(equipment, imageBySlug);
   const solucoes = getAllSolucoes();
-  const whatsappHome = buildWhatsAppUrl(buildWhatsAppMessage({ origin: 'site-home' }));
 
   return (
     <>
-      <section className="relative flex min-h-[clamp(360px,54vw,660px)] items-center overflow-hidden border-b border-neutral-200">
-        <Image
-          alt=""
-          aria-hidden
-          className="object-cover object-center"
-          fill
-          priority
-          quality={72}
-          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1280px"
-          src="/assets/images/home-hero-background.webp"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-gradient-to-b from-neutral-900/60 via-neutral-900/45 to-neutral-900/70"
-        />
-        <div className="relative mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
-          <div className="mx-auto max-w-4xl text-center">
-            <h1 className="font-heading text-2xl leading-snug font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">
-              {t('hero_title')}
-            </h1>
-            <p className="mt-4 text-base leading-relaxed text-neutral-100 sm:mt-6 sm:text-lg">
-              {t('hero_subtitle')}
-            </p>
-            <ConversionCtas
-              className="mt-6 justify-center sm:mt-8"
-              onDark
-              quoteLabel={t('hero_cta_quote')}
-              size="lg"
-              whatsappHref={whatsappHome}
-              whatsappLabel={t('hero_cta_whatsapp')}
-              whatsappOrigin="site-home"
-            />
-            <div aria-hidden className="h-0" id="page-hero-sentinel" />
-          </div>
-        </div>
-      </section>
-
       <ServiceAreaSection
         eyebrow={tServiceArea('eyebrow')}
         hubLinkLabel={tServiceArea('hub_link')}
@@ -195,7 +167,7 @@ export default async function HomePage(props: IndexPageProps) {
           onDark
           quoteLabel={t('hero_cta_quote')}
           size="lg"
-          whatsappHref={whatsappHome}
+          whatsappHref={props.whatsappHome}
           whatsappLabel={t('hero_cta_whatsapp')}
           whatsappOrigin="site-home"
         />
@@ -204,10 +176,79 @@ export default async function HomePage(props: IndexPageProps) {
       <SetMobileDockConfig
         quoteLabel={t('hero_cta_quote')}
         sentinelId="page-hero-sentinel"
-        whatsappHref={whatsappHome}
+        whatsappHref={props.whatsappHome}
         whatsappLabel={tLayout('whatsapp_link')}
         whatsappOrigin="site-home-sticky"
       />
+    </>
+  );
+}
+
+function HomeBelowFoldFallback() {
+  return (
+    <div aria-hidden className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className="h-8 w-48 animate-pulse rounded bg-neutral-200" />
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div className="h-64 animate-pulse rounded-[var(--radius-card)] bg-neutral-100" key={index} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default async function HomePage(props: IndexPageProps) {
+  const locale = resolveAppLocale((await props.params)?.locale);
+  setRequestLocale(locale);
+  const t = await getTranslations({
+    locale,
+    namespace: 'Index',
+  });
+  const whatsappHome = buildWhatsAppUrl(buildWhatsAppMessage({ origin: 'site-home' }));
+  preload(HOME_HERO_SRC, { as: 'image', fetchPriority: 'high', type: 'image/webp' });
+
+  return (
+    <>
+      <section className="relative flex min-h-[clamp(360px,54vw,660px)] items-center overflow-hidden border-b border-neutral-200">
+        <Image
+          alt=""
+          aria-hidden
+          className="object-cover object-center"
+          fill
+          priority
+          sizes="(max-width: 768px) 100vw, 1280px"
+          src={HOME_HERO_SRC}
+          unoptimized
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-neutral-900/60 via-neutral-900/45 to-neutral-900/70"
+        />
+        <div className="relative mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+          <div className="mx-auto max-w-4xl text-center">
+            <h1 className="font-heading text-2xl leading-snug font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">
+              {t('hero_title')}
+            </h1>
+            <p className="mt-4 text-base leading-relaxed text-neutral-100 sm:mt-6 sm:text-lg">
+              {t('hero_subtitle')}
+            </p>
+            <ConversionCtas
+              className="mt-6 justify-center sm:mt-8"
+              onDark
+              quoteLabel={t('hero_cta_quote')}
+              size="lg"
+              whatsappHref={whatsappHome}
+              whatsappLabel={t('hero_cta_whatsapp')}
+              whatsappOrigin="site-home"
+            />
+            <div aria-hidden className="h-0" id="page-hero-sentinel" />
+          </div>
+        </div>
+      </section>
+
+      <Suspense fallback={<HomeBelowFoldFallback />}>
+        <HomeBelowFold locale={locale} whatsappHome={whatsappHome} />
+      </Suspense>
     </>
   );
 }
