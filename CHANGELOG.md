@@ -6,6 +6,31 @@ Formato: mais recente primeiro.
 
 ---
 
+## 2026-09 — SEO GSC, Core Web Vitals e WebMCP
+
+Indexação no Search Console, vitals mobile e readiness para agentes no formulário de orçamento.
+
+### Search Console e schema
+
+- JSON-LD de fichas de equipamento: `Product` → **`Service`** (locação sob consulta, sem preço inventado).
+- `robots.txt`: `Disallow: /_next/` para reduzir ruído de assets Next no GSC.
+- Ampliação / correção de 301 em `legacy-redirects.json` a partir de Coverage / Drilldown (404s legados).
+
+### Core Web Vitals (mobile)
+
+- CLS: header sticky com layout estável + carregamento de fonte.
+- LCP: hero WebP com `priority` limitado; stream do hero antes do await do catálogo (`Suspense` / `HomeBelowFold`); gtag em `lazyOnload`.
+- Fix de tipagem: `HomeBelowFold` usa `AppLocale` (build next-intl).
+
+### GEO / agentes
+
+- `llms.txt` com links markdown `[rótulo](url)`.
+- WebMCP declarativo no `QuoteForm`: `toolname=requestEquipmentQuote` + `toolparamdescription` nos campos; **sem** `toolautosubmit` (usuário confirma WhatsApp).
+
+**Docs:** [SEO-ARQUITETURA.md](docs/SEO-ARQUITETURA.md) · [GEO-AI-SEARCH.md](docs/GEO-AI-SEARCH.md) · [MIGRACAO-SEO-WP.md](docs/MIGRACAO-SEO-WP.md)
+
+---
+
 ## 2026-08 — ChatPro ROI, Ads offline e acesso por rede confiável
 
 Correções de produção após ativação do ChatPro local, limite do Neon e diagnóstico de conversões Google Ads.

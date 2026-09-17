@@ -2,7 +2,7 @@
 
 **Domínio legado:** `https://acessoequipamentos.com.br`  
 **Destino:** landing Next.js (mesmo host no go-live)  
-**Última atualização do mapa:** 2026-05-20
+**Última atualização do mapa:** 2026-09-17 (cobertura GSC + `/_next` em robots)
 
 ## Objetivo
 
@@ -76,3 +76,10 @@ Testes automatizados: `src/lib/legacy-redirects.test.ts`, `tests/e2e/Legacy.redi
 1. Editar `src/data/legacy-redirects.json` (campo `note` documenta o motivo).
 2. Rodar `bun run test` e `bun run test:e2e` (spec de redirects).
 3. Registrar data da alteração em `generatedAt` no JSON.
+
+## Follow-up GSC (set/2026)
+
+- Exportar Coverage / “Não encontradas” / Drilldown e cruzar com o JSON (meta: URLs com cliques sem 404).
+- Sitemap a enviar no GSC: **`https://acessoequipamentos.com.br/sitemap.xml`** (não usar path inventado de hub).
+- `Disallow: /_next/` em `src/app/robots.ts` — URLs de chunk/asset podem aparecer como “indexada, bloqueada”; não são páginas de conteúdo; não criar 301 para `/_next/*`.
+- Detalhe de schema e CWV: [SEO-ARQUITETURA.md](./SEO-ARQUITETURA.md).

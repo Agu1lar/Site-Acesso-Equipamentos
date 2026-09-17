@@ -1,6 +1,6 @@
 # Arquitetura SEO — Acesso Equipamentos
 
-> Plano consolidado (ago/2026). **Cases (`/casos`) permanecem fora de escopo** até nova decisão.
+> Plano consolidado (ago/2026). Atualizado set/2026: Service schema, CWV mobile, WebMCP, GSC/`robots`. **Cases (`/casos`) permanecem fora de escopo** até nova decisão.
 
 ## Status dos sprints
 
@@ -45,8 +45,29 @@ Enrichment long-form prioritário em **plataformas-elevatorias** (6 cidades) e e
 
 - Sitemap: hub regiões, 12 cidades, 48 S4, soluções, equipamentos, `/termos`
 - JSON-LD: LocalBusiness, FAQPage, ItemList, BreadcrumbList por template
-- Redirects 301 WordPress + alias `/treinamento`
-- `llms.txt` / `catalog.json` para descoberta por IAs
+- Fichas de equipamento: **`Service`** (não `Product`) — locação sob consulta, sem preço inventado (`src/lib/json-ld.ts`)
+- Redirects 301 WordPress + alias `/treinamento` (`legacy-redirects.json` + `proxy.ts`)
+- `robots.txt`: `Disallow: /_next/` além de dashboard / sign-in / api
+- `llms.txt` / `catalog.json` para descoberta por IAs — ver [GEO-AI-SEARCH.md](./GEO-AI-SEARCH.md)
+- WebMCP no `QuoteForm` (`requestEquipmentQuote`, sem auto-submit)
+
+## Core Web Vitals (set/2026)
+
+Ajustes focados em **mobile** (lab PageSpeed / CrUX). Campo GSC demora ~28 dias para refletir.
+
+| Métrica | Problema observado | Mitigação no código |
+|---------|-------------------|---------------------|
+| **CLS** | Header sticky compactando / fonte | Layout estável do `SiteHeader` + carregamento de fonte |
+| **LCP** | Hero bloqueado por catálogo + gtag | Stream do hero antes do await do catálogo (`Suspense`); hero WebP; `priority` limitado; gtag em `lazyOnload` |
+
+Home: `HomeBelowFold` streama seções de catálogo após o hero (`src/app/[locale]/(marketing)/page.tsx`). Revalidar no PageSpeed Insights após deploy; CrUX no GSC só depois da janela de campo.
+
+## Search Console — notas operacionais (set/2026)
+
+- Sitemap canônico: `/sitemap.xml` (não inventar paths tipo `/solucoes` como sitemap).
+- Cobertura 404: completar `legacy-redirects.json` a partir dos CSVs de Coverage / Drilldown do GSC.
+- URLs `/_next/*` “indexadas, mas bloqueadas por robots” são esperadas após o `Disallow`; não são páginas de conteúdo.
+- Relatório de experiência (CWV) usa dados de campo — lab “passou” ≠ campo imediato.
 
 ## Fora de escopo (por enquanto)
 
@@ -60,3 +81,4 @@ Enrichment long-form prioritário em **plataformas-elevatorias** (6 cidades) e e
 1. Enrichment S4 para guindaste/manipulador/andaimes nas demais cidades da matriz
 2. Breadcrumbs em `/sobre`, `/contato`, `/faq`
 3. Cases reais (S3) quando houver conteúdo autorizado
+4. Re-medir LCP/CLS em campo (GSC) após ~28 dias do deploy set/2026

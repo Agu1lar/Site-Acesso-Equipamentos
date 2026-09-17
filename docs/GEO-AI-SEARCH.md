@@ -19,6 +19,26 @@ Recursos para que **crawlers e buscas generativas** encontrem, leiam e citem o s
 
 **Cache:** `llms.txt` 1 h · `catalog.json` 5 min (alinhado ao catálogo).
 
+### Formato do `llms.txt` (set/2026)
+
+Links usam markdown `[rótulo](url absoluta)` (categorias, páginas principais, `catalog.json`, `sitemap.xml`, redes). Facilita parsers que seguem o [padrão llmstxt.org](https://llmstxt.org/).
+
+---
+
+## WebMCP — formulário de orçamento (set/2026)
+
+[WebMCP](https://developer.chrome.com/blog/webmcp-origin-trial) (API declarativa no Chrome / browsing agentic) expõe o formulário de orçamento como ferramenta navegável por agentes.
+
+| Detalhe | Valor |
+|---------|--------|
+| Onde | `src/components/forms/QuoteForm.tsx` (página `/orcamento` e embeds) |
+| `toolname` | `requestEquipmentQuote` |
+| `tooldescription` | Solicita orçamento de locação; agente **preenche** o form |
+| Campos | `toolparamdescription` em nome, telefone, cidade, e-mail, empresa, equipamento, período, mensagem e honeypot |
+| Envio | **Sem** `toolautosubmit` — a pessoa confirma o envio pelo WhatsApp |
+
+Browsers sem suporte ignoram os atributos. Não altera UX humana nem ranking SEO; é readiness para agentes.
+
 ---
 
 ## Robots — bots de IA permitidos
@@ -30,7 +50,7 @@ Explicitamente liberados em `src/app/robots.ts` (mesmas regras do site público)
 - `PerplexityBot`
 - `Google-Extended` (Gemini / AI Overviews)
 
-**Bloqueado:** `/dashboard`, `/sign-in`, `/api/*`.
+**Bloqueado:** `/dashboard`, `/sign-in`, `/api/*`, `/_next/` (assets internos do Next — evita ruído de “indexada, mas bloqueada” no GSC).
 
 ---
 
@@ -41,6 +61,8 @@ curl -s https://acessoequipamentos.com.br/llms.txt | head -20
 curl -s https://acessoequipamentos.com.br/catalog.json | jq '.counts'
 curl -s https://acessoequipamentos.com.br/api/health | jq '.aiDiscovery'
 ```
+
+No HTML de `/orcamento`, inspecionar o `<form>`: atributos `toolname` / `tooldescription` / `toolparamdescription`.
 
 ---
 
@@ -60,10 +82,11 @@ curl -s https://acessoequipamentos.com.br/api/health | jq '.aiDiscovery'
 | `src/lib/ai-discovery.ts` | Gera conteúdo de `llms.txt` e payload JSON |
 | `src/components/seo/AiDiscoveryHeadLinks.tsx` | `<link rel="alternate">` explícito no `<head>` |
 | `src/components/seo/AiDiscoveryCrawlerHints.tsx` | Links ocultos no HTML para crawlers |
+| `src/components/forms/QuoteForm.tsx` | WebMCP declarativo (`requestEquipmentQuote`) |
 | `src/app/llms.txt/route.ts` | Rota HTTP |
 | `src/app/catalog.json/route.ts` | Rota HTTP |
-| `src/app/robots.ts` | Regras para crawlers de IA |
-| `src/lib/ai-discovery.test.ts` | Testes unitários |
+| `src/app/robots.ts` | Regras para crawlers de IA + `Disallow: /_next/` |
+| `src/lib/ai-discovery.test.ts` | Testes unitários (inclui links markdown) |
 
 Alterações no catálogo (admin) revalidam `/catalog.json` e `/llms.txt`.
 

@@ -110,7 +110,7 @@ Variáveis obrigatórias em **Production:** Clerk, `DATABASE_URL`, `NEXT_PUBLIC_
 | API interna para app externo | [docs/INTERNAL-ADS-QUALITY-API.md](docs/INTERNAL-ADS-QUALITY-API.md) |
 | Migração SEO WordPress | [docs/MIGRACAO-SEO-WP.md](docs/MIGRACAO-SEO-WP.md) |
 | Arquitetura SEO (regiões, S4, interlinks) | [docs/SEO-ARQUITETURA.md](docs/SEO-ARQUITETURA.md) |
-| GEO / IAs (`llms.txt`) | [docs/GEO-AI-SEARCH.md](docs/GEO-AI-SEARCH.md) |
+| GEO / IAs (`llms.txt`, WebMCP) | [docs/GEO-AI-SEARCH.md](docs/GEO-AI-SEARCH.md) |
 | Fotos de equipamentos | [docs/SPRINT-9-FOTOS.md](docs/SPRINT-9-FOTOS.md) |
 | Validação do preview | [docs/PREVIEW-VALIDACAO.md](docs/PREVIEW-VALIDACAO.md) |
 | CI e branch protection | [docs/CI.md](docs/CI.md) |
