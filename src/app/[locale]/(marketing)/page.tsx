@@ -18,7 +18,7 @@ import { getResolvedEquipmentImageMap } from '@/lib/equipment-images-server';
 import { buildHomeCategoryImagePools } from '@/lib/home-category-images';
 import { buildMarketingMetadata } from '@/lib/seo-metadata';
 import { Link } from '@/libs/I18nNavigation';
-import { resolveAppLocale } from '@/utils/locale';
+import { resolveAppLocale, type AppLocale } from '@/utils/locale';
 
 type IndexPageProps = {
   params: Promise<{ locale: string }>;
@@ -40,7 +40,7 @@ export async function generateMetadata(props: IndexPageProps): Promise<Metadata>
 }
 
 type HomeBelowFoldProps = {
-  locale: string;
+  locale: AppLocale;
   whatsappHome: string;
 };
 
