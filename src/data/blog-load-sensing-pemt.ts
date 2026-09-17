@@ -1,6 +1,31 @@
-import { parseBlogTagMarkup } from '@/lib/blog-tag-markup';
+import { createBlogEditorImage, parseBlogTagMarkup } from '@/lib/blog-tag-markup';
 import { estimateReadingMinutes } from '@/lib/blog-tiptap';
 import type { BlogRelatedLink } from '@/types/blog-article';
+
+const IMG_BASE = '/blog/load-sensing-pemt';
+
+const images = [
+  createBlogEditorImage(
+    `${IMG_BASE}/celulas-carga.png`,
+    'Esquema do cesto com células de carga / pinos instrumentados entre a plataforma e a estrutura de sustentação',
+  ),
+  createBlogEditorImage(
+    `${IMG_BASE}/pressao-hidraulica.png`,
+    'Plataforma tesoura com sensor de pressão no cilindro hidráulico e leitura de ângulo/altura',
+  ),
+  createBlogEditorImage(
+    `${IMG_BASE}/forca-externa.png`,
+    'Força de reação ao empurrar contra uma estrutura: massa de 170 kg pode corresponder a força efetiva de 240 kg',
+  ),
+  createBlogEditorImage(
+    `${IMG_BASE}/arquiteturas-pemt.png`,
+    'Comparativo de arquiteturas: tesoura (pressão + ângulo), articulada (célula + posição) e telescópica (carga + extensão + momento)',
+  ),
+  createBlogEditorImage(
+    `${IMG_BASE}/bypass-nao-e-manutencao.png`,
+    'Bypass não é manutenção: anular o Load Sensing transforma falha detectável em risco invisível',
+  ),
+];
 
 const markup = `
 O Load Sensing System de uma PEMT — Plataforma Elevatória Móvel de Trabalho — não é simplesmente uma “balança no cesto”. Sua função é impedir que a máquina ultrapasse limites estruturais, de estabilidade ou de operação segura.
@@ -17,6 +42,8 @@ As normas reconhecem estratégias diferentes — detecção de carga, controle d
 
 Instalados entre a plataforma e a estrutura de sustentação, medem diretamente força ou deformação.
 
+[img1]
+
 [tabela]
 Aspecto | Células / pinos instrumentados
 Vantagens | Medição direta da carga; maior precisão; possibilidade de detectar carga excêntrica; menor dependência da geometria da lança
@@ -28,6 +55,8 @@ Boas práticas de projeto | Sensores protegidos, batentes mecânicos, compensaç
 
 Medem a pressão no cilindro de elevação e estimam a carga pela relação entre força hidráulica e geometria. São especialmente adequados para [negrito]plataformas tesoura[/negrito], nas quais o sistema pode combinar pressão do cilindro, altura ou ângulo da tesoura, posição da plataforma e um modelo matemático do mecanismo.
 
+[img2]
+
 A viscosidade do óleo [negrito]não altera diretamente[/negrito] a relação estática entre força, pressão e área. A temperatura interfere principalmente no atrito das vedações, na histerese, nas perdas hidráulicas, na pressão residual e na resposta transitória.
 
 Em lanças articuladas ou telescópicas, a pressão hidráulica [italico]isolada[/italico] é menos confiável como estimativa de carga: também depende do peso da lança, extensão, ângulo, aceleração, atrito e geometria do cilindro.
@@ -37,6 +66,8 @@ Em lanças articuladas ou telescópicas, a pressão hidráulica [italico]isolada
 Uma plataforma pode estar carregada com apenas 170 kg e indicar momentaneamente 240 kg quando o operador empurra uma ferramenta ou peça contra uma estrutura. Isso [negrito]nem sempre[/negrito] representa erro do sensor.
 
 Se o operador empurra contra o teto, a estrutura exerce uma força de reação. Essa força é transmitida à plataforma e pode produzir um esforço equivalente a uma carga adicional. A massa presente continua sendo 170 kg, mas a força suportada pela máquina pode realmente corresponder a 240 kg.
+
+[img3]
 
 [tabela]
 Situação | O que significa | Conduta correta
@@ -68,6 +99,8 @@ A máquina deve determinar quais movimentos [negrito]reduzem efetivamente o risc
 
 Não existe uma solução única. O quadro abaixo resume arquiteturas coerentes com o tipo de máquina:
 
+[img4]
+
 [tabela]
 Tipo de PEMT | Arquitetura recomendada
 Tesoura elétrica | Pressão hidráulica combinada com altura ou ângulo
@@ -84,6 +117,8 @@ Nenhum sensor isolado possui informação suficiente para avaliar todos os risco
 [h2]O bypass não é manutenção[/h2]
 
 Posição editorial clara: o bypass [negrito]não corrige[/negrito] um falso alarme. Ele mascara a falha e remove a última linha de defesa que o sistema foi projetado para oferecer.
+
+[img5]
 
 A abordagem correta é diagnóstica — firme, porém educativa:
 
@@ -159,7 +194,7 @@ export const BLOG_LOAD_SENSING_PEMT = {
   metaTitle: 'Load Sensing em PEMTs: falsos alarmes e bypass | Acesso',
   metaDescription:
     'Guia técnico sobre Load Sensing em PEMTs: células de carga, pressão hidráulica, falsos alarmes, bloqueio seguro, calibração e por que bypass não é manutenção.',
-  coverImageUrl: null as string | null,
+  coverImageUrl: `${IMG_BASE}/cover.png`,
   publishedAt: '2026-09-17',
   relatedLinks: [
     { label: 'Plataformas elevatórias', href: '/categorias/plataformas-elevatorias' },
@@ -167,7 +202,7 @@ export const BLOG_LOAD_SENSING_PEMT = {
     { label: 'Treinamento em plataformas aéreas', href: '/treinamento-plataformas-aereas' },
     { label: 'Solicitar orçamento', href: '/orcamento' },
   ] satisfies BlogRelatedLink[],
-  content: parseBlogTagMarkup(markup, []),
+  content: parseBlogTagMarkup(markup, images),
 };
 
 export const BLOG_LOAD_SENSING_PEMT_READING_MINUTES = Math.max(
