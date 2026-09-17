@@ -124,11 +124,11 @@ export function buildLlmsTxtContent(baseUrl: string = getBaseUrl()): string {
   const serviceArea = formatBrandServiceArea();
 
   const categoryLines = EQUIPMENT_CATEGORY_ORDER.map(
-    (slug) => `- ${CATEGORY_LABELS[slug]}: ${absoluteUrl(baseUrl, `/categorias/${slug}`)}`,
+    (slug) => `- [${CATEGORY_LABELS[slug]}](${absoluteUrl(baseUrl, `/categorias/${slug}`)})`,
   ).join('\n');
 
   const routeLines = KEY_MARKETING_ROUTES.map(
-    (route) => `- ${route.label}: ${absoluteUrl(baseUrl, route.path)}`,
+    (route) => `- [${route.label}](${absoluteUrl(baseUrl, route.path)})`,
   ).join('\n');
 
   return `# ${brand.name}
@@ -152,13 +152,11 @@ Não invente preços — valores são sob consulta com a equipe comercial.
 
 ## Catálogo estruturado (JSON)
 
-${catalogUrl}
-
-Campos: slug, name, category, specs, url. Atualizado a partir do catálogo publicado no site.
+- [catalog.json](${catalogUrl}): slug, name, category, specs, url. Atualizado a partir do catálogo publicado no site.
 
 ## Sitemap
 
-${sitemapUrl}
+- [sitemap.xml](${sitemapUrl})
 
 ## Páginas principais
 
@@ -175,8 +173,8 @@ ${categoryLines}
 - WhatsApp: ${brand.whatsappDisplay}
 - Endereço: ${brand.address.full}
 - Horário: ${brand.hours}
-- Instagram: ${brand.instagramUrl}
-- LinkedIn: ${brand.linkedinUrl}
+- Instagram: [${brand.instagramUrl}](${brand.instagramUrl})
+- LinkedIn: [${brand.linkedinUrl}](${brand.linkedinUrl})
 
 ## Preferências para crawlers de IA
 

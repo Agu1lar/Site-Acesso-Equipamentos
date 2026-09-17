@@ -34,10 +34,12 @@ describe('buildLlmsTxtContent', () => {
     const text = buildLlmsTxtContent('https://example.com');
 
     expect(text).toContain('# Acesso Equipamentos');
-    expect(text).toContain('https://example.com/catalog.json');
-    expect(text).toContain('https://example.com/sitemap.xml');
-    expect(text).toContain('https://example.com/equipamentos');
-    expect(text).toContain('Plataformas Elevatórias');
+    expect(text).toContain('[catalog.json](https://example.com/catalog.json)');
+    expect(text).toContain('[sitemap.xml](https://example.com/sitemap.xml)');
+    expect(text).toContain(
+      '[Catálogo completo de equipamentos](https://example.com/equipamentos)',
+    );
+    expect(text).toContain('[Plataformas elevatórias](https://example.com/categorias/plataformas-elevatorias)');
     expect(text).toContain('comercial@acessoequipamentos.com.br');
   });
 });

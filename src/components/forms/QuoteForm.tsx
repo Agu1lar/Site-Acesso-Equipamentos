@@ -249,12 +249,26 @@ export function QuoteForm(props: QuoteFormProps) {
   const showManualEquipment = cart.lineCount === 0 && !props.initialEquipment;
 
   return (
-    <form className="space-y-4" noValidate onSubmit={handleSubmit(submitLead)}>
+    <form
+      className="space-y-4"
+      noValidate
+      onSubmit={handleSubmit(submitLead)}
+      // WebMCP declarative API (Chrome agentic browsing) — ignored by unsupported browsers.
+      {...({
+        toolname: 'requestEquipmentQuote',
+        tooldescription:
+          'Solicita orçamento de locação de equipamentos (plataformas, guindaste, andaimes, ferramentas) na Acesso Equipamentos. Preenche o formulário; o usuário confirma o envio pelo WhatsApp.',
+      } as Record<string, string>)}
+    >
       <Input
         autoComplete="name"
         error={errors.name?.message}
         label="Nome completo *"
+        required
         {...register('name')}
+        {...({
+          toolparamdescription: 'Nome completo do solicitante',
+        } as Record<string, string>)}
       />
       <Input
         autoComplete="tel"
@@ -262,21 +276,33 @@ export function QuoteForm(props: QuoteFormProps) {
         inputMode="tel"
         label="Telefone / WhatsApp *"
         placeholder="(31) 99999-9999"
+        required
         type="tel"
         {...register('phone')}
+        {...({
+          toolparamdescription: 'Telefone ou WhatsApp com DDD (Brasil)',
+        } as Record<string, string>)}
       />
       <Input
         error={errors.city?.message}
         label="Cidade da obra *"
         placeholder="Ex.: Belo Horizonte, Contagem…"
+        required
         {...register('city')}
+        {...({
+          toolparamdescription: 'Cidade onde o equipamento será usado',
+        } as Record<string, string>)}
       />
       <Input
         autoComplete="email"
         error={errors.email?.message}
         label="E-mail *"
+        required
         type="email"
         {...register('email')}
+        {...({
+          toolparamdescription: 'E-mail de contato comercial',
+        } as Record<string, string>)}
       />
 
       {props.initialEquipment && cart.lineCount === 0 ? (
@@ -292,6 +318,9 @@ export function QuoteForm(props: QuoteFormProps) {
           error={errors.company?.message}
           label="Empresa (opcional)"
           {...register('company')}
+          {...({
+            toolparamdescription: 'Nome da empresa (opcional)',
+          } as Record<string, string>)}
         />
 
         {showManualEquipment ? (
@@ -300,6 +329,10 @@ export function QuoteForm(props: QuoteFormProps) {
             label="Equipamento de interesse (se não usou o carrinho)"
             placeholder="Ex.: plataforma elevatória, betoneira…"
             {...register('equipmentName')}
+            {...({
+              toolparamdescription:
+                'Equipamento desejado quando o carrinho estiver vazio (ex.: plataforma elevatória)',
+            } as Record<string, string>)}
           />
         ) : null}
 
@@ -307,6 +340,9 @@ export function QuoteForm(props: QuoteFormProps) {
           error={errors.rentalPeriod?.message}
           label="Período de locação"
           {...register('rentalPeriod')}
+          {...({
+            toolparamdescription: 'Período: diaria, semanal, mensal ou ainda_nao_sei',
+          } as Record<string, string>)}
         >
           <option value="">Selecione…</option>
           {rentalPeriodOptions.map((value) => (
@@ -321,6 +357,9 @@ export function QuoteForm(props: QuoteFormProps) {
           label="Mensagem (opcional)"
           placeholder="Detalhes da obra, altura necessária, prazo…"
           {...register('message')}
+          {...({
+            toolparamdescription: 'Detalhes da obra, altura, prazo ou observações',
+          } as Record<string, string>)}
         />
       </QuoteFormOptionalSection>
 
@@ -331,6 +370,9 @@ export function QuoteForm(props: QuoteFormProps) {
         tabIndex={-1}
         type="text"
         {...register('website')}
+        {...({
+          toolparamdescription: 'Deixe em branco (campo anti-spam)',
+        } as Record<string, string>)}
       />
       <input type="hidden" {...register('origin')} />
 
