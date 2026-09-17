@@ -67,8 +67,9 @@ export default async function HomePage(props: IndexPageProps) {
           className="object-cover object-center"
           fill
           priority
-          sizes="100vw"
-          src="/assets/images/home-hero-background.jpg"
+          quality={72}
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1280px"
+          src="/assets/images/home-hero-background.webp"
         />
         <div
           aria-hidden

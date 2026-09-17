@@ -10,6 +10,7 @@ import sharp from 'sharp';
 const ROOT = path.resolve(import.meta.dirname, '../..');
 
 const TARGETS = [
+  'public/assets/images/home-hero-background.jpg',
   'public/categorias/guindastes-remocoes/guindaste-industrial-operacao.png',
   'public/categorias/guindastes-remocoes/munck-icamento-carga.png',
   'public/equipamentos/guindaste-industrial-munck-remocao-bh.png',
@@ -21,11 +22,12 @@ function formatKb(bytes) {
 
 for (const relativePath of TARGETS) {
   const inputPath = path.join(ROOT, relativePath);
-  const outputPath = inputPath.replace(/\.png$/i, '.webp');
+  const outputPath = inputPath.replace(/\.(png|jpe?g)$/i, '.webp');
 
   const before = await stat(inputPath);
   await sharp(inputPath)
-    .webp({ quality: 82, effort: 4 })
+    .resize({ width: 1920, withoutEnlargement: true })
+    .webp({ quality: 72, effort: 4 })
     .toFile(outputPath);
   const after = await stat(outputPath);
 

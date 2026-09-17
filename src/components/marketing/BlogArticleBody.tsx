@@ -100,8 +100,9 @@ function BlogImageFigure(props: { src: string; alt: string; priority?: boolean }
 
 function renderNode(node: JSONContent, key: string, imageIndex: { current: number }): ReactNode {
   switch (node.type) {
-    case 'paragraph':
+    case 'paragraph': {
       return <p key={key}>{renderInline(node.content, key)}</p>;
+    }
     case 'heading': {
       const level = Number(node.attrs?.level) === 3 ? 3 : 2;
       const children = renderInline(node.content, key);
@@ -110,37 +111,41 @@ function renderNode(node: JSONContent, key: string, imageIndex: { current: numbe
       }
       return <h2 key={key}>{children}</h2>;
     }
-    case 'bulletList':
+    case 'bulletList': {
       return (
         <ul key={key}>
           {(node.content ?? []).map((item, index) => renderNode(item, `${key}-li-${index}`, imageIndex))}
         </ul>
       );
-    case 'orderedList':
+    }
+    case 'orderedList': {
       return (
         <ol key={key}>
           {(node.content ?? []).map((item, index) => renderNode(item, `${key}-li-${index}`, imageIndex))}
         </ol>
       );
-    case 'listItem':
+    }
+    case 'listItem': {
       return (
         <li key={key}>
           {(node.content ?? []).map((child, index) => renderNode(child, `${key}-c-${index}`, imageIndex))}
         </li>
       );
-    case 'blockquote':
+    }
+    case 'blockquote': {
       return (
         <blockquote key={key}>
           {(node.content ?? []).map((child, index) => renderNode(child, `${key}-bq-${index}`, imageIndex))}
         </blockquote>
       );
+    }
     case 'image': {
       const src = typeof node.attrs?.src === 'string' ? node.attrs.src : '';
       if (!src) {
         return null;
       }
       const alt = typeof node.attrs?.alt === 'string' ? node.attrs.alt : '';
-      const priority = imageIndex.current < 2;
+      const priority = imageIndex.current < 1;
       imageIndex.current += 1;
       return <BlogImageFigure alt={alt} key={key} priority={priority} src={src} />;
     }
@@ -181,9 +186,10 @@ function renderNode(node: JSONContent, key: string, imageIndex: { current: numbe
         </div>
       );
     }
-    case 'horizontalRule':
+    case 'horizontalRule': {
       return <hr key={key} />;
-    default:
+    }
+    default: {
       if (node.content?.length) {
         return (
           <div key={key}>
@@ -192,6 +198,7 @@ function renderNode(node: JSONContent, key: string, imageIndex: { current: numbe
         );
       }
       return null;
+    }
   }
 }
 

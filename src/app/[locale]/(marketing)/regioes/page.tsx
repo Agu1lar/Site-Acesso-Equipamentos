@@ -125,11 +125,10 @@ export default async function RegioesPage(props: RegioesPageProps) {
           </div>
 
           <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {regioes.map((regiao, index) => (
+            {regioes.map((regiao) => (
               <li key={regiao.slug}>
                 <RegiaoCityCard
                   ctaLabel={t('card_cta')}
-                  imagePriority={index < 3}
                   imageSizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   regiao={regiao}
                 />

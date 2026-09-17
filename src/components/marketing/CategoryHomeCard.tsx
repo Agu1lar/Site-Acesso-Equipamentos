@@ -66,6 +66,12 @@ export function CategoryHomeCard({
       : 'object-contain object-center p-3';
 
   const activeSrc = images[index];
+  const nextSrc = images.length > 1 ? images[(index + 1) % images.length] : undefined;
+  const renderedImages = activeSrc
+    ? nextSrc && nextSrc !== activeSrc
+      ? [activeSrc, nextSrc]
+      : [activeSrc]
+    : [];
 
   return (
     <Link
@@ -73,13 +79,13 @@ export function CategoryHomeCard({
       href={`/categorias/${card.slug}`}
     >
       <div className="relative h-40 w-full overflow-hidden bg-neutral-100 sm:h-44">
-        {activeSrc ? (
-          images.map((src, imageIndex) => (
+        {renderedImages.length > 0 ? (
+          renderedImages.map((src) => (
             <Image
               alt=""
               aria-hidden
               className={`absolute inset-0 ${imageClass} transition-opacity duration-700 motion-reduce:transition-none ${
-                imageIndex === index ? 'opacity-100' : 'opacity-0'
+                src === activeSrc ? 'opacity-100' : 'opacity-0'
               }`}
               fill
               key={src}

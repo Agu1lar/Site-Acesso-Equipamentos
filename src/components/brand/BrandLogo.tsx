@@ -20,7 +20,6 @@ export function BrandLogo({ className = '', compact = false }: BrandLogoProps) {
           : `h-[4.5rem] w-auto max-w-[min(90vw,340px)] object-contain object-left sm:h-20 sm:max-w-[360px] md:max-w-[380px] ${className}`
       }
       height={BRAND_LOGO_HEIGHT}
-      priority
       sizes={compact ? '172px' : '(max-width: 768px) 340px, 380px'}
       src={BRAND_LOGO_SRC}
       width={BRAND_LOGO_WIDTH}

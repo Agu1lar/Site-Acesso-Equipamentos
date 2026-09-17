@@ -175,11 +175,10 @@ export function CategoryEquipmentGrid(props: CategoryEquipmentGridProps) {
         <p className="mt-8 text-center text-neutral-600">{t('empty')}</p>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((item, index) => (
+          {filtered.map((item) => (
             <EquipmentCard
               equipment={item}
               hideCategoryLabel
-              imagePriority={index < 4}
               imageSrc={props.imageBySlug[item.slug]}
               key={item.slug}
             />

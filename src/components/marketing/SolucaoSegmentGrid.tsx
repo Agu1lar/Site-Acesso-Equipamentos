@@ -16,7 +16,7 @@ export function SolucaoSegmentGrid(props: SolucaoSegmentGridProps) {
     <ul
       className={`grid gap-6 sm:grid-cols-2 lg:grid-cols-3 ${props.className ?? ''}`}
     >
-      {props.solucoes.map((solucao, index) => (
+      {props.solucoes.map((solucao) => (
         <li key={solucao.slug}>
           <Link
             className="group flex h-full flex-col overflow-hidden rounded-[var(--radius-card)] border border-neutral-200 bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_18px_48px_-20px_rgba(196,30,36,0.35)]"
@@ -27,7 +27,6 @@ export function SolucaoSegmentGrid(props: SolucaoSegmentGridProps) {
                 alt={solucao.heroAlt}
                 className="object-cover brightness-[1.06] contrast-[1.02] saturate-[1.04] transition duration-700 group-hover:scale-[1.04]"
                 fill
-                priority={index < 3}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 src={solucao.heroImage}
               />
