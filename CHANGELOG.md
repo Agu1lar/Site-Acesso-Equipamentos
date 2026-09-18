@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-18
+
+- Removida a restrição de rede/IP do painel administrativo. O login agora pode ser acessado de qualquer rede, mantendo autenticação, allowlist de usuários, papéis e rate limit.
+
 Histórico de entregas do projeto. Detalhes operacionais e guias estão em [`docs/`](docs/) — aqui só o que mudou e links.
 
 Formato: mais recente primeiro.

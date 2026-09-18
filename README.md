@@ -78,7 +78,7 @@ Detalhes: **[docs/CHATPRO-ROI-WORKER.md](docs/CHATPRO-ROI-WORKER.md)** · setup 
 
 ### Admin (`/dashboard`, Clerk)
 - Leads (semana + consulta), métricas operacionais (`/dashboard/analytics`), CRUD equipamentos com fotos (**Vercel Blob**), CMS de dicas.
-- **IP dinâmico:** worker local renova autorização de rede via heartbeat (36 h) — não precisa editar allowlist a cada mudança de IP.
+- **Acesso remoto ao painel:** o login aceita qualquer rede; e-mail autorizado, senha, sessão, função e rate limit continuam obrigatórios.
 
 Histórico de sprints: **[CHANGELOG.md](CHANGELOG.md)** · planejamento: **[ROADMAP.temp.md](ROADMAP.temp.md)**
 

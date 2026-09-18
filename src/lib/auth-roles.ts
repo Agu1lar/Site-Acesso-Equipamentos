@@ -1,10 +1,8 @@
 import type { NextRequest } from 'next/server';
-import { headers } from 'next/headers';
 import {
   getDashboardSession,
   getDashboardSessionFromRequest,
 } from '@/lib/dashboard-session';
-import { isDashboardTrustedNetworkRequest } from '@/lib/dashboard-trusted-networks';
 
 const DASHBOARD_ROLES = ['admin', 'comercial'] as const;
 
@@ -12,7 +10,7 @@ export type DashboardRole = (typeof DASHBOARD_ROLES)[number];
 
 type DashboardAccessResult =
   | { ok: true; userId: string; role: DashboardRole; email: string }
-  | { ok: false; status: 401 | 403; reason?: 'unauthenticated' | 'forbidden_role' | 'network' };
+  | { ok: false; status: 401 | 403; reason?: 'unauthenticated' | 'forbidden_role' };
 
 /**
  * Path to send a denied dashboard visitor to, without bouncing sign-in ↔ leads.
@@ -20,9 +18,6 @@ type DashboardAccessResult =
 export function dashboardAccessFailurePath(
   access: Extract<DashboardAccessResult, { ok: false }>,
 ) {
-  if (access.reason === 'network') {
-    return '/network-restricted';
-  }
   return access.status === 403 ? '/unauthorized' : '/sign-in';
 }
 
@@ -30,11 +25,6 @@ export function dashboardAccessFailurePath(
  * Ensures the request is from an authenticated dashboard user.
  */
 export async function requireDashboardAccess(): Promise<DashboardAccessResult> {
-  const requestHeaders = await headers();
-  if (!await isDashboardTrustedNetworkRequest(requestHeaders)) {
-    return { ok: false, status: 403, reason: 'network' };
-  }
-
   const session = await getDashboardSession();
   if (!session) {
     return { ok: false, status: 401, reason: 'unauthenticated' };

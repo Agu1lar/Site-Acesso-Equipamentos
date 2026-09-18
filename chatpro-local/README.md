@@ -77,11 +77,11 @@ WHISPER_MODEL=C:\caminho\ggml-small.bin
 
 A transcrição **não** é gravada de volta no Neon hoje — só entra na análise. Se quiser persistir, avise.
 
-## IP autorizado do painel
+## Heartbeat de rede legado
 
-Ao iniciar, este worker chama `POST /api/internal/v1/dashboard-network/heartbeat` com `INTERNAL_API_SECRET`. O site grava o IP público que a Vercel detecta para este PC e libera o dashboard por 36 horas. Enquanto o worker estiver aberto, ele renova essa autorização a cada 6 horas.
+Ao iniciar, este worker ainda chama `POST /api/internal/v1/dashboard-network/heartbeat` com `INTERNAL_API_SECRET` por compatibilidade operacional. Desde 18/09/2026, o painel não usa IP ou rede como requisito de acesso.
 
-Na prática: ligou o PC e iniciou `npm start` em `chatpro-local/`, o IP atual da rede é atualizado automaticamente no site. Não precisa editar `DASHBOARD_ALLOWED_IPS` nem redeployar por mudança de IP.
+O login pode ser usado de qualquer rede. E-mail autorizado, senha, sessão, função e rate limit continuam obrigatórios; iniciar este worker não é necessário para liberar o painel.
 
 ## Economia no Neon Free
 

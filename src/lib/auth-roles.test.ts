@@ -15,12 +15,6 @@ describe('dashboard password hashing', () => {
 });
 
 describe('dashboardAccessFailurePath', () => {
-  it('sends untrusted network to the restricted page', () => {
-    expect(dashboardAccessFailurePath({ ok: false, status: 403, reason: 'network' })).toBe(
-      '/network-restricted',
-    );
-  });
-
   it('sends missing session to sign-in', () => {
     expect(dashboardAccessFailurePath({ ok: false, status: 401, reason: 'unauthenticated' })).toBe(
       '/sign-in',

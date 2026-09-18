@@ -87,7 +87,7 @@ npm install
 npm start
 ```
 
-Ao iniciar, o consumer renova o IP público atual do PC como rede confiável para o dashboard. O site detecta o IP pela própria requisição vista na Vercel; o cliente não envia o IP. A autorização expira em 36h e é renovada a cada 6h enquanto o worker estiver rodando.
+Ao iniciar, o consumer ainda registra o IP público atual por compatibilidade com o heartbeat existente. Desde 18/09/2026, esse registro não controla o acesso ao dashboard: o login funciona em qualquer rede e continua protegido por usuário autorizado, senha, sessão, função e rate limit.
 
 ## Worker legado (opcional / deprecated)
 
