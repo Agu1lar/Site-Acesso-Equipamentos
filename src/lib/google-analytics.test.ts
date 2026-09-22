@@ -75,6 +75,7 @@ describe('google analytics consent sync', () => {
 
   it('fires the contact Ads conversion without analytics cookie consent', async () => {
     const dataLayer: unknown[] = [];
+    const session = new Map<string, string>();
     vi.stubGlobal('window', {
       localStorage: {
         getItem: () => null,
@@ -82,6 +83,19 @@ describe('google analytics consent sync', () => {
         removeItem: () => undefined,
         clear: () => undefined,
       },
+      sessionStorage: {
+        getItem: (key: string) => session.get(key) ?? null,
+        setItem: (key: string, value: string) => {
+          session.set(key, value);
+        },
+        removeItem: (key: string) => {
+          session.delete(key);
+        },
+        clear: () => {
+          session.clear();
+        },
+      },
+      location: { search: '', pathname: '/', href: 'https://example.com/', hash: '' },
       dataLayer,
       gtag: (...args: unknown[]) => {
         dataLayer.push(args);
@@ -92,7 +106,7 @@ describe('google analytics consent sync', () => {
     const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
 
     expect(isGoogleAnalyticsConsentGranted()).toBe(false);
-    fireAdsContactConversion({ source: 'whatsapp', origin: 'site-home' });
+    await fireAdsContactConversion({ source: 'whatsapp', origin: 'site-home' });
 
     const conversion = dataLayer.find(
       (entry) =>
@@ -133,8 +147,8 @@ describe('google analytics consent sync', () => {
     denyGoogleAnalyticsConsent();
     expect(isGoogleAnalyticsConsentGranted()).toBe(false);
 
-    const lastConsent = [...dataLayer]
-      .reverse()
+    const lastConsent = dataLayer
+      .toReversed()
       .find((entry) => Array.isArray(entry) && entry[0] === 'consent' && entry[1] === 'update') as
       | unknown[]
       | undefined;
@@ -181,7 +195,7 @@ describe('google analytics consent sync', () => {
     const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
 
     expect(isGoogleAnalyticsConsentGranted()).toBe(false);
-    fireAdsContactConversion({ source: 'whatsapp', origin: 'site-home' });
+    await fireAdsContactConversion({ source: 'whatsapp', origin: 'site-home' });
 
     expect(replaceState).toHaveBeenCalled();
     expect(String(replaceState.mock.calls[0]?.[2] ?? '')).toContain('gclid=CjwKCAiApaid');

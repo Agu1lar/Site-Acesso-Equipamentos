@@ -1,6 +1,7 @@
 import { readStoredAttribution } from '@/lib/attribution';
-import { readStoredVisitorGeo } from '@/lib/visitor-geo';
+import { emailFromGoogleCredentialJwt, storeEnhancedConversionUser } from '@/lib/enhanced-conversions';
 import { markOneTapLeadRegistered } from '@/lib/google-one-tap-client';
+import { readStoredVisitorGeo } from '@/lib/visitor-geo';
 
 export async function registerCookieConsentLead(credential: string) {
   const attribution = readStoredAttribution();
@@ -28,6 +29,10 @@ export async function registerCookieConsentLead(credential: string) {
 
   if (body.ok) {
     markOneTapLeadRegistered(window.sessionStorage);
+    const email = emailFromGoogleCredentialJwt(credential);
+    if (email) {
+      storeEnhancedConversionUser({ email });
+    }
     if (body.skipped === 'quote_exists') {
       return { ok: true as const, reason: 'quote_exists' as const };
     }

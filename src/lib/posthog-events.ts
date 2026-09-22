@@ -122,12 +122,15 @@ export type QuoteSubmitEventInput = {
   cartLineCount: number;
   equipmentSlug?: string;
   equipmentName?: string;
+  email?: string;
+  phone?: string;
+  name?: string;
 };
 
 /**
  * Sends quote_submit to PostHog after a successful lead API response.
  */
-export function captureQuoteSubmit(input: QuoteSubmitEventInput) {
+export async function captureQuoteSubmit(input: QuoteSubmitEventInput) {
   const posthog = getPostHog();
   posthog?.capture('quote_submit', {
     origin: input.origin,
@@ -147,10 +150,15 @@ export function captureQuoteSubmit(input: QuoteSubmitEventInput) {
   });
 
   // Ads conversion must not depend on PostHog being ready.
-  fireAdsContactConversion({
+  await fireAdsContactConversion({
     source: 'quote',
     origin: input.origin,
     equipmentSlug: input.equipmentSlug,
     leadId: input.leadId,
+    user: {
+      email: input.email,
+      phone: input.phone,
+      name: input.name,
+    },
   });
 }

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { sha256Hex } from '@/lib/enhanced-conversions';
 
 const CONTACT_SEND_TO = 'AW-11323862073/ContactLabel1';
 
@@ -32,7 +33,7 @@ function installWindowMock() {
     },
   });
 
-  return { dataLayer };
+  return { dataLayer, session };
 }
 
 function countConversions(dataLayer: unknown[]) {
@@ -57,7 +58,7 @@ describe('ads contact conversion', () => {
     const { dataLayer } = installWindowMock();
     const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
 
-    const result = fireAdsContactConversion({ source: 'whatsapp', origin: 'site-home' });
+    const result = await fireAdsContactConversion({ source: 'whatsapp', origin: 'site-home' });
 
     expect(result.fired).toBe(true);
     expect(countConversions(dataLayer)).toBe(1);
@@ -78,8 +79,8 @@ describe('ads contact conversion', () => {
     const { dataLayer } = installWindowMock();
     const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
 
-    fireAdsContactConversion({ source: 'whatsapp', origin: 'site-home' });
-    const second = fireAdsContactConversion({ source: 'whatsapp', origin: 'site-detalhe' });
+    await fireAdsContactConversion({ source: 'whatsapp', origin: 'site-home' });
+    const second = await fireAdsContactConversion({ source: 'whatsapp', origin: 'site-detalhe' });
 
     expect(second.fired).toBe(false);
     expect(second.reason).toBe('already_fired');
@@ -90,8 +91,8 @@ describe('ads contact conversion', () => {
     const { dataLayer } = installWindowMock();
     const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
 
-    fireAdsContactConversion({ source: 'quote', origin: 'site-orcamento', leadId: 42 });
-    fireAdsContactConversion({ source: 'whatsapp', origin: 'site-orcamento-envio' });
+    await fireAdsContactConversion({ source: 'quote', origin: 'site-orcamento', leadId: 42 });
+    await fireAdsContactConversion({ source: 'whatsapp', origin: 'site-orcamento-envio' });
 
     expect(countConversions(dataLayer)).toBe(1);
   });
@@ -103,9 +104,9 @@ describe('ads contact conversion', () => {
 
     expect(hasFiredAdsContactConversion()).toBe(false);
 
-    fireAdsContactConversion({ source: 'phone', origin: 'site-contato-ligar' });
-    fireAdsContactConversion({ source: 'quote', origin: 'site-orcamento' });
-    fireAdsContactConversion({ source: 'whatsapp', origin: 'site-header' });
+    await fireAdsContactConversion({ source: 'phone', origin: 'site-contato-ligar' });
+    await fireAdsContactConversion({ source: 'quote', origin: 'site-orcamento' });
+    await fireAdsContactConversion({ source: 'whatsapp', origin: 'site-header' });
 
     expect(hasFiredAdsContactConversion()).toBe(true);
     expect(countConversions(dataLayer)).toBe(1);
@@ -116,7 +117,7 @@ describe('ads contact conversion', () => {
     const { dataLayer } = installWindowMock();
     const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
 
-    const result = fireAdsContactConversion({ source: 'phone', origin: 'site-footer-ligar' });
+    const result = await fireAdsContactConversion({ source: 'phone', origin: 'site-footer-ligar' });
 
     expect(result.fired).toBe(false);
     expect(result.reason).toBe('not_configured');
@@ -129,12 +130,88 @@ describe('ads contact conversion', () => {
     const { dataLayer } = installWindowMock();
     const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
 
-    expect(fireAdsContactConversion({ source: 'quote', origin: 'site-orcamento' }).fired).toBe(true);
+    expect(
+      (await fireAdsContactConversion({ source: 'quote', origin: 'site-orcamento' })).fired,
+    ).toBe(true);
 
     const conversion = dataLayer.find(
       entry => Array.isArray(entry) && entry[1] === 'conversion',
     ) as unknown[];
 
     expect(conversion[2]).toMatchObject({ send_to: 'AW-11323862073/LegacyLead1' });
+  });
+
+  it('sets hashed user_data when quote PII is provided', async () => {
+    const { dataLayer } = installWindowMock();
+    const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
+
+    const result = await fireAdsContactConversion({
+      source: 'quote',
+      origin: 'site-orcamento',
+      user: {
+        email: 'Lead@Example.com',
+        phone: '11988887777',
+        name: 'Ana Souza',
+      },
+    });
+
+    expect(result.fired).toBe(true);
+
+    const userDataSet = dataLayer.find(
+      entry => Array.isArray(entry) && entry[0] === 'set' && entry[1] === 'user_data',
+    ) as unknown[] | undefined;
+
+    expect(userDataSet?.[2]).toEqual({
+      email: await sha256Hex('lead@example.com'),
+      phone_number: await sha256Hex('+5511988887777'),
+      address: {
+        first_name: await sha256Hex('ana'),
+        last_name: await sha256Hex('souza'),
+      },
+    });
+  });
+
+  it('upgrades a prior conversion with the same transaction id when PII arrives later', async () => {
+    const { dataLayer } = installWindowMock();
+    const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
+
+    const first = await fireAdsContactConversion({ source: 'whatsapp', origin: 'site-home' });
+    expect(first.fired).toBe(true);
+    expect(countConversions(dataLayer)).toBe(1);
+
+    const upgrade = await fireAdsContactConversion({
+      source: 'quote',
+      origin: 'site-orcamento',
+      user: { email: 'upgrade@example.com', phone: '11999998888' },
+    });
+
+    expect(upgrade.fired).toBe(true);
+    expect(upgrade.reason).toBe('enhanced_upgrade');
+    expect(upgrade.transactionId).toBe(first.transactionId);
+    expect(countConversions(dataLayer)).toBe(2);
+
+    const userDataSet = dataLayer.find(
+      entry => Array.isArray(entry) && entry[0] === 'set' && entry[1] === 'user_data',
+    ) as unknown[] | undefined;
+    expect(userDataSet?.[2]).toMatchObject({
+      email: await sha256Hex('upgrade@example.com'),
+    });
+  });
+
+  it('reuses stored session identifiers on a later WhatsApp click', async () => {
+    const { dataLayer } = installWindowMock();
+    const { storeEnhancedConversionUser } = await import('@/lib/enhanced-conversions');
+    const { fireAdsContactConversion } = await import('@/lib/ads-contact-conversion');
+
+    storeEnhancedConversionUser({ email: 'session@example.com' });
+    await fireAdsContactConversion({ source: 'whatsapp', origin: 'site-header' });
+
+    const userDataSet = dataLayer.find(
+      entry => Array.isArray(entry) && entry[0] === 'set' && entry[1] === 'user_data',
+    ) as unknown[] | undefined;
+
+    expect(userDataSet?.[2]).toEqual({
+      email: await sha256Hex('session@example.com'),
+    });
   });
 });

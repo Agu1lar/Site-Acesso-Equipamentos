@@ -1,3 +1,4 @@
+import { storeEnhancedConversionUser } from '@/lib/enhanced-conversions';
 import {
   markOptionalPhonePromptDismissed,
   markOptionalPhonePromptSaved,
@@ -22,6 +23,7 @@ export async function saveCookieConsentPhone(credential: string, phone: string) 
 
   if (body.ok && (body.updated || body.skipped === 'already_has_phone')) {
     markOptionalPhonePromptSaved(window.sessionStorage);
+    storeEnhancedConversionUser({ phone });
     return { ok: true as const, saved: true as const };
   }
 

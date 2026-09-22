@@ -144,12 +144,15 @@ export function QuoteForm(props: QuoteFormProps) {
 
     const equipmentSummary = summarizeCartEquipment(cartItems);
 
-    captureQuoteSubmit({
+    await captureQuoteSubmit({
       origin,
       leadId: body.id,
       cartLineCount: cartItems?.length ?? 0,
       equipmentSlug: equipmentSummary.equipmentSlug ?? data.equipmentSlug,
       equipmentName: equipmentSummary.equipmentName ?? data.equipmentName,
+      email: data.email.trim(),
+      phone: data.phone.trim(),
+      name: data.name.trim(),
     });
 
     const whatsappUrl =

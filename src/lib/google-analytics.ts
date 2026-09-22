@@ -112,7 +112,7 @@ function gtag(...args: unknown[]) {
   }
 
   const win = window as Window & { dataLayer?: unknown[] };
-  win.dataLayer = win.dataLayer || [];
+  win.dataLayer ||= [];
   win.dataLayer.push(args);
 }
 
@@ -226,9 +226,20 @@ export function preparePaidSearchAdsConversion() {
 
 export type GaEventParams = Record<string, string | number | undefined>;
 
+export type GoogleAdsUserData = {
+  email?: string;
+  phone_number?: string;
+  address?: {
+    first_name?: string;
+    last_name?: string;
+  };
+};
+
 export type GoogleAdsConversionOptions = {
   /** When false, fires Ads conversion without full analytics cookie accept. Default true. */
   requireAnalyticsConsent?: boolean;
+  /** Hashed Enhanced Conversions identifiers (`gtag('set', 'user_data', …)`). */
+  userData?: GoogleAdsUserData | null;
 };
 
 /**
@@ -276,6 +287,10 @@ export function captureGoogleAdsConversion(
 
   if (!sendTo?.trim()) {
     return;
+  }
+
+  if (options?.userData && Object.keys(options.userData).length > 0) {
+    gtag('set', 'user_data', options.userData);
   }
 
   const cleaned: Record<string, string | number> = {

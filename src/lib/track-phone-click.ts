@@ -30,7 +30,7 @@ export function trackPhoneClick(input: TrackPhoneClickInput) {
   syncGoogleAnalyticsConsentFromStorage();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
 
-  fireAdsContactConversion({
+  void fireAdsContactConversion({
     source: 'phone',
     origin: input.origin,
   });

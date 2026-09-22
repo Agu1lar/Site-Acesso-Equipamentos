@@ -145,7 +145,7 @@ async function sendWhatsAppClickAnalytics(input: WhatsAppClickInput) {
   preparePaidSearchAdsConversion();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
 
-  fireAdsContactConversion({
+  await fireAdsContactConversion({
     source: 'whatsapp',
     origin: input.origin,
     equipmentSlug: input.equipmentSlug,
