@@ -99,6 +99,8 @@ ORDER BY n DESC;
 | Arquivo | Função |
 |---------|--------|
 | `GoogleOneTapManager.tsx` | Prompt, retry, FedCM, botão fallback |
+| `register-cookie-consent-lead.ts` | Lead + e-mail na sessão de Conversões otimizadas |
+| `register-cookie-consent-phone.ts` | Telefone opcional + sessão EC |
 | `POST /api/leads/cookie-consent` | Cria/atualiza lead |
 | `POST /api/analytics/one-tap` | Telemetria de exibição |
 | `GET /api/health` | `googleOneTap.clientIdConfigured` |
@@ -107,9 +109,11 @@ ORDER BY n DESC;
 
 **Mobile:** em **Android, iPhone/iPad** e Safari desktop o site desliga FedCM e `auto_select` (fluxo legado, mais estável). Navegadores in-app (Instagram, WhatsApp, Facebook etc.) podem não devolver credencial — abra no Chrome/Safari nativo. Após sucesso, um toast verde confirma “Contato salvo com Google”.
 
-**Privacidade:** nome/e-mail só após gesto explícito no One Tap. Telefone continua vindo do formulário de orçamento ou WhatsApp.
+**Privacidade:** nome/e-mail só após gesto explícito no One Tap. Telefone continua vindo do formulário de orçamento, do prompt opcional pós–One Tap, ou do WhatsApp.
 
 **Telefone opcional:** logo após confirmar o One Tap, um card discreto pergunta WhatsApp (opcional). “Agora não” fecha e não repete na mesma sessão. Endpoint: `POST /api/leads/cookie-consent/phone`.
+
+**Conversões otimizadas (Google Ads):** após registro OK, o e-mail do JWT (e o telefone, se salvo) são guardados na sessão (`acesso_ec_user`) e enviados como hash SHA-256 no `user_data` da tag Ads no próximo clique WhatsApp/`tel:` ou no envio do orçamento. Detalhes: [GOOGLE-ADS-GA4.md](./GOOGLE-ADS-GA4.md#conversões-otimizadas-enhanced-conversions).
 
 ---
 

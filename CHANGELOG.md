@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-22
+
+- **Conversões otimizadas (Enhanced Conversions)** na tag do Google Ads: hash SHA-256 de e-mail/telefone/nome no `user_data`, com reaproveitamento da sessão (orçamento, One Tap, telefone opcional) e upgrade se o WhatsApp disparou antes da PII.
+- Docs atualizados: [GOOGLE-ADS-GA4.md](docs/GOOGLE-ADS-GA4.md), [GOOGLE-ONE-TAP.md](docs/GOOGLE-ONE-TAP.md), [GO-LIVE-GATE.md](docs/GO-LIVE-GATE.md), README.
+
 ## 2026-09-18
 
 - Removida a restrição de rede/IP do painel administrativo. O login agora pode ser acessado de qualquer rede, mantendo autenticação, allowlist de usuários, papéis e rate limit.

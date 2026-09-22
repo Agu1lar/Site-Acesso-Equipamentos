@@ -192,8 +192,9 @@ Detalhes: [MIGRACAO-SEO-WP.md](./MIGRACAO-SEO-WP.md)
 
 ### D.5 Google Ads / GA4
 
-- Configurar `NEXT_PUBLIC_GA_MEASUREMENT_ID` na Vercel Production
-- Importar conversões no Google Ads
+- Configurar `NEXT_PUBLIC_GA_MEASUREMENT_ID` e `NEXT_PUBLIC_GOOGLE_ADS_*` na Vercel Production
+- Tag Ads: conversão única de contato + **Conversões otimizadas** ativas na ação (painel: “Gerenciadas pela tag do Google”)
+- Importar eventos GA4 no Google Ads se ainda usar esse caminho
 - Guia: [GOOGLE-ADS-GA4.md](./GOOGLE-ADS-GA4.md)
 
 ---

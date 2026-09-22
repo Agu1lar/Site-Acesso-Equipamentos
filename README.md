@@ -60,7 +60,8 @@ Variáveis: [.env.example](.env.example) · e-mail leads: `RESEND_*` · analytic
 - **Conteúdo:** blog `/dicas` (CMS TipTap), FAQ, contato, redirects 301 do WordPress (`legacy-redirects.json`), sitemap, `llms.txt` / `catalog.json`.
 
 ### Rastreamento e campanhas
-- **Atribuição paga:** origem Google Ads/GA4 (`gclid`, UTM), clique no WhatsApp, abertura do WhatsApp no envio do orçamento.
+- **Atribuição paga:** origem Google Ads/GA4 (`gclid` / `gbraid` / `wbraid`, UTM), clique no WhatsApp, abertura do WhatsApp no envio do orçamento.
+- **Conversões otimizadas:** hash SHA-256 de e-mail/telefone (orçamento, One Tap, telefone opcional) no `user_data` da tag Ads — melhora atribuição no iOS. Guia: [docs/GOOGLE-ADS-GA4.md](docs/GOOGLE-ADS-GA4.md).
 - **Ponte clique → lead:** código `Cód. AB12CD34` no prefill do `wa.me` liga visitante de campanha ao lead mesmo sem formulário (`whatsapp_attribution_tokens`).
 - **Resposta real:** webhook **ChatPro** marca `whatsapp_replied_at` no CRM para qualquer lead.
 
@@ -105,7 +106,8 @@ Variáveis obrigatórias em **Production:** Clerk, `DATABASE_URL`, `NEXT_PUBLIC_
 | Passos manuais (Clerk, Resend, CRM) | [docs/PASSOS-MANUAIS.md](docs/PASSOS-MANUAIS.md) |
 | Deploy / preview Vercel | [docs/DEPLOY-PREVIEW-VERCEL.md](docs/DEPLOY-PREVIEW-VERCEL.md) |
 | Clerk e papéis do painel | [docs/CLERK-ACESSO-ADMIN.md](docs/CLERK-ACESSO-ADMIN.md) |
-| GA4 e Google Ads | [docs/GOOGLE-ADS-GA4.md](docs/GOOGLE-ADS-GA4.md) |
+| GA4 e Google Ads (tag, Conversões otimizadas, offline) | [docs/GOOGLE-ADS-GA4.md](docs/GOOGLE-ADS-GA4.md) |
+| Google One Tap e leads cookie | [docs/GOOGLE-ONE-TAP.md](docs/GOOGLE-ONE-TAP.md) |
 | ChatPro ROI e worker local | [docs/CHATPRO-ROI-WORKER.md](docs/CHATPRO-ROI-WORKER.md) |
 | API interna para app externo | [docs/INTERNAL-ADS-QUALITY-API.md](docs/INTERNAL-ADS-QUALITY-API.md) |
 | Migração SEO WordPress | [docs/MIGRACAO-SEO-WP.md](docs/MIGRACAO-SEO-WP.md) |

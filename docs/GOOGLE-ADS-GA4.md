@@ -17,6 +17,7 @@ Além disso:
 - **`gclid` / `gbraid` / `wbraid`** da URL são guardados no lead (Neon) e nos eventos internos — para cruzar com campanhas.
 - **Consent Mode v2**: GA4 só grava após “Aceitar analytics” (mesmo banner do PostHog).
 - Tag automática do Google Ads (`gclid` na URL) deve permanecer **ativada** na conta.
+- **Conversões otimizadas** (Enhanced Conversions): quando há e-mail/telefone na sessão, a tag Ads recebe `user_data` hasheado (SHA-256) para melhorar atribuição no iOS — ver seção abaixo.
 
 O funil de WhatsApp fica separado em três camadas:
 
@@ -81,12 +82,14 @@ Antes havia duas ações (`LEAD` e `WHATSAPP`). Enviar o orçamento disparava as
 
 Duas camadas:
 
-1. **No código** — `src/lib/ads-contact-conversion.ts` grava uma trava em `sessionStorage` (`acesso_ads_contact_conversion`) no primeiro disparo. Qualquer CTA seguinte na mesma sessão do navegador é ignorado. Cada disparo leva um `transaction_id` único, que o Google também usa para deduplicar.
+1. **No código** — `src/lib/ads-contact-conversion.ts` grava uma trava em `sessionStorage` (`acesso_ads_contact_conversion`) no primeiro disparo. Qualquer CTA seguinte na mesma sessão do navegador é ignorado **salvo o upgrade de Conversões otimizadas** (abaixo). Cada disparo leva um `transaction_id` único, que o Google também usa para deduplicar.
 2. **No painel do Ads** — a ação de conversão deve estar com **Contagem = “Uma”**. Assim o Google conta uma conversão por clique no anúncio mesmo que a tag dispare novamente em outra sessão.
 
 ### Consentimento
 
-A conversão não exige o cookie de analytics — é medição essencial de clique, sem PII, e segue o Consent Mode (`ad_storage`). Para visitas pagas o `gclid` é restaurado na URL antes do disparo. GA4 e PostHog continuam bloqueados até o aceite.
+A conversão **não** exige o cookie de analytics — é medição essencial de clique e segue o Consent Mode (`ad_storage` + `ad_user_data`). Para visitas pagas o `gclid`/`gbraid`/`wbraid` é restaurado na URL antes do disparo. GA4 e PostHog continuam bloqueados até o aceite.
+
+Quando há e-mail ou telefone (orçamento, One Tap ou prompt de telefone), o site envia esses dados **apenas como hash SHA-256** no `user_data` da tag — ver **Conversões otimizadas** abaixo.
 
 ### Configuração no Google Ads
 
@@ -95,6 +98,47 @@ A conversão não exige o cookie de analytics — é medição essencial de cliq
 3. **Contagem**: **Uma**
 4. Copie o `AW-…/rótulo` para `NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_CONTACT` na Vercel e faça redeploy
 5. Marque como conversão **primária** e deixe as ações antigas (`LEAD`, `WHATSAPP`) como **secundárias** para não somar duas vezes no período de transição
+6. Na mesma ação, ative **Conversões otimizadas** (Enhanced Conversions) — gerenciadas pela tag do Google
+
+---
+
+## Conversões otimizadas (Enhanced Conversions)
+
+No painel do Google Ads (pt-BR) o recurso aparece como **Conversões otimizadas**, não “aprimoradas”. Melhora a atribuição em iOS/Safari (ATT / `wbraid`), cruzando o hash do visitante com contas Google logadas — sem enviar PII em claro.
+
+### O que o código faz
+
+1. Normaliza e-mail (lowercase), telefone E.164 BR (`+55…`) e nome (`first_name` / `last_name`).
+2. Calcula **SHA-256** no navegador (`crypto.subtle`).
+3. Antes do `gtag('event', 'conversion')`, chama `gtag('set', 'user_data', { email, phone_number, address? })` com os hashes.
+4. Guarda identificadores **normalizados** na sessão (`acesso_ec_user`) para reutilizar no próximo CTA da mesma aba.
+
+| Fonte | Quando grava na sessão |
+|-------|------------------------|
+| Formulário de orçamento | No submit — e-mail, telefone e nome vão direto na conversão |
+| Google One Tap | Após registro OK — e-mail do JWT |
+| Prompt opcional de telefone (pós–One Tap) | Após salvar — telefone |
+| Clique WhatsApp / `tel:` | Lê a sessão; se já houver e-mail/telefone, anexa `user_data` |
+
+### Upgrade na mesma sessão
+
+Se o visitante clicou WhatsApp **antes** de informar PII, a conversão dispara sem `user_data`. Quando o orçamento (ou telefone) chega depois, o código **reenvia** a mesma conversão com o **mesmo** `transaction_id` e `user_data` hasheado (`reason: enhanced_upgrade`). Com **Contagem = Uma**, o Ads não dobra o lead.
+
+### Checklist no Ads
+
+Na ação usada por `NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_CONTACT` (ex.: “WhatsApp site novo”):
+
+- **Conversões otimizadas** = ativadas
+- Método: **Gerenciadas pela tag do Google**
+
+Sem isso, o `user_data` enviado pelo site é ignorado.
+
+### Código
+
+- `src/lib/enhanced-conversions.ts` — normalização, hash, `sessionStorage`
+- `src/lib/ads-contact-conversion.ts` — dispara tag + upgrade
+- `src/lib/google-analytics.ts` — `gtag('set', 'user_data', …)`
+- `src/lib/register-cookie-consent-lead.ts` / `register-cookie-consent-phone.ts` — One Tap / telefone → sessão
 
 ---
 
@@ -161,6 +205,7 @@ O sinal de conversa real (`whatsapp_replied_at`) hoje é registrado no banco e n
 2. Aceite cookies de analytics
 3. Clique em **WhatsApp** ou envie um orçamento teste
 4. GA4 → **Relatórios** → **Tempo real** ou **DebugView** — deve aparecer `whatsapp_click` ou `generate_lead`
+5. No DevTools → Network / `dataLayer`: no envio do orçamento (ou após One Tap + WhatsApp) deve existir `gtag('set', 'user_data', …)` com hashes de 64 hex antes do evento `conversion`
 
 ### Conferir gclid no lead
 
@@ -200,9 +245,11 @@ Clicar no WhatsApp sem disparar evento = **0 conversões** no painel, mesmo com 
 
 ## Referências no repositório
 
-- `src/lib/google-analytics.ts` — Consent Mode + eventos
-- `src/components/marketing/AttributionCapture.tsx` e `src/lib/posthog-attribution.ts` — origem, UTMs e IDs Google
-- `src/lib/track-whatsapp-click.ts` — Neon + PostHog + GA4
+- `src/lib/google-analytics.ts` — Consent Mode + eventos + `user_data`
+- `src/lib/enhanced-conversions.ts` — Conversões otimizadas (hash SHA-256)
+- `src/lib/ads-contact-conversion.ts` — conversão única Ads + upgrade com PII
+- `src/components/marketing/AttributionCapture.tsx` e `src/lib/attribution.ts` — origem, UTMs e IDs Google (`gclid`/`gbraid`/`wbraid`)
+- `src/lib/track-whatsapp-click.ts` — Neon + PostHog + GA4 + Ads
 - `src/app/api/webhooks/chatpro/route.ts` — webhook ChatPro
 - `src/lib/chatpro-webhook.ts` — parser de eventos ChatPro
 - `src/lib/chatpro-lead-match.ts` — match por telefone e marcação de `whatsapp_replied_at`
