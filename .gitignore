@@ -42,6 +42,7 @@ yarn-error.log*
 
 # IDE / editor
 .idea/
+.cursor/
 .vscode/*.code-workspace
 *.swp
 *.swo
@@ -69,6 +70,20 @@ next-env.d.ts
 # Database
 *.db
 
+# Eva / ChatPro operational data (local server only; never publish)
+/chatpro-playbook/vault/
+/chatpro-playbook/backups/
+/chatpro-playbook/exports/
+/chatpro-playbook/documents/
+/chatpro-playbook/uploads/
+/chatpro-playbook/media/
+/chatpro-playbook/.after-hours-live
+/chatpro-playbook/after-hours-alerts.log
+/chatpro-playbook/after-hours-watch.log
+/chatpro-playbook/data/*.xls
+/chatpro-playbook/data/*.xlsx
+/chatpro-playbook/data/*.csv
+
 # storybook
 storybook-static
 *storybook.log
@@ -91,4 +106,3 @@ public/equipamentos/uploads/*
 !public/equipamentos/uploads/.gitkeep
 public/blog/uploads/*
 !public/blog/uploads/.gitkeep
-.env*

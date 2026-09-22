@@ -1,0 +1,8 @@
+node_modules
+.env
+.after-hours-live
+after-hours-alerts.log
+vault
+*.md
+scripts
+.git

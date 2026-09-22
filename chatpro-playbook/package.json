@@ -1,0 +1,30 @@
+{
+  "name": "chatpro-playbook",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "start": "tsx src/run.ts",
+    "sync": "tsx src/run.ts --sync-only",
+    "playbook": "tsx src/run.ts --playbook-only",
+    "after-hours": "tsx src/after-hours-run.ts",
+    "sandbox": "tsx src/sandbox-chat.ts",
+    "sandbox:battery": "tsx src/sandbox-battery.ts",
+    "sandbox:probe": "tsx src/sandbox-probe.ts",
+    "sandbox:catalog": "tsx src/sandbox-catalog.ts",
+    "worker": "tsx src/worker-run.ts",
+    "vault:snapshot": "node scripts/snapshot-playbook-vault.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.7.2",
+    "ffmpeg-static": "^5.2.0",
+    "pg": "^8.16.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.5",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

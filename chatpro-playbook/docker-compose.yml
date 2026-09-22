@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: acesso-playbook-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: acesso
+      POSTGRES_PASSWORD: acesso_playbook_local
+      POSTGRES_DB: acesso_playbook
+    ports:
+      - '127.0.0.1:5434:5432'
+    volumes:
+      - acesso_playbook_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U acesso -d acesso_playbook']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  after-hours:
+    profiles: ['live']
+    build: .
+    container_name: acesso-eva-after-hours
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      PLAYBOOK_DATABASE_URL: postgres://acesso:acesso_playbook_local@postgres:5432/acesso_playbook
+      OBSIDIAN_VAULT_PATH: /vault
+      PLAYBOOK_WHISPER: 'off'
+      AFTER_HOURS_SANDBOX: 'false'
+      AFTER_HOURS_LIVE_ENABLED: 'true'
+      AFTER_HOURS_FORCE_OFF_HOURS: 'false'
+      AFTER_HOURS_ALERT_WEBHOOK_URL: file:/app/after-hours-alerts.log
+    volumes:
+      - ./vault:/vault:ro
+      - ./.after-hours-live:/app/.after-hours-live
+    command: ['npx', 'tsx', 'src/after-hours-run.ts', '--live']
+
+volumes:
+  acesso_playbook_pg:

@@ -1,0 +1,1822 @@
+{
+  "source": "listaDePatrimonios.xls",
+  "extractedOn": "2026-08-31",
+  "rule": "never-check-availability",
+  "items": [
+    {
+      "name": "ALICATE PRENSA TERMINAL CRIMPAR HIDRAULICO 10-300MM",
+      "brands": [
+        "VONDER"
+      ],
+      "models": [
+        "ACV300"
+      ]
+    },
+    {
+      "name": "ARGAMASSADEIRA M-120L BIFÁSICA",
+      "brands": [
+        "ANVI"
+      ],
+      "models": [
+        "120L"
+      ]
+    },
+    {
+      "name": "ARGAMASSADEIRA M-120L TRIFÁSICA",
+      "brands": [
+        "ANVI"
+      ],
+      "models": [
+        "120L"
+      ]
+    },
+    {
+      "name": "ASPIRADOR DE PÓ",
+      "brands": [
+        "IPC",
+        "WAP"
+      ],
+      "models": [
+        "A162",
+        "AA275",
+        "TURBO 2002"
+      ]
+    },
+    {
+      "name": "BANCADA DE SERRA MAKITA",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": []
+    },
+    {
+      "name": "BETONEIRA 150L C/MOTOR BIFÁSICO",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "BETONEIRA 200L C/MOTOR BIFÁSICO",
+      "brands": [
+        "CSM"
+      ],
+      "models": [
+        "71000745"
+      ]
+    },
+    {
+      "name": "BETONEIRA 250L C/MOTOR BIFÁSICO",
+      "brands": [
+        "MENEGOTTI"
+      ],
+      "models": [
+        "PRIME"
+      ]
+    },
+    {
+      "name": "BETONEIRA 400L",
+      "brands": [
+        "CSM",
+        "MENEGOTTI",
+        "METALPAMA",
+        "SORRAG"
+      ],
+      "models": [
+        "PRIME",
+        "PROFISSIONAL",
+        "RENTAL"
+      ]
+    },
+    {
+      "name": "BOMBA DE ÁGUA 2\" 220V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "PF1110"
+      ]
+    },
+    {
+      "name": "BOMBA LAMEIRA SUBMERSIVEL 2\" / 3\"",
+      "brands": [
+        "MK",
+        "SUPERBULL"
+      ],
+      "models": [
+        "BSA2200",
+        "SPA1100"
+      ]
+    },
+    {
+      "name": "BOMBA LAMEIRA SUBMERSIVEL 2\" TRIF",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "BOMBA LAMEIRA SUBMERSIVEL 2'' BIFASICA",
+      "brands": [
+        "BRAMEX",
+        "MK",
+        "SUPER BULL",
+        "SUPERBULL"
+      ],
+      "models": [
+        "RS 1100",
+        "RS1100",
+        "SPA750",
+        "XP750"
+      ]
+    },
+    {
+      "name": "BOMBA LAMEIRA SUBMERSIVEL 3\" TRIF",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "BOMBA LAMEIRA SUBMERSIVEL 3'' BIFASICA",
+      "brands": [
+        "BRAMEX",
+        "MK",
+        "SUPER BULL"
+      ],
+      "models": [
+        "SP1100",
+        "SPV1100",
+        "XP 100"
+      ]
+    },
+    {
+      "name": "BOMBA MANGOTE AV-25 2\"",
+      "brands": [
+        "BUFFALO",
+        "CSM"
+      ],
+      "models": [
+        "BF2",
+        "BS2"
+      ]
+    },
+    {
+      "name": "BOMBA MANGOTE AV-25 3\"",
+      "brands": [
+        "BUFFALO",
+        "CSM"
+      ],
+      "models": [
+        "BF 3",
+        "BS3"
+      ]
+    },
+    {
+      "name": "BOMBA SUBMERSIVEL 3/4 SAPO",
+      "brands": [
+        "ANAUGER"
+      ],
+      "models": [
+        "1970L"
+      ]
+    },
+    {
+      "name": "CAÇAMBA CBR100 P/MANIPULADOR",
+      "brands": [
+        "MANITOU"
+      ],
+      "models": [
+        "CBR1000"
+      ]
+    },
+    {
+      "name": "CARREGADOR FORMAÇAO KMT 48V / 30A",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "CARRINHO HIDR. PALETEIRA CAP 2.200KG C/ RODAS TANDEM DE NYLON",
+      "brands": [
+        "PALETRANS"
+      ],
+      "models": [
+        "TM2220"
+      ]
+    },
+    {
+      "name": "CARRINHO HIDR. PALETEIRA CAP 3.000KG C/ RODAS TANDEM DE NYLON",
+      "brands": [
+        "PALETRANS"
+      ],
+      "models": [
+        "TM3020"
+      ]
+    },
+    {
+      "name": "CARRO DE MÃO P/ELEVAÇÃO",
+      "brands": [
+        "HORBACH"
+      ],
+      "models": []
+    },
+    {
+      "name": "CARRO GAIOLA P/ELEVAÇÃO",
+      "brands": [
+        "HORBACH"
+      ],
+      "models": []
+    },
+    {
+      "name": "CHAVE DE CATRACA 7/8\"",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "CHAVE DE IMPACTO 3/4 - 40V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "TW001G"
+      ]
+    },
+    {
+      "name": "CHAVE DE IMPACTO 3/4 BATERIA",
+      "brands": [
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "DCF897B",
+        "DTW1001RTJ",
+        "DTW1001Z",
+        "DWT1001Z"
+      ]
+    },
+    {
+      "name": "COMPACTADOR ELÉTRICO BIFÁSICO 220V",
+      "brands": [
+        "WACKER"
+      ],
+      "models": [
+        "BS50-4S"
+      ]
+    },
+    {
+      "name": "COMPACTADOR GASOLINA",
+      "brands": [
+        "BRANCO",
+        "BUFFALO",
+        "CSM",
+        "HUSQVARNA",
+        "MENEGOTTI",
+        "TEKPAC",
+        "WACKER",
+        "WEBER"
+      ],
+      "models": [
+        "BCP68",
+        "BFG 75R2",
+        "BFG60B",
+        "BS50-4S",
+        "CS75L",
+        "LT6005",
+        "MR68H",
+        "RAM75M"
+      ]
+    },
+    {
+      "name": "COMPRESSOR 2HP MONO 220V 100L",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "COMPRESSOR 2HP MONO 220V 150L A 180L",
+      "brands": [
+        "PRESSURE"
+      ],
+      "models": [
+        "140LB VORTEX",
+        "ONIX 10/150V",
+        "ONIX 10/175V"
+      ]
+    },
+    {
+      "name": "CORTADORA A BATERIA 230MM",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "DCE90PT2"
+      ]
+    },
+    {
+      "name": "CORTADORA A BATERIA 355MM",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "CE001GZ"
+      ]
+    },
+    {
+      "name": "CORTADORA DE BLOCO 350MM 220V",
+      "brands": [
+        "NORTON",
+        "VONDER"
+      ],
+      "models": [
+        "6891230220",
+        "CM 42"
+      ]
+    },
+    {
+      "name": "CORTADORA DE PAREDE 125MM 5\" 220V",
+      "brands": [
+        "MAKITA",
+        "VONDER"
+      ],
+      "models": [
+        "CPV 3150",
+        "SG1251-J"
+      ]
+    },
+    {
+      "name": "CORTADORA DE PISO 350MM GASOLINA",
+      "brands": [
+        "VIBROMAK",
+        "WEBER",
+        "WOLKAN"
+      ],
+      "models": [
+        "CPV350",
+        "SM57",
+        "SP-570"
+      ]
+    },
+    {
+      "name": "CORTADORA DE PISO 500MM GASOLINA",
+      "brands": [
+        "BUFFALO"
+      ],
+      "models": [
+        "BFG500 RENTAL"
+      ]
+    },
+    {
+      "name": "CORTADORA DE PORCELANATO 220V",
+      "brands": [
+        "NORTON"
+      ],
+      "models": [
+        "TR232L"
+      ]
+    },
+    {
+      "name": "CORTADORA MANUAL1250MM CERAMICA/PORCELANATO",
+      "brands": [
+        "CORTAG"
+      ],
+      "models": [
+        "MARTES 125",
+        "MASTER 125",
+        "NEW MASTER 125"
+      ]
+    },
+    {
+      "name": "ENCERADEIRA INDUSTRIAL 350MM",
+      "brands": [
+        "CLEANER"
+      ],
+      "models": [
+        "CL 350"
+      ]
+    },
+    {
+      "name": "ESCADA DE FIBRA 6M EXTENSIVA",
+      "brands": [
+        "ESMIG"
+      ],
+      "models": []
+    },
+    {
+      "name": "ESCADA PLATAFORMA NR12 UTIL 2,00M ( 7 DEGRAUS )",
+      "brands": [
+        "ESCALEVE"
+      ],
+      "models": [
+        "NR2000"
+      ]
+    },
+    {
+      "name": "ESCADA PLATAFORMA NR12 UTIL 2,50M (  9 DEGRAUS )",
+      "brands": [
+        "ESCALEVE"
+      ],
+      "models": [
+        "NR2500"
+      ]
+    },
+    {
+      "name": "ESMERILHADEIRA 4,5\" 220V",
+      "brands": [
+        "BOSCH",
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "9557HNG",
+        "9557HNGBR",
+        "DWE4020-B2",
+        "GWS 850"
+      ]
+    },
+    {
+      "name": "ESMERILHADEIRA 4,5\" 220V HOMEM MORTO",
+      "brands": [
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "9557HPYG",
+        "DWE4120-B2",
+        "GA4550R",
+        "GA5095X04"
+      ]
+    },
+    {
+      "name": "ESMERILHADEIRA 4,5\" BATERIA",
+      "brands": [
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "DCG412-B2",
+        "DG504Z",
+        "DGA452",
+        "DGA504Z",
+        "GA004G",
+        "GA005G"
+      ]
+    },
+    {
+      "name": "ESMERILHADEIRA 7\" 220V",
+      "brands": [
+        "BOSCH",
+        "MAKITA"
+      ],
+      "models": [
+        "GA7020",
+        "GA7020BR",
+        "GA7040S",
+        "GWS 22-180"
+      ]
+    },
+    {
+      "name": "ESMERILHADEIRA 7\" 220V HOMEM MORTO",
+      "brands": [
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "DWE4577-B2",
+        "GA7080",
+        "GA7082"
+      ]
+    },
+    {
+      "name": "ESMERILHADEIRA 9\" 220V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "GA9020",
+        "GA9040S"
+      ]
+    },
+    {
+      "name": "EXTINTOR ABC 1KG",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "EXTINTOR ABC 2KG",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "FURADEIRA 800W 13mm 220V",
+      "brands": [
+        "DEWALT"
+      ],
+      "models": [
+        "DW245-B2"
+      ]
+    },
+    {
+      "name": "FURADEIRA IMPACTO MANDRIL 1/2 220V",
+      "brands": [
+        "BOSCH",
+        "MAKITA"
+      ],
+      "models": [
+        "GSB 16 RE",
+        "HP1640",
+        "HP2050H"
+      ]
+    },
+    {
+      "name": "FURADEIRA IMPACTO MANDRIL 5/8 220V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "HP2070X"
+      ]
+    },
+    {
+      "name": "FURADEIRA MAGNETICA 220V",
+      "brands": [
+        "VONDER"
+      ],
+      "models": [
+        "FMV 1680"
+      ]
+    },
+    {
+      "name": "GERADOR A GASOLINA 13000 110/220V",
+      "brands": [
+        "BRANCO"
+      ],
+      "models": [
+        "B4T13000E"
+      ]
+    },
+    {
+      "name": "GERADOR A GASOLINA 5000 110/220V",
+      "brands": [
+        "BUFALLO",
+        "BUFFALO"
+      ],
+      "models": [
+        "BFG 5000",
+        "BFG 5000 PLUS"
+      ]
+    },
+    {
+      "name": "GERADOR A GASOLINA 7000 110/220V",
+      "brands": [
+        "MENEGOTTI"
+      ],
+      "models": [
+        "MGR7300"
+      ]
+    },
+    {
+      "name": "GERADOR A GASOLINA 8000 110/220V",
+      "brands": [
+        "BRANCO",
+        "BUFFALO",
+        "CSM"
+      ],
+      "models": [
+        "B4T8500",
+        "BFGE 8000 PLUS",
+        "GM 8000E"
+      ]
+    },
+    {
+      "name": "GUINCHO DE COLUNA 200KG MONF",
+      "brands": [
+        "CSM",
+        "MENEGOTTI",
+        "TIMMAQ"
+      ],
+      "models": [
+        "40121035",
+        "MGC200",
+        "PRE20"
+      ]
+    },
+    {
+      "name": "GUINCHO MINI GRUA PARA 300KG BIF. 220V",
+      "brands": [
+        "WISKEHR'S"
+      ],
+      "models": [
+        "GM 500"
+      ]
+    },
+    {
+      "name": "GUINCHO MINI GRUA PARA 400KG BIF. 220V",
+      "brands": [
+        "TIMMAQ"
+      ],
+      "models": [
+        "TM400"
+      ]
+    },
+    {
+      "name": "GUINCHO MINI GRUA PARA 500KG BIF. 220V",
+      "brands": [
+        "TECPART"
+      ],
+      "models": []
+    },
+    {
+      "name": "GUINCHO MINI GRUA PARA 500KG TRIF. 220V",
+      "brands": [
+        "TIMMAQ"
+      ],
+      "models": [
+        "TM 500",
+        "TM500"
+      ]
+    },
+    {
+      "name": "GUINDASTE HIDRAULICO AUTOPROPULSADO FR17",
+      "brands": [
+        "FRANNA"
+      ],
+      "models": [
+        "FR-17C",
+        "XTRA TUFF"
+      ]
+    },
+    {
+      "name": "LASER AUTO NIVELADOR DE LINHA",
+      "brands": [
+        "DEWALT"
+      ],
+      "models": [
+        "DW088K"
+      ]
+    },
+    {
+      "name": "LASER ROTATIVO 20V",
+      "brands": [
+        "DEWALT"
+      ],
+      "models": [
+        "DW079LGB"
+      ]
+    },
+    {
+      "name": "LAVADORA ALTA PRESSÃO HD 585 1300LBS",
+      "brands": [
+        "KARCHER"
+      ],
+      "models": [
+        "HD585"
+      ]
+    },
+    {
+      "name": "LAVADORA ALTA PRESSÃO KARCHER HD 6/15 - 2175 LBS",
+      "brands": [
+        "KARCHER"
+      ],
+      "models": [
+        "HD 6/15 C CAGE PLUS"
+      ]
+    },
+    {
+      "name": "LAVADORA DE ALTA PRESSÃO MAX 10/25 220v",
+      "brands": [
+        "KARCHER"
+      ],
+      "models": [
+        "MAX 10/25"
+      ]
+    },
+    {
+      "name": "LIXADEIRA 7\" 220V",
+      "brands": [
+        "BOSCH",
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "DWE493PW",
+        "GWS 22U",
+        "SA7021"
+      ]
+    },
+    {
+      "name": "LIXADEIRA ORBITAL A BATERIA",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "DBO480"
+      ]
+    },
+    {
+      "name": "LIXADEIRA ORBITAL TREME-TREME",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "B03711"
+      ]
+    },
+    {
+      "name": "LIXADEIRA PAREDE 225MM 220V",
+      "brands": [
+        "CSM",
+        "VONDER"
+      ],
+      "models": [
+        "LPC750",
+        "LPV-1000",
+        "LPV-925"
+      ]
+    },
+    {
+      "name": "LIXADEIRA ROTO ORBITAL 220V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "BO5030"
+      ]
+    },
+    {
+      "name": "MAKITÃO",
+      "brands": [
+        "MAKITA",
+        "VONDER"
+      ],
+      "models": [
+        "4107R",
+        "SMV1800S"
+      ]
+    },
+    {
+      "name": "MANGOTE VIBRADOR 25MM",
+      "brands": [
+        "BUFFALO",
+        "WEBER"
+      ],
+      "models": [
+        "V32"
+      ]
+    },
+    {
+      "name": "MANGOTE VIBRADOR 32MM",
+      "brands": [
+        "BUFFALO"
+      ],
+      "models": [
+        "V32"
+      ]
+    },
+    {
+      "name": "MANGOTE VIBRADOR 35MM",
+      "brands": [
+        "BRANCO",
+        "BUFFALO",
+        "CSM",
+        "VIBROMAK",
+        "WEBER"
+      ],
+      "models": [
+        "38X5M",
+        "BV38G2",
+        "V38",
+        "VC-38",
+        "VIP-36R"
+      ]
+    },
+    {
+      "name": "MANGOTE VIBRADOR 35MM 3,5M PORTATIL MAKITA",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "3,50M"
+      ]
+    },
+    {
+      "name": "MANGOTE VIBRADOR 35MM 3M PORTATIL BOSCH",
+      "brands": [
+        "BOSCH",
+        "MAKVIBRO"
+      ],
+      "models": [
+        "35MM 3,5M",
+        "VBA 35X3,5MT"
+      ]
+    },
+    {
+      "name": "MANGOTE VIBRADOR 35MM 4,5M PORTATIL MAKITA",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "4.5M"
+      ]
+    },
+    {
+      "name": "MANGOTE VIBRADOR 38MM",
+      "brands": [
+        "BUFFALO"
+      ],
+      "models": [
+        "V38"
+      ]
+    },
+    {
+      "name": "MANGOTE VIBRADOR 45MM",
+      "brands": [
+        "BRANCO",
+        "BUFFALO",
+        "CSM"
+      ],
+      "models": [
+        "BV45G2",
+        "V45",
+        "V48",
+        "VC-45"
+      ]
+    },
+    {
+      "name": "MANGOTE VIBRADOR 50MM",
+      "brands": [
+        "CSM"
+      ],
+      "models": [
+        "VC-50"
+      ]
+    },
+    {
+      "name": "MANGOTE VIBRADOR 60MM",
+      "brands": [
+        "BUFFALO"
+      ],
+      "models": [
+        "5M",
+        "V60"
+      ]
+    },
+    {
+      "name": "MANIPULADOR TELESCÓPICO MXT 840 P",
+      "brands": [
+        "MANITOU"
+      ],
+      "models": [
+        "MXT840"
+      ]
+    },
+    {
+      "name": "MAQUINA DE SOLDA 200A 220V - TIG/MMA",
+      "brands": [
+        "TORK EXTREME"
+      ],
+      "models": [
+        "ITE-10200"
+      ]
+    },
+    {
+      "name": "MAQUINA DE SOLDA 250A 220V - TIG/MMA",
+      "brands": [
+        "TORK EXTREME"
+      ],
+      "models": [
+        "ITE12300"
+      ]
+    },
+    {
+      "name": "MAQUINA DE SOLDA 250A 220V - TIG/MMA/MIG",
+      "brands": [
+        "TORK EXTREME"
+      ],
+      "models": [
+        "IMETS-12250"
+      ]
+    },
+    {
+      "name": "MARTELETE SDS COMBINADO BATERIA",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "HR007G",
+        "HR2470X18"
+      ]
+    },
+    {
+      "name": "MARTELETE SDS PLUS COMBINADO 220V",
+      "brands": [
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "D25133-B2",
+        "HR2470",
+        "HR2470BR",
+        "HR2670"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR 10KG 220V",
+      "brands": [
+        "BOSCH",
+        "DEWALT",
+        "MAKITA",
+        "STANLEY",
+        "SUPER BULL",
+        "SUPERBULL"
+      ],
+      "models": [
+        "GSH 11E",
+        "HM1203 C",
+        "HM1203C",
+        "R10",
+        "STHM10K-B2"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR 10KG BATERIA",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "HM002G"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR 15KG 220V",
+      "brands": [
+        "DEWALT",
+        "VONDER"
+      ],
+      "models": [
+        "D25960-B2",
+        "D25966-B2",
+        "MDV1765"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR 18KG 220V",
+      "brands": [
+        "BOSCH",
+        "SUPER BULL",
+        "SUPERBULL"
+      ],
+      "models": [
+        "GSH 16-28",
+        "R16"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR 20KG 220V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "HM1512"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR 30KG 220V",
+      "brands": [
+        "DEWALT",
+        "MAKITA",
+        "VONDER"
+      ],
+      "models": [
+        "D25980-B2",
+        "HM1802",
+        "MDV 2278"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR 5KG 220V",
+      "brands": [
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "D25810-B2",
+        "HM0870C"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR 5KG BATERIA",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "HM001G"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR TE-1000 AVR 220V",
+      "brands": [
+        "HILTI"
+      ],
+      "models": [
+        "TE-1000"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR TE-2000 AVR 220V",
+      "brands": [
+        "HILTI"
+      ],
+      "models": [
+        "TE-2000"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR TE-500 AVR 220V",
+      "brands": [
+        "HILTI"
+      ],
+      "models": [
+        "TE 500-AVR"
+      ]
+    },
+    {
+      "name": "MARTELO DEMOLIDOR TE-700 AVR 220V",
+      "brands": [
+        "HILTI"
+      ],
+      "models": [
+        "TE-700"
+      ]
+    },
+    {
+      "name": "MARTELO ROTATIVO SDS MAX 10KG",
+      "brands": [
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "D25773-B2",
+        "HR5211C"
+      ]
+    },
+    {
+      "name": "MARTELO ROTATIVO SDS MAX 5KG",
+      "brands": [
+        "BOSCH",
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "GBH 5-40",
+        "GBH 5-40 DCE",
+        "HR 4200"
+      ]
+    },
+    {
+      "name": "MICRORRETIFICA",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "MISTURADOR DE ARGAMASSA PORTATIL CORTAG 127V",
+      "brands": [
+        "CORTAG"
+      ],
+      "models": [
+        "HM-140"
+      ]
+    },
+    {
+      "name": "MISTURADOR DE ARGAMASSA PORTATIL CORTAG 220V",
+      "brands": [
+        "CORTAG"
+      ],
+      "models": [
+        "HM140"
+      ]
+    },
+    {
+      "name": "MISTURADOR DE ARGAMASSA PORTATIL MAKITA",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "UT 2204"
+      ]
+    },
+    {
+      "name": "MOTOR VIBRADOR BIFASICO",
+      "brands": [
+        "WEBER"
+      ],
+      "models": []
+    },
+    {
+      "name": "MOTOR VIBRADOR GASOLINA",
+      "brands": [
+        "BRANCO",
+        "BUFFALO",
+        "CSM"
+      ],
+      "models": [
+        "6,5HP",
+        "7HP",
+        "B4T507",
+        "BFG 4T",
+        "BFG4T"
+      ]
+    },
+    {
+      "name": "MOTOR VIBRADOR TRIFASICO",
+      "brands": [
+        "POWER"
+      ],
+      "models": [
+        "METD-2.0"
+      ]
+    },
+    {
+      "name": "NOTEBOOK PORTATIL ACER",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "PAINEL DE COMANDO",
+      "brands": [
+        "MENEGOTTI",
+        "WEG",
+        "WEG/MENEGOTTI"
+      ],
+      "models": [
+        "PDWE",
+        "WEG PDW"
+      ]
+    },
+    {
+      "name": "PAINEL DE COMANDO NR12",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "PAINEL DE COMANDO SERRA DE BANCADA",
+      "brands": [],
+      "models": [
+        "PNC2-FLD-1E",
+        "PNC3-FLD-1E"
+      ]
+    },
+    {
+      "name": "PARAFUSADEIRA ELETRICA 220V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "FS2700"
+      ]
+    },
+    {
+      "name": "PARAFUSADEIRA FURADEIRA A BATERIA",
+      "brands": [
+        "BOSCH",
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "DCD7781D2",
+        "DCD985-B2",
+        "DCD985L2-B2",
+        "DCD996P2T-BR",
+        "DHP458RFE",
+        "DHP482",
+        "DHP482 MAK2",
+        "GSH180-LI"
+      ]
+    },
+    {
+      "name": "PARAFUSADEIRA FURADEIRA A BATERIA 12V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "HP333DWYX3"
+      ]
+    },
+    {
+      "name": "PARAFUSADEIRA FURADEIRA A BATERIA 2.0AH",
+      "brands": [
+        "DEWALT"
+      ],
+      "models": [
+        "DCD7781-D2"
+      ]
+    },
+    {
+      "name": "PEDESTAL PARA GUINCHO DE COLUNA PG 400",
+      "brands": [
+        "CSM"
+      ],
+      "models": [
+        "PG400"
+      ]
+    },
+    {
+      "name": "PERFURADOR DE SOLO A BATERIA 40V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "DG001G"
+      ]
+    },
+    {
+      "name": "PISTOLA FINCA PINOS",
+      "brands": [
+        "WALSYWA"
+      ],
+      "models": [
+        "PRX10"
+      ]
+    },
+    {
+      "name": "PLACA VIBRATORIA GASOLINA",
+      "brands": [
+        "VONDER",
+        "WEBER"
+      ],
+      "models": [
+        "6659900000",
+        "PV2000"
+      ]
+    },
+    {
+      "name": "PLACA VIBRATORIA REVERSIVEL CR5 GASOLINA",
+      "brands": [
+        "WEBER"
+      ],
+      "models": [
+        "CR5"
+      ]
+    },
+    {
+      "name": "PLACA VIBRATORIA REVERSIVEL GASOLINA",
+      "brands": [
+        "BUFALLO"
+      ],
+      "models": [
+        "BFG125"
+      ]
+    },
+    {
+      "name": "PLAINA 220V",
+      "brands": [
+        "BOSCH",
+        "MAKITA"
+      ],
+      "models": [
+        "GHO700",
+        "KP0800"
+      ]
+    },
+    {
+      "name": "PLAINA PARA CONCRETO",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "PC5000C"
+      ]
+    },
+    {
+      "name": "PLATAFORMA 36AM",
+      "brands": [
+        "JLG LATINO AMERICANA"
+      ],
+      "models": [
+        "36AM"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AEREA ARTICULADA  DIESEL 160 ATJ",
+      "brands": [
+        "MANITOU"
+      ],
+      "models": [
+        "160ATJ"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AEREA ARTICULADA DIESEL S80 J",
+      "brands": [
+        "GENIE"
+      ],
+      "models": [
+        "S-80J"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA ARTICULADA E450AJ",
+      "brands": [
+        "JLG",
+        "JLG LATINO AMERICANA LTDA"
+      ],
+      "models": [
+        "E450AJ"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA ARTICULADA SJ45AJ+ DIESEL",
+      "brands": [
+        "SKYJACK"
+      ],
+      "models": [
+        "SJ45 AJ+"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA ARTICULADA Z34",
+      "brands": [
+        "GENIE"
+      ],
+      "models": [
+        "Z-34/22N DC"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA ARTICULADA Z45/25J DC",
+      "brands": [
+        "GENIE"
+      ],
+      "models": [
+        "Z-45/25J DC"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA ARTICULADA Z45/25J RT DIESEL",
+      "brands": [
+        "GENIE"
+      ],
+      "models": [
+        "Z45/25J"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA ARTICULADA Z60/37 DC",
+      "brands": [
+        "GENIE"
+      ],
+      "models": [
+        "Z60/37DC"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA GS 1930",
+      "brands": [
+        "GENIE"
+      ],
+      "models": [
+        "GS1930"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA GS 1932M",
+      "brands": [
+        "GENIE"
+      ],
+      "models": [
+        "GS1932M"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA GS 2632",
+      "brands": [
+        "GENIE"
+      ],
+      "models": [
+        "GS2632"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AEREA GS 3246",
+      "brands": [
+        "GENIE TEREX"
+      ],
+      "models": [
+        "GS 3246"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA GS 4046",
+      "brands": [
+        "GENIE"
+      ],
+      "models": [
+        "GS 4046",
+        "GS4046"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA GS 4655",
+      "brands": [
+        "GENIE"
+      ],
+      "models": [
+        "GS4655"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA HB 1430",
+      "brands": [
+        "HY BRID LIFTS"
+      ],
+      "models": [
+        "HB- 1430"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA HB-P830",
+      "brands": [
+        "HY BRID"
+      ],
+      "models": [
+        "PB 830"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA JLG 2632R",
+      "brands": [
+        "JLG"
+      ],
+      "models": [
+        "2632R"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AÉREA PEP 590",
+      "brands": [
+        "HYDROLIFT"
+      ],
+      "models": [
+        "PEP 590"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AEREA SJ3219",
+      "brands": [
+        "SKYJACK"
+      ],
+      "models": [
+        "SJ3219ET"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AEREA SJ3226",
+      "brands": [
+        "SKYJACK"
+      ],
+      "models": [
+        "SJ3226",
+        "SJ3226E",
+        "SJ3226ET"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AEREA SJ4732",
+      "brands": [
+        "SKYJACK"
+      ],
+      "models": [
+        "SJ4732"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AEREA SJ4740",
+      "brands": [
+        "SKYJACK"
+      ],
+      "models": [
+        "SJ4740",
+        "SJ4740E"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AEREA SJIII3219",
+      "brands": [
+        "SKYJACK"
+      ],
+      "models": [
+        "SJ3219",
+        "SJIII3219"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AEREA SJIII3226",
+      "brands": [
+        "SKYJACK"
+      ],
+      "models": [
+        "SJ3226",
+        "SJIII3226"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AEREA SJIII4632",
+      "brands": [
+        "SKYJACK"
+      ],
+      "models": [
+        "SJIII4632"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AEREA SJIII4740",
+      "brands": [
+        "SKYJACK"
+      ],
+      "models": [
+        "SJ 4740",
+        "SJIII4740"
+      ]
+    },
+    {
+      "name": "PLATAFORMA ARTICULADA  DIESEL S60J",
+      "brands": [
+        "GENIE - TEREX"
+      ],
+      "models": [
+        "S-60J"
+      ]
+    },
+    {
+      "name": "PLATAFORMA AWP-30S DC",
+      "brands": [
+        "GENIE"
+      ],
+      "models": [
+        "AWP 30S",
+        "AWP-30S"
+      ]
+    },
+    {
+      "name": "PLATAFORMA DE MASTRO VERTICAL 20MVL",
+      "brands": [
+        "JLG"
+      ],
+      "models": [
+        "20MVL"
+      ]
+    },
+    {
+      "name": "PLATAFORMA DE MASTRO VERTICAL SJ20",
+      "brands": [
+        "SKYJACK"
+      ],
+      "models": [
+        "SJ20ET",
+        "SJ20T"
+      ]
+    },
+    {
+      "name": "POLITRIZ 7\" 220V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "9237C"
+      ]
+    },
+    {
+      "name": "POLITRIZ P/PISO 280MM 220V",
+      "brands": [
+        "BUFFALO"
+      ],
+      "models": [
+        "BF2800"
+      ]
+    },
+    {
+      "name": "REGUA VIBRATORIA GASOLINA",
+      "brands": [
+        "WEBER"
+      ],
+      "models": [
+        "VS-2"
+      ]
+    },
+    {
+      "name": "RETIFICA MANUAL 220V",
+      "brands": [
+        "BOSCH",
+        "MAKITA"
+      ],
+      "models": [
+        "GD06001",
+        "GD0601",
+        "GGS 28L"
+      ]
+    },
+    {
+      "name": "ROÇADEIRA C/ PUNHO TIPO GUIDÃO",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "DUR369AZ"
+      ]
+    },
+    {
+      "name": "SERRA CIRCULAR 7\" 220V",
+      "brands": [
+        "BOSCH",
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "5007N",
+        "DWE560-B2",
+        "GKS 190"
+      ]
+    },
+    {
+      "name": "SERRA CIRCULAR 7'' BATERIA",
+      "brands": [
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "DCS570B-B3",
+        "DCS570H2-BR",
+        "HS003G",
+        "RS001GZ"
+      ]
+    },
+    {
+      "name": "SERRA CIRCULAR 9\" 220V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "5902B"
+      ]
+    },
+    {
+      "name": "SERRA CIRCULAR DE BANCADA 255MM 220V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "MLT100"
+      ]
+    },
+    {
+      "name": "SERRA DE BANCADA",
+      "brands": [],
+      "models": []
+    },
+    {
+      "name": "SERRA MÁRMORE 220V",
+      "brands": [
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "4100HN2",
+        "4100NH2",
+        "4100NH2BR",
+        "4100NH3ZX2",
+        "DW862-B2"
+      ]
+    },
+    {
+      "name": "SERRA MEIA ESQUADRIA 10\" 255MM 220V",
+      "brands": [
+        "DEWALT"
+      ],
+      "models": [
+        "DW714-B2"
+      ]
+    },
+    {
+      "name": "SERRA POLICORTE 12'' 220V",
+      "brands": [
+        "MOTOMIL"
+      ],
+      "models": [
+        "SC-100M"
+      ]
+    },
+    {
+      "name": "SERRA POLICORTE 14\" 220V",
+      "brands": [
+        "BOSCH",
+        "MAKITA"
+      ],
+      "models": [
+        "GCO14-24",
+        "LW1401S"
+      ]
+    },
+    {
+      "name": "SERRA SABRE 220V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "JR3051TK"
+      ]
+    },
+    {
+      "name": "SERRA TICO TICO 220V",
+      "brands": [
+        "BOSCH",
+        "DEWALT",
+        "MAKITA"
+      ],
+      "models": [
+        "DW 331K",
+        "GST90BE",
+        "MAKI4327"
+      ]
+    },
+    {
+      "name": "SOPRADOR A BATERIA 40V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "UB001GZ"
+      ]
+    },
+    {
+      "name": "SOPRADOR TERMICO 220V",
+      "brands": [
+        "MAKITA"
+      ],
+      "models": [
+        "HG5030K"
+      ]
+    },
+    {
+      "name": "TALHA 1T 10M",
+      "brands": [
+        "BERG-STELL",
+        "CSM"
+      ],
+      "models": [
+        "1210NT",
+        "TC1000"
+      ]
+    },
+    {
+      "name": "TALHA 1T 5M",
+      "brands": [
+        "CSM",
+        "MENEGOTTI"
+      ],
+      "models": [
+        "MTM",
+        "TC 1000 5M"
+      ]
+    },
+    {
+      "name": "TERMOANEMOMETRO DIGITAL",
+      "brands": [
+        "VONDER"
+      ],
+      "models": [
+        "TAV030"
+      ]
+    },
+    {
+      "name": "TORRE DE ILUMINAÇAO A BATERIA 20V",
+      "brands": [
+        "DEWALT"
+      ],
+      "models": [
+        "DCL079B"
+      ]
+    },
+    {
+      "name": "TRANSFORMADOR BIVOLT 3000W",
+      "brands": [
+        "DPOWER",
+        "FORCE LINE",
+        "KF"
+      ],
+      "models": []
+    },
+    {
+      "name": "TRANSFORMADOR BIVOLT 7000W",
+      "brands": [
+        "FORCE LINE"
+      ],
+      "models": [
+        "SLIM PREMIUM"
+      ]
+    },
+    {
+      "name": "VIBRADOR DE CONCRETO PORTATIL - 220V",
+      "brands": [
+        "BOSCH",
+        "MAKITA"
+      ],
+      "models": [
+        "GCV20EX",
+        "GVC22EX",
+        "VR1000"
+      ]
+    }
+  ]
+}

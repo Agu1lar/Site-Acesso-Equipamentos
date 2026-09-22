@@ -1,0 +1,14 @@
+.env
+node_modules/
+.after-hours-live
+after-hours-alerts.log
+vault/
+after-hours-watch.log
+backups/
+exports/
+documents/
+uploads/
+media/
+data/*.xls
+data/*.xlsx
+data/*.csv
