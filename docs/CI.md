@@ -67,7 +67,7 @@ npm run build
 | `src/lib/legacy-redirects.test.ts` | Mapa de redirects |
 | `src/lib/quote-whatsapp.test.ts` | Mensagem e URL WhatsApp |
 
-Smoke do painel `/dashboard/leads` (login Clerk) fica para quando houver usuário de teste documentado em `docs/CLERK-ACESSO-ADMIN.md`.
+Smoke do painel `/dashboard/leads` (login por senha) fica para quando houver usuário de teste documentado em `docs/CLERK-ACESSO-ADMIN.md`.
 
 ## Branch protection em `main`
 
@@ -91,7 +91,7 @@ Abra o run → veja qual **job** falhou (ícone vermelho):
 |-----|-----------------|---------------------------|
 | Run unit tests | Teste do boilerplate (`BaseTemplate`) desatualizado | `npm run test` |
 | Run static checks | `npm run lint` (~centenas de regras Ultracite) ou `check:deps` | `npm run lint` e `npm run check:deps` |
-| Build with db migrate | Falta `DATABASE_URL` / migrate ou env Clerk | `npm run build` com Postgres |
+| Build with db migrate | Falta `DATABASE_URL` / migrate ou `DASHBOARD_SESSION_SECRET` | `npm run build` com Postgres |
 | Run E2E tests | Playwright (formulário, 301, API leads) | `npm run test:e2e` |
 
 ### Vercel Preview vermelho no PR

@@ -6,18 +6,23 @@ Análise de conversas ChatPro com Claude, **fora do painel admin**. A Vercel gra
 
 ```
 ChatPro → POST /api/webhooks/chatpro (Vercel)
-            ├─ whatsapp_replied_at no lead (todos os leads)
+            ├─ whatsapp_replied_at / atividade no lead (todos os leads)
+            ├─ contacted só se assigned_session com humano
             └─ chatpro_messages + outbox **somente leads de campanha**
 
 chatpro-local/ (sua máquina)
             ├─ poll GET …/chatpro-roi/events?since=0
-            ├─ heartbeat POST …/dashboard-network/heartbeat (autoriza IP do painel)
+            ├─ heartbeat POST …/dashboard-network/heartbeat (legado; não controla login)
             ├─ fila SQLite (job_id = externalId, dedup)
             ├─ debounce 30 min por lead
             ├─ GET …/leads/{id}/context (403 se não for campanha)
             ├─ Whisper local (opcional) transcreve áudios sem texto
             ├─ Claude → POST …/evaluations
             └─ POST …/events { outboxIds } — ack **após** análise
+
+chatpro-playbook/ (opcional, paralelo)
+            └─ pull ChatPro → Postgres :5434 → Obsidian / after-hours
+               (não usa Neon; ver docs/CHATPRO-PLAYBOOK.md)
 ```
 
 ## Regra: Claude só lê campanhas
@@ -30,6 +35,8 @@ O Claude **nunca** analisa conversas orgânicas ou sem atribuição paga. Mensag
 `utm_campaign` sozinho **não** entra. `utm_source=google` sem medium pago **também não**.
 
 Leads orgânicos continuam marcando `whatsapp_replied_at` no CRM, mas **não** geram `chatpro_messages`, outbox nem evaluation.
+
+Resposta do cliente **não** promove o lead para `contacted`. Só `assigned_session` com atendente humano (`assing_to`) pode avançar um lead `new` → `contacted`.
 
 ## Clique WhatsApp sem formulário (ponte por ref)
 
@@ -193,3 +200,7 @@ dotenv -c -- npx tsx scripts/chatpro-roi-report.mjs --remote --campaignPrefix=no
 **Google Ads API:** configure as env vars e use `useGoogleAdsSpend=true` na API ou `--use-google-ads-spend` no CLI. Detalhes em [GOOGLE-ADS-ROI-API.md](./GOOGLE-ADS-ROI-API.md).
 
 Gasto manual (`spendJson` / `--spend-file`) sobrescreve valores da API para a mesma campanha.
+
+## Playbook (Obsidian / after-hours)
+
+Separado deste pipeline: [CHATPRO-PLAYBOOK.md](./CHATPRO-PLAYBOOK.md) · [chatpro-playbook/README.md](../chatpro-playbook/README.md).

@@ -1,6 +1,6 @@
 # Passos manuais — go-live, CRM e operação
 
-Tarefas que **não são código** e precisam ser feitas por você (ou pela equipe) no painel Vercel, Clerk, Neon, CRM e DNS.
+Tarefas que **não são código** e precisam ser feitas por você (ou pela equipe) no painel Vercel, Neon, CRM e DNS.
 
 ---
 
@@ -13,8 +13,7 @@ Configure em **Production** (e Preview, se quiser testar antes):
 | Variável | Obrigatória | Exemplo / nota |
 |----------|-------------|----------------|
 | `DATABASE_URL` | Sim | Connection string do **Neon** (com `?sslmode=require`) |
-| `CLERK_SECRET_KEY` | Sim | `sk_live_...` no domínio oficial |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Sim | `pk_live_...` no domínio oficial |
+| `DASHBOARD_SESSION_SECRET` | Sim | String aleatória ≥ 32 caracteres |
 | `NEXT_PUBLIC_APP_URL` | Sim | `https://acessoequipamentos.com.br` |
 | `WHATSAPPOS_API_URL` | CRM | URL HTTPS da API do whatsappOS |
 | `WHATSAPPOS_WIDGET_KEY` | CRM | ex.: `acesso-orcamento-site` |
@@ -23,6 +22,7 @@ Configure em **Production** (e Preview, se quiser testar antes):
 | `LEADS_NOTIFY_EMAIL` | E-mail leads | ex.: `comercial@acessoequipamentos.com.br` |
 | `ARCJET_KEY` | Recomendado | Rate limit do formulário |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Opcional | Analytics após cookie consent |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` / `NEXT_PUBLIC_GOOGLE_ADS_*` | Ads | Ver [GOOGLE-ADS-GA4.md](./GOOGLE-ADS-GA4.md) |
 
 **Depois de salvar:** Deployments → último deploy → **⋯** → **Redeploy** (para aplicar as env vars).
 
@@ -63,14 +63,12 @@ Troque de `landing-page-acesso.vercel.app` para `https://acessoequipamentos.com.
 
 ---
 
-## 3. Clerk (painel admin em produção)
+## 3. Acesso ao painel (senha)
 
-1. [Clerk Dashboard](https://dashboard.clerk.com) → crie/use instância **Production**
-2. Gere `pk_live_` e `sk_live_`
-3. Em **Domains**, adicione `acessoequipamentos.com.br`
-4. Cole as chaves na Vercel (passo 1)
-5. Convide usuários admin/comercial (sign-up público continua desativado)
-6. Em cada usuário → **Public metadata**: `{ "role": "admin" }` ou `"comercial"`
+1. Defina `DASHBOARD_SESSION_SECRET` (≥ 32 caracteres) na Vercel Production
+2. Redeploy e faça login em `/sign-in` com o usuário seed
+3. Em **Painel → Acesso**, cadastre a equipe (`admin` / `comercial`) e redefina senhas
+4. Remova `CLERK_*` da Vercel se ainda estiverem configuradas
 
 Guia completo: [CLERK-ACESSO-ADMIN.md](./CLERK-ACESSO-ADMIN.md)
 
@@ -164,7 +162,7 @@ Quando o DNS apontar para a Vercel:
 ## 9. Checklist rápido antes de anunciar o site novo
 
 - [ ] `DATABASE_URL` na Vercel Production (preferir connection string **pooler** do Neon — hostname com `-pooler`)
-- [ ] Clerk `pk_live_` / `sk_live_` em Production (Preview pode manter `pk_test_`)
+- [ ] `DASHBOARD_SESSION_SECRET` (≥ 32 chars) em Production
 - [ ] Domínio oficial validado na Vercel
 - [ ] `NEXT_PUBLIC_APP_URL` com domínio oficial
 - [ ] CRM whatsappOS testado (Neon + Inbox)
@@ -172,7 +170,7 @@ Quando o DNS apontar para a Vercel:
 - [ ] Orçamento E2E passando no CI
 - [ ] Top 20 URLs do GSC retornam 301 ou 200
 - [ ] Logos (se aplicável) com autorização jurídica
-- [ ] `GET /api/health` retorna `"ok": true` e `"clerk": { "mode": "live" }` em Production
+- [ ] `GET /api/health` retorna `"ok": true` e `auth.mode: "dashboard_password"` em Production
 
 Referência técnica: [GO-LIVE-GATE.md](./GO-LIVE-GATE.md)
 
@@ -180,23 +178,22 @@ Referência técnica: [GO-LIVE-GATE.md](./GO-LIVE-GATE.md)
 
 ## 10. Reunião de go-live (domínio amanhã)
 
-Ordem sugerida — **não inverta Clerk e DNS**:
+Ordem sugerida — **não inverta secrets e DNS**:
 
-1. **Antes do DNS:** Clerk Dashboard → **Production** → copiar `pk_live_` / `sk_live_` → Vercel **Production** → redeploy.
-2. **Clerk Production → Domains:** adicionar `acessoequipamentos.com.br`.
-3. **Clerk Production → Users:** convidar equipe com `{ "role": "admin" }` ou `"comercial"`.
-4. **Neon:** usar `DATABASE_URL` do branch **Production** com **pooler** (`-pooler` no host).
-5. **Apontar DNS** para a Vercel (A/CNAME conforme painel).
-6. **Imediatamente após propagar:** validar redirects WordPress:
+1. **Antes do DNS:** `DATABASE_URL` (pooler) + `DASHBOARD_SESSION_SECRET` + Blob + `NEXT_PUBLIC_APP_URL` na Vercel **Production** → redeploy.
+2. **Painel → Acesso:** equipe `admin` / `comercial` com senhas novas.
+3. **Neon:** confirmar branch **Production** com **pooler** (`-pooler` no host).
+4. **Apontar DNS** para a Vercel (A/CNAME conforme painel).
+5. **Imediatamente após propagar:** validar redirects WordPress:
    ```bash
    curl -I https://acessoequipamentos.com.br/blog/
    curl -I https://acessoequipamentos.com.br/plataforma-elevatoria-tesoura-a-solucao-ideal-para-trabalhos-em-altura/
    ```
    Esperado: `HTTP/2 301` com `Location` correto.
-7. **Health check:** `curl https://acessoequipamentos.com.br/api/health` — `"ok": true`, `"clerk.productionMismatch": false`.
-8. **Teste comercial:** `/sign-in` → `/dashboard/leads` + orçamento com plataforma (WhatsApp deve listar altura e carga).
+6. **Health check:** `curl https://acessoequipamentos.com.br/api/health` — `"ok": true`, `auth.mode: "dashboard_password"`.
+7. **Teste comercial:** `/sign-in` → `/dashboard/leads` + orçamento com plataforma (WhatsApp deve listar altura e carga).
 
-Se algo falhar no passo 6, **prioridade máxima** — Google Ads reprova destino quebrado.
+Se algo falhar no passo 5, **prioridade máxima** — Google Ads reprova destino quebrado.
 
 ---
 

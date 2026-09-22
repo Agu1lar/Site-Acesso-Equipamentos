@@ -1,6 +1,8 @@
 # Acesso ao painel (login com senha)
 
-O painel (`/dashboard`) usa **login próprio** com e-mail e senha armazenados no banco (Neon). Não depende mais do Clerk.
+> Nome do arquivo `CLERK-ACESSO-ADMIN.md` é legado. O painel **não** usa mais Clerk.
+
+O painel (`/dashboard`) usa **login próprio** com e-mail e senha armazenados no banco (Neon).
 
 ## Login
 

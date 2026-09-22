@@ -10,7 +10,7 @@ Fluxo usado quando **só você** mexe no projeto e as variáveis ficam **apenas 
 
 | Ambiente | Variáveis | Deploy |
 |----------|-----------|--------|
-| **Production** | Todas (`DATABASE_URL`, `CLERK_*`, `NEXT_PUBLIC_APP_URL`, Resend, etc.) | Site real / domínio |
+| **Production** | Todas (`DATABASE_URL`, `DASHBOARD_SESSION_SECRET`, `NEXT_PUBLIC_APP_URL`, Resend, etc.) | Site real / domínio |
 | **Preview** | Vazio ou mínimo | PR no GitHub pode mostrar **Vercel vermelho** — normal |
 
 **No GitHub:** não use o check **Vercel** como obrigatório no merge. O gate é o workflow **CI** (Build, static, unit).
@@ -25,7 +25,7 @@ Build Command em **Production:** `npm run build` (migrate + Next). Preview opcio
 
 - [ ] Conta em [vercel.com](https://vercel.com)
 - [ ] Repositório Git do projeto (GitHub/GitLab/Bitbucket) — **não** usar só o remote do boilerplate ixartz
-- [ ] Chaves Clerk (app de teste) — [dashboard.clerk.com](https://dashboard.clerk.com)
+- [ ] `DASHBOARD_SESSION_SECRET` (≥ 32 caracteres) — ver [CLERK-ACESSO-ADMIN.md](./CLERK-ACESSO-ADMIN.md)
 - [ ] `DATABASE_URL` PostgreSQL (recomendado: [Neon](https://neon.tech) free tier) — necessário para o build validar env
 
 ---
@@ -49,12 +49,11 @@ Build Command em **Production:** `npm run build` (migrate + Next). Preview opcio
 
 ### Variáveis de ambiente (Vercel → Settings → Environment Variables)
 
-Copie de `.env.local` / Clerk / Neon. Mínimo para build:
+Copie de `.env.local` / Neon. Mínimo para build:
 
 | Variável | Preview | Produção |
 |----------|---------|----------|
-| `CLERK_SECRET_KEY` | ✓ | ✓ |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | ✓ | ✓ |
+| `DASHBOARD_SESSION_SECRET` | ✓ (≥ 32 chars) | ✓ |
 | `DATABASE_URL` | ✓ (Neon) | ✓ |
 | `NEXT_PUBLIC_APP_URL` | `https://SEU-PROJETO.vercel.app` | domínio oficial |
 | `NEXT_PUBLIC_SENTRY_DISABLED` | `true` | opcional |
@@ -112,17 +111,16 @@ No preview, testar manualmente:
 | Erro | Solução |
 |------|---------|
 | **Build Error: Invalid environment variables** | No Vercel → **Settings → Environment Variables**, marque **Production** e **Preview** e adicione as 4 obrigatórias abaixo. Redeploy depois. |
-| Build falha em `Env.ts` | Mesmo caso: faltam `CLERK_*` ou `DATABASE_URL` no painel (não basta só no `.env.local`) |
+| Build falha em `Env.ts` | Mesmo caso: faltam `DASHBOARD_SESSION_SECRET` ou `DATABASE_URL` no painel (não basta só no `.env.local`) |
 | `db:migrate` falha no build padrão | Trocar Build Command para `npm run build:next` |
 | Página 404 em rotas | Confirmar `pt-BR` na URL: `/pt-BR` ou redirect do next-intl |
-| Clerk em páginas sign-in | Normal no MVP; marketing não depende de login |
+| Login do painel | `/sign-in` com senha; marketing não depende de login |
 
 ### Checklist obrigatório no Vercel (copiar do `.env.local`)
 
 | Variável | Production | Preview |
 |----------|:------------:|:-------:|
-| `CLERK_SECRET_KEY` | ✓ | ✓ |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | ✓ | ✓ |
+| `DASHBOARD_SESSION_SECRET` | ✓ | ✓ |
 | `DATABASE_URL` | ✓ (Neon) | ✓ |
 | `NEXT_PUBLIC_APP_URL` | URL do domínio ou `https://landing-page-acesso.vercel.app` | URL do preview |
 | `NEXT_PUBLIC_SENTRY_DISABLED` | `true` (opcional) | `true` |

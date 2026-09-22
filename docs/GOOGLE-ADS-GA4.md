@@ -57,10 +57,12 @@ Configure o mesmo valor em `CHATPRO_WEBHOOK_SECRET`. O endpoint aceita o segredo
 
 Regras atuais:
 
-- só eventos inbound do cliente marcam resposta;
+- só eventos inbound do cliente marcam resposta (`whatsapp_replied_at`);
 - abertura de sessão (`opened_session`) não conta como resposta;
 - o match é feito por telefone normalizado contra leads recentes/ativos dos últimos 45 dias;
-- na primeira resposta, o lead recebe `whatsapp_replied_at`, `last_activity_at`, nota interna do ChatPro e status `contacted` se ainda estava `new`.
+- na primeira resposta, o lead recebe `whatsapp_replied_at`, `last_activity_at` e nota interna do ChatPro;
+- status **`contacted`** só avança quando o ChatPro envia `assigned_session` com atendente humano (`assing_to`) — mensagem do cliente ou do bot **não** promove o lead sozinha;
+- também há parsing de `sent_message` (status de entrega) e `transferred_session`.
 
 ---
 

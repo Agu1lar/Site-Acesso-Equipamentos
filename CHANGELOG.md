@@ -2,8 +2,18 @@
 
 ## 2026-09-22
 
-- **Conversões otimizadas (Enhanced Conversions)** na tag do Google Ads: hash SHA-256 de e-mail/telefone/nome no `user_data`, com reaproveitamento da sessão (orçamento, One Tap, telefone opcional) e upgrade se o WhatsApp disparou antes da PII.
-- Docs atualizados: [GOOGLE-ADS-GA4.md](docs/GOOGLE-ADS-GA4.md), [GOOGLE-ONE-TAP.md](docs/GOOGLE-ONE-TAP.md), [GO-LIVE-GATE.md](docs/GO-LIVE-GATE.md), README.
+### Documentação do site (refresh geral)
+
+- README, go-live, passos manuais, deploy preview e CI alinhados ao **login por senha** (sem Clerk).
+- Índice do **ChatPro playbook** (`docs/CHATPRO-PLAYBOOK.md`); ROI worker distingue Neon vs Postgres `:5434`.
+- Webhook ChatPro: `contacted` só com atribuição humana; docs Ads/ROI corrigidos.
+- Admin: clientes CRM-lite, analytics em **6 seções** (campanhas UTM em Tráfego), blog com gerador IA.
+- Roadmap: status rápido atualizado para o que já está no código.
+
+### Conversões otimizadas (Enhanced Conversions)
+
+- Hash SHA-256 de e-mail/telefone/nome no `user_data` da tag Ads, com sessão (orçamento, One Tap, telefone) e upgrade se o WhatsApp disparou antes da PII.
+- Docs: [GOOGLE-ADS-GA4.md](docs/GOOGLE-ADS-GA4.md), [GOOGLE-ONE-TAP.md](docs/GOOGLE-ONE-TAP.md).
 
 ## 2026-09-18
 
@@ -77,7 +87,7 @@ Instrumentação comercial, reorganização do painel de métricas, geolocaliza�
 
 ### Painel `/dashboard/analytics` (Sprint 12–13)
 
-- **7 abas:** Visão geral, Conversão, Campanhas, Catálogo, Tráfego, Comportamento, Executivo (`?section=`)
+- **6 seções:** Visão geral, Conversão, Catálogo, Tráfego (inclui campanhas UTM), Comportamento, Executivo (`?section=`)
 - Funil, abandono de carrinho, scroll, busca, equipamento × conversão
 - Funil comercial de WhatsApp: lead de orçamento → cliente respondeu no WhatsApp (ChatPro) → ganho
 - Aba **Executivo:** série diária, leads por cidade, tops, export CSV

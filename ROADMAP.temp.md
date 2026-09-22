@@ -6,24 +6,26 @@
 >
 > **Stack base:** Next.js 16 (App Router), TypeScript, Tailwind CSS, next-intl, Drizzle ORM, PostgreSQL/PGlite, Zod, React Hook Form.
 >
-> **Última atualização:** 2026-05-20 (§4.0 carrinho vs SSR/hydration; Casos de Sucesso na Home; SEO primeiro frame; Clerk pk_live)
+> **Última atualização:** 2026-09-22 (docs gerais; login por senha; ChatPro playbook; Conversões otimizadas; analytics 6 seções)
 >
 > ### Status rápido (implementado no código)
 > | Sprint | Status |
 > |--------|--------|
-> | 0–4 | ✅ Catálogo base 110 itens, home, sobre, contato, FAQ, busca, CTAs, depoimentos, treinamento, **relacionados no detalhe** |
-> | 5 | ✅ Formulário + leads + Resend + **carrinho multi-item** + **`items_json`** + **orçamento via WhatsApp** (e-mail interno) |
-> | 6 | ✅ JSON-LD, Privacidade, OG, robots preview noindex (cookie banner ⏳ se PostHog) |
-> | 7 | 🟡 Parcial (CTA hierarquia ✅; a11y, skeleton, PageSpeed alvo ⏳) |
-> | **7.9** | 📋 **Planejado** — Docker Compose (app, db, studio por serviço) |
-> | 8 | ✅ Preview · E2E · sign-off **Flaviano** (2026-05-19) — ver `docs/SPRINT-8-STATUS.md` |
-> | 9 | 🟡 **Parcial** — fotos ~125/148; **38 acessórios**; specs plataformas revisadas; cases/logos → **Sprint 15** |
-> | 10 | ⏳ Domínio oficial + go-live (`acessoequipamentos.com.br`) |
-> | **11** | 📋 **Planejado** — Admin operacional (CRUD, leads, CSV, tracking básico) |
-> | **12–13** | 📋 **Planejado** — Analytics comercial avançado + dashboard executivo |
-> | **14–15** | 📋 **Planejado** — SEO programático + prova social |
-> | **16–18** | 📋 **Planejado** — CRM leve, inteligência de catálogo, disponibilidade |
-> | **19–22** | 📋 **Backlog** — PWA, IA comercial, área do cliente, conteúdo técnico |
+> | 0–4 | ✅ Catálogo base, home, sobre, contato, FAQ, busca, CTAs, depoimentos, treinamento, relacionados |
+> | 5 | ✅ Formulário + leads + Resend + carrinho multi-item + orçamento via WhatsApp |
+> | 6 | ✅ JSON-LD, Privacidade, OG, robots, cookie banner + Consent Mode |
+> | 7 | 🟡 Parcial (CTA hierarquia ✅; a11y/PageSpeed contínuos) |
+> | **7.9** | 📋 Planejado — Docker Compose app/db/studio |
+> | 8 | ✅ Preview · E2E · sign-off — ver `docs/SPRINT-8-STATUS.md` |
+> | 9 | 🟡 Fotos + acessórios; cases/logos incrementais |
+> | 10 | ✅ Domínio oficial + go-live (`acessoequipamentos.com.br`) |
+> | **11** | ✅ Admin operacional (CRUD, leads, CSV, tracking, acesso por senha) |
+> | **12–13** | ✅ Analytics comercial + dashboard executivo (6 seções) |
+> | **14–15** | ✅ SEO programático S4 (48 URLs) + blog `/dicas` + GSC/CWV/WebMCP |
+> | **16–18** | 🟡 CRM-lite `/dashboard/clientes` ✅; inteligência de catálogo / disponibilidade parcial |
+> | **ChatPro** | ✅ Webhook + ROI (`chatpro-local`) + playbook Obsidian (`chatpro-playbook`) |
+> | **Ads** | ✅ Tag única de contato + Conversões otimizadas + offline upload |
+> | **19–22** | 📋 Backlog — PWA, área do cliente, etc. |
 >
 > ### Entregas incrementais (pós sign-off Sprint 8)
 >

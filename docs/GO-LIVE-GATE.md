@@ -12,14 +12,14 @@ Checklist operacional complementar: [PASSOS-MANUAIS.md](./PASSOS-MANUAIS.md) · 
 
 ```mermaid
 flowchart LR
-  A[1. Vercel + Neon + Clerk Production] --> B[2. Blob Public + env vars]
+  A[1. Vercel + Neon + sessão admin] --> B[2. Blob Public + env vars]
   B --> C[3. Testar em *.vercel.app]
   C --> D[4. DNS na Task → Vercel]
   D --> E[5. Validar redirects + health]
   E --> F[6. Search Console + Ads]
 ```
 
-**Não inverta:** configure Clerk **Production** e variáveis na Vercel **antes** de mudar o DNS. Se mudar o DNS primeiro, visitantes podem cair num site sem login admin ou sem banco.
+**Não inverta:** configure `DATABASE_URL`, `DASHBOARD_SESSION_SECRET` e as demais variáveis na Vercel **antes** de mudar o DNS. Se mudar o DNS primeiro, visitantes podem cair num site sem banco ou sem login admin.
 
 ---
 
@@ -30,8 +30,8 @@ flowchart LR
 | **Registro.br** | Dono do domínio `.com.br` | [registro.br](https://registro.br) — renovação, e-mail do titular |
 | **Task** | DNS + site WordPress **atual** | Painel Task (hospedagem legada) |
 | **Vercel** | Hospedagem do site **novo** (Next.js) | [vercel.com](https://vercel.com) → projeto `Landing_Page_Acesso` |
-| **Neon** | Banco Postgres (leads, equipamentos, blog) | [console.neon.tech](https://console.neon.tech) |
-| **Clerk** | Login do painel `/dashboard` | [dashboard.clerk.com](https://dashboard.clerk.com) |
+| **Neon** | Banco Postgres (leads, equipamentos, blog, usuários do painel) | [console.neon.tech](https://console.neon.tech) |
+| **Login admin** | Sessão por senha em `/sign-in` → `/dashboard` | Usuários em **Painel → Acesso** |
 | **Vercel Blob** | Fotos do catálogo e mídia do blog | Vercel → Storage → store **Public** |
 
 ---
@@ -45,8 +45,7 @@ flowchart LR
 | Variável | Obrigatória | Valor / nota |
 |----------|-------------|--------------|
 | `DATABASE_URL` | Sim | Neon **pooler** (`…-pooler…neon.tech?sslmode=require`) |
-| `CLERK_SECRET_KEY` | Sim | `sk_live_…` (instância **Production** do Clerk) |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Sim | `pk_live_…` |
+| `DASHBOARD_SESSION_SECRET` | Sim | String aleatória com **mín. 32 caracteres** (cookie de sessão) |
 | `NEXT_PUBLIC_APP_URL` | Sim | `https://acessoequipamentos.com.br` (já com domínio oficial) |
 | `BLOB_STORE_ID` | Sim | ID do store **Public** (`store_…`) |
 | `BLOB_ACCESS` | Sim | `public` |
@@ -55,18 +54,19 @@ flowchart LR
 | `LEADS_NOTIFY_EMAIL` | E-mail leads | Caixa que recebe orçamentos |
 | `ARCJET_KEY` | Recomendado | Rate limit do formulário |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Ads/GA4 | Ver [GOOGLE-ADS-GA4.md](./GOOGLE-ADS-GA4.md) |
+| `NEXT_PUBLIC_GOOGLE_ADS_ID` / `NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_CONTACT` | Ads | Tag + conversão única de contato |
 
 **Depois de salvar:** Deployments → último deploy → **Redeploy** (env só entra em vigor após novo deploy).
 
 **Erro comum:** `Please provide required params for Postgres driver: url: ''` → falta `DATABASE_URL` no ambiente de **Build**.
 
-### B.2 Clerk Production (painel admin)
+### B.2 Acesso ao painel (senha)
 
-1. [Clerk Dashboard](https://dashboard.clerk.com) → instância **Production**
-2. Copie `pk_live_` e `sk_live_` → cole na Vercel (passo B.1)
-3. **Domains** → adicione `acessoequipamentos.com.br` (e `www` se usar)
-4. Convide usuários admin/comercial com metadata `{ "role": "admin" }` ou `"comercial"`
-5. Guia completo: [CLERK-ACESSO-ADMIN.md](./CLERK-ACESSO-ADMIN.md)
+1. Defina `DASHBOARD_SESSION_SECRET` (≥ 32 caracteres) na Vercel Production
+2. Após o primeiro deploy com migrações, faça login em `/sign-in` com o usuário seed
+3. Em **Painel → Acesso**, cadastre a equipe (`admin` / `comercial`) e troque senhas
+4. Remova chaves `CLERK_*` antigas da Vercel se ainda existirem
+5. Guia: [CLERK-ACESSO-ADMIN.md](./CLERK-ACESSO-ADMIN.md)
 
 ### B.3 Blob Public (fotos e vídeos do blog)
 
@@ -155,7 +155,7 @@ curl https://acessoequipamentos.com.br/api/health
 Esperado:
 
 - `"ok": true`
-- `"clerk": { "mode": "live" }` e `"productionMismatch": false`
+- `"auth": { "mode": "dashboard_password", "sessionSecretConfigured": true }`
 - `"database": { "connected": true }`
 
 ### D.2 Redirects WordPress (crítico para Google Ads)
@@ -235,19 +235,19 @@ Detalhes: [MIGRACAO-SEO-WP.md](./MIGRACAO-SEO-WP.md)
 
 Marque na ordem:
 
-- [ ] **Clerk Production** (`pk_live_` / `sk_live_`) na Vercel Production + redeploy
+- [ ] **`DASHBOARD_SESSION_SECRET`** (≥ 32 chars) na Vercel Production + redeploy
 - [ ] **Neon pooler** em `DATABASE_URL`
 - [ ] **Blob Public** conectado (`BLOB_STORE_ID`, `BLOB_ACCESS=public`)
 - [ ] `NEXT_PUBLIC_APP_URL=https://acessoequipamentos.com.br`
 - [ ] Domínios adicionados na Vercel (raiz + www)
 - [ ] **DNS alterado na Task** (A + CNAME conforme Vercel)
 - [ ] Propagação OK — domínio **Valid** na Vercel
-- [ ] `curl /api/health` → ok + Clerk live
+- [ ] `curl /api/health` → ok + `auth.mode: dashboard_password`
 - [ ] Redirects WP testados (`curl -I` nas top URLs)
 - [ ] Orçamento + dashboard + CRM testados em produção
 - [ ] Search Console: propriedade + sitemap
 - [ ] TXT de verificação Google na Task (se ainda não feito)
-- [ ] Equipe com acesso admin convidada no Clerk Production
+- [ ] Equipe cadastrada em **Painel → Acesso** (senhas trocadas)
 - [ ] Site WordPress na Task desativado ou com redirect (opcional)
 
 ---
@@ -258,7 +258,7 @@ Marque na ordem:
 |---------|----------------|---------|
 | Site antigo ainda aparece | DNS não propagou ou A antigo na Task | Aguardar; limpar cache DNS; revisar zona DNS na Task |
 | Upload de imagem falha | Blob Private conectado | Usar store **Public**; redeploy |
-| Admin não loga | Clerk ainda em `pk_test_` em Production | Trocar para `pk_live_` / `sk_live_` |
+| Admin não loga | `DASHBOARD_SESSION_SECRET` ausente / usuário sem senha | Confirmar secret + **Painel → Acesso** ([CLERK-ACESSO-ADMIN.md](./CLERK-ACESSO-ADMIN.md)) |
 | 404 em URLs antigas do WP | Falta entrada em `legacy-redirects.json` | Adicionar 301 e redeploy |
 | Build falha sem banco | `DATABASE_URL` ausente no Build | Colocar env em Production na Vercel |
 | E-mail de lead não chega | Resend sem domínio verificado | TXT/CNAME do Resend na Task |
