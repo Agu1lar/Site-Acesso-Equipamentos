@@ -248,6 +248,7 @@
     "title": "Equipamentos para locação",
     "breadcrumb_home": "Início",
     "filter_all": "Todos",
+    "filter_categories_label": "Categorias",
     "results_count": "{count, plural, =1 {# equipamento no catálogo} other {# equipamentos no catálogo}}",
     "empty": "Nenhum equipamento encontrado para sua busca."
   },

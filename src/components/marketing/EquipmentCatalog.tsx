@@ -2,9 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
+import { CategoryFilterChip } from '@/components/marketing/CategoryNav';
 import { EquipmentCard } from '@/components/marketing/EquipmentCard';
 import { buildSearchHaystack, matchesSearchQuery } from '@/lib/search';
-import { CATEGORY_LABELS } from '@/types/equipment';
+import { CATEGORY_LABELS, EQUIPMENT_CATEGORY_ORDER } from '@/types/equipment';
 import type { Equipment, EquipmentCategory } from '@/types/equipment';
 
 type EquipmentCatalogProps = {
@@ -21,6 +22,7 @@ export function EquipmentCatalog({
   initialCategory = '',
 }: EquipmentCatalogProps) {
   const t = useTranslations('Equipamentos');
+  const allActive = !initialCategory;
 
   const filtered = useMemo(() => {
     const q = initialQuery.trim();
@@ -43,33 +45,53 @@ export function EquipmentCatalog({
     });
   }, [equipment, initialQuery, initialCategory]);
 
-  const categories = Object.keys(CATEGORY_LABELS) as EquipmentCategory[];
-  const showAllFilter = initialCategory === undefined;
+  const counts = useMemo(() => {
+    const byCategory = Object.fromEntries(
+      EQUIPMENT_CATEGORY_ORDER.map((category) => [category, 0]),
+    ) as Record<EquipmentCategory, number>;
+
+    for (const item of equipment) {
+      byCategory[item.category] += 1;
+    }
+
+    return {
+      total: equipment.length,
+      byCategory,
+    };
+  }, [equipment]);
+
+  const allHref = initialQuery
+    ? `/equipamentos?q=${encodeURIComponent(initialQuery)}`
+    : '/equipamentos';
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2">
-        <a
-          className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${showAllFilter ? 'bg-primary text-primary-foreground' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
-          href={
-            initialQuery ? `/equipamentos?q=${encodeURIComponent(initialQuery)}` : '/equipamentos'
-          }
-        >
-          {t('filter_all')}
-        </a>
-        {categories.map((cat) => {
-          const active = initialCategory === cat;
-          return (
-            <a
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${active ? 'bg-primary text-primary-foreground' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
-              href={`/categorias/${cat}`}
-              key={cat}
-            >
-              {CATEGORY_LABELS[cat]}
-            </a>
-          );
-        })}
-      </div>
+      <nav
+        aria-label={t('filter_categories_label')}
+        className="mt-6 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-3 sm:p-4"
+      >
+        <p className="font-heading text-sm font-semibold text-neutral-900">
+          {t('filter_categories_label')}
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <CategoryFilterChip
+            active={allActive}
+            count={counts.total}
+            href={allHref}
+            label={t('filter_all')}
+          />
+          {EQUIPMENT_CATEGORY_ORDER.map((category) => (
+            <CategoryFilterChip
+              active={initialCategory === category}
+              category={category}
+              count={counts.byCategory[category]}
+              href={`/categorias/${category}`}
+              key={category}
+              label={CATEGORY_LABELS[category]}
+            />
+          ))}
+        </div>
+      </nav>
 
       <p className="mt-6 text-sm text-neutral-600">
         {t('results_count', { count: filtered.length })}

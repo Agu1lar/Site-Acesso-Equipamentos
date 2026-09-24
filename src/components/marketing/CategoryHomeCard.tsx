@@ -75,7 +75,7 @@ export function CategoryHomeCard({
 
   return (
     <Link
-      className="group flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-neutral-200 bg-surface shadow-sm transition-all hover:border-primary hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-neutral-200 bg-surface shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_18px_48px_-20px_rgba(196,30,36,0.35)]"
       href={`/categorias/${card.slug}`}
     >
       <div className="relative h-40 w-full overflow-hidden bg-neutral-100 sm:h-44">

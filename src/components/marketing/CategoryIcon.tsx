@@ -75,8 +75,8 @@ function renderCategoryPaths(category: EquipmentCategory) {
   }
   return (
     <>
-      <path d="M12 3s5 5 5 10a5 5 0 11-10 0c0-3 2-5 5-10z" />
-      <path d="M12 18a3 3 0 003-3" />
+      <path d="M12 3c1.8 3.4 5 6.2 5 10.2A5 5 0 017 13.2C7 9.8 9.2 6.8 12 3z" />
+      <path d="M10 16.5c.7 1.2 2.4 1.6 3.5.6" />
     </>
   );
 }

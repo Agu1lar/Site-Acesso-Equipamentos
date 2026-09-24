@@ -2,7 +2,7 @@ import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { CategoryIcon } from '@/components/marketing/CategoryIcon';
+import { CategoryLinkCard } from '@/components/marketing/CategoryNav';
 import { ConversionCtas } from '@/components/marketing/ConversionCtas';
 import { EquipmentCard } from '@/components/marketing/EquipmentCard';
 import { FaqAccordion } from '@/components/marketing/FaqAccordion';
@@ -22,7 +22,6 @@ import { buildMarketingMetadata } from '@/lib/seo-metadata';
 import { buildSolucaoPageJsonLd } from '@/lib/solucoes-json-ld';
 import { Link } from '@/libs/I18nNavigation';
 import { routing } from '@/libs/I18nRouting';
-import { CATEGORY_LABELS } from '@/types/equipment';
 import { resolveAppLocale } from '@/utils/locale';
 
 type SolucaoPageProps = {
@@ -340,23 +339,10 @@ export default async function SolucaoDetailPage(props: SolucaoPageProps) {
           <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {solucao.featuredCategorySlugs.map((categorySlug) => (
               <li key={categorySlug}>
-                <Link
-                  className="group flex h-full items-center gap-4 rounded-[var(--radius-card)] border border-neutral-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_14px_40px_-20px_rgba(196,30,36,0.35)]"
+                <CategoryLinkCard
+                  category={categorySlug}
                   href={`/categorias/${categorySlug}`}
-                >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/[0.08] text-primary transition-colors group-hover:bg-primary group-hover:text-white">
-                    <CategoryIcon category={categorySlug} className="h-6 w-6" />
-                  </span>
-                  <span className="flex-1 font-heading text-base font-semibold text-neutral-900 group-hover:text-primary sm:text-lg">
-                    {CATEGORY_LABELS[categorySlug]}
-                  </span>
-                  <span
-                    aria-hidden
-                    className="text-primary transition-transform group-hover:translate-x-0.5"
-                  >
-                    →
-                  </span>
-                </Link>
+                />
               </li>
             ))}
           </ul>

@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { FilterChipButton } from '@/components/marketing/CategoryNav';
 import { EquipmentCard } from '@/components/marketing/EquipmentCard';
 import {
   matchesPlatformHeightFilter,
@@ -48,25 +49,6 @@ const PLATFORM_HEIGHT_FILTERS: PlatformHeightFilter[] = [
   'above-26',
 ];
 
-type FilterChipProps = {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-};
-
-function FilterChip(props: FilterChipProps) {
-  return (
-    <button
-      aria-pressed={props.active}
-      className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors sm:px-4 sm:py-2 sm:text-sm ${props.active ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-neutral-50'}`}
-      onClick={props.onClick}
-      type="button"
-    >
-      {props.label}
-    </button>
-  );
-}
-
 type FilterGroupProps = {
   chips: Array<{ id: string; active: boolean; label: string; onClick: () => void }>;
   groupLabel: string;
@@ -82,7 +64,7 @@ function FilterGroup(props: FilterGroupProps) {
         role="group"
       >
         {props.chips.map((chip) => (
-          <FilterChip
+          <FilterChipButton
             active={chip.active}
             key={chip.id}
             label={chip.label}

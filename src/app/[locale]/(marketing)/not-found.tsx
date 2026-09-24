@@ -1,8 +1,8 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { CategoryLinkCard } from '@/components/marketing/CategoryNav';
 import { Link } from '@/libs/I18nNavigation';
 import { routing } from '@/libs/I18nRouting';
 import { ALL_EQUIPMENT_CATEGORIES } from '@/lib/categories-seo';
-import { CATEGORY_LABELS } from '@/types/equipment';
 import { resolveAppLocale } from '@/utils/locale';
 
 type NotFoundPageProps = {
@@ -42,15 +42,13 @@ export default async function MarketingNotFoundPage(props: NotFoundPageProps) {
 
       <section className="mt-12 text-left">
         <h2 className="font-heading text-lg font-semibold text-neutral-900">{t('categories_title')}</h2>
-        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {ALL_EQUIPMENT_CATEGORIES.map((category) => (
             <li key={category}>
-              <Link
-                className="block rounded-md border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-800 hover:border-primary hover:text-primary"
+              <CategoryLinkCard
+                category={category}
                 href={`/categorias/${category}`}
-              >
-                {CATEGORY_LABELS[category]}
-              </Link>
+              />
             </li>
           ))}
         </ul>
