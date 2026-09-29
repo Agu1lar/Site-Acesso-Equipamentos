@@ -5,6 +5,7 @@ import { AdminKpiCard } from '@/components/admin/AdminKpiCard';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { ChatProRoiEvaluationsTable } from '@/components/admin/ChatProRoiEvaluationsTable';
 import { getChatProRoiDashboardSummary } from '@/lib/chatpro-roi-dashboard';
+import { Link } from '@/libs/I18nNavigation';
 import { resolveAppLocale } from '@/utils/locale';
 
 type ChatProRoiPageProps = {
