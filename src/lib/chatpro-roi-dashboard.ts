@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { count } from 'drizzle-orm';
+import { count, desc, sql } from 'drizzle-orm';
 import { countPendingChatProOutboxEvents } from '@/lib/chatpro-outbox';
 import type { ChatProRoiDashboardEvaluation } from '@/lib/chatpro-roi-dashboard-types';
 import {
@@ -33,6 +33,10 @@ export type ChatProRoiDashboardSummary = {
   totalEvaluations: number;
   closedWonSignals: number;
   leadGroups: ChatProRoiLeadEvaluationGroup[];
+  page: number;
+  pageSize: number;
+  totalLeadGroups: number;
+  totalPages: number;
   schemaIncomplete: boolean;
 };
 
@@ -43,6 +47,10 @@ const emptySummary: ChatProRoiDashboardSummary = {
   totalEvaluations: 0,
   closedWonSignals: 0,
   leadGroups: [],
+  page: 1,
+  pageSize: 30,
+  totalLeadGroups: 0,
+  totalPages: 1,
   schemaIncomplete: true,
 };
 
@@ -79,25 +87,48 @@ function mapEvaluationRow(row: Awaited<ReturnType<typeof listRecentChatProRoiEva
  */
 export async function getChatProRoiDashboardSummary(options?: {
   limit?: number;
+  page?: number;
 }): Promise<ChatProRoiDashboardSummary> {
   const leadLimit = Math.min(Math.max(options?.limit ?? 30, 1), 100);
-  const fetchLimit = Math.min(leadLimit * 5, 200);
+  const page = Math.max(options?.page ?? 1, 1);
 
   try {
     const [
       pendingOutboxEvents,
       pendingEvaluations,
-      evaluationRows,
+      leadPageRows,
+      leadTotalRows,
       messageCountRows,
       evaluationCountRows,
     ] = await Promise.all([
       countPendingChatProOutboxEvents(),
       countPendingChatProRoiEvaluations(),
-      listRecentChatProRoiEvaluations(undefined, fetchLimit),
+      db
+        .select({
+          leadId: chatproLeadEvaluationsSchema.leadId,
+          latestEvaluatedAt: sql<Date>`max(${chatproLeadEvaluationsSchema.evaluatedAt})`,
+        })
+        .from(chatproLeadEvaluationsSchema)
+        .groupBy(chatproLeadEvaluationsSchema.leadId)
+        .orderBy(
+          desc(sql`max(${chatproLeadEvaluationsSchema.evaluatedAt})`),
+          desc(chatproLeadEvaluationsSchema.leadId),
+        )
+        .limit(leadLimit)
+        .offset((page - 1) * leadLimit),
+      db
+        .select({ value: sql<number>`count(distinct ${chatproLeadEvaluationsSchema.leadId})` })
+        .from(chatproLeadEvaluationsSchema),
       db.select({ value: count() }).from(chatproMessagesSchema),
       db.select({ value: count() }).from(chatproLeadEvaluationsSchema),
     ]);
 
+    const totalLeadGroups = Number(leadTotalRows[0]?.value ?? 0);
+    const totalPages = Math.max(1, Math.ceil(totalLeadGroups / leadLimit));
+    const pageLeadIds = leadPageRows.map((row) => row.leadId);
+    const evaluationRows = pageLeadIds.length > 0
+      ? await listRecentChatProRoiEvaluations(pageLeadIds)
+      : [];
     const evaluations = evaluationRows.map(mapEvaluationRow);
     const leadGroups = groupChatProRoiEvaluationsByLead(evaluations, leadLimit);
     const closedWonSignals = leadGroups.filter(
@@ -111,6 +142,10 @@ export async function getChatProRoiDashboardSummary(options?: {
       totalEvaluations: Number(evaluationCountRows[0]?.value ?? 0),
       closedWonSignals,
       leadGroups,
+      page: Math.min(page, totalPages),
+      pageSize: leadLimit,
+      totalLeadGroups,
+      totalPages,
       schemaIncomplete: false,
     };
   } catch {

@@ -248,7 +248,7 @@ export async function runChatProRoiWorker(options: WorkerOptions = {}): Promise<
  * @param leadIds Optional filter by lead ids.
  * @param limit Max rows.
  */
-export async function listRecentChatProRoiEvaluations(leadIds?: number[], limit = 100) {
+export async function listRecentChatProRoiEvaluations(leadIds?: number[], limit?: number) {
   const baseQuery = db
     .select({
       id: chatproLeadEvaluationsSchema.id,
@@ -268,15 +268,16 @@ export async function listRecentChatProRoiEvaluations(leadIds?: number[], limit 
     .$dynamic();
 
   if (leadIds && leadIds.length > 0) {
-    return baseQuery
+    const query = baseQuery
       .where(inArray(chatproLeadEvaluationsSchema.leadId, leadIds))
-      .orderBy(desc(chatproLeadEvaluationsSchema.evaluatedAt))
-      .limit(limit);
+      .orderBy(desc(chatproLeadEvaluationsSchema.evaluatedAt));
+
+    return limit === undefined ? query : query.limit(limit);
   }
 
-  return baseQuery
-    .orderBy(desc(chatproLeadEvaluationsSchema.evaluatedAt))
-    .limit(limit);
+  const query = baseQuery.orderBy(desc(chatproLeadEvaluationsSchema.evaluatedAt));
+
+  return limit === undefined ? query : query.limit(limit);
 }
 
 /**

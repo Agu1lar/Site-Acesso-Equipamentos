@@ -9,6 +9,7 @@ import { resolveAppLocale } from '@/utils/locale';
 
 type ChatProRoiPageProps = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata(props: ChatProRoiPageProps): Promise<Metadata> {
@@ -26,6 +27,7 @@ export async function generateMetadata(props: ChatProRoiPageProps): Promise<Meta
 
 export default async function ChatProRoiAdminPage(props: ChatProRoiPageProps) {
   const { locale } = await props.params;
+  const searchParams = await props.searchParams;
   setRequestLocale(resolveAppLocale(locale));
   const t = await getTranslations({
     locale: resolveAppLocale(locale),
@@ -36,7 +38,11 @@ export default async function ChatProRoiAdminPage(props: ChatProRoiPageProps) {
     namespace: 'LeadsAdminPage',
   });
 
-  const summary = await getChatProRoiDashboardSummary({ limit: 30 });
+  const requestedPage = Number.parseInt(searchParams.page ?? '1', 10);
+  const summary = await getChatProRoiDashboardSummary({
+    limit: 30,
+    page: Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1,
+  });
 
   const statusLabels = {
     new: tLead('status_new'),
@@ -141,6 +147,31 @@ export default async function ChatProRoiAdminPage(props: ChatProRoiPageProps) {
           statusLabels,
         }}
       />
+
+      {summary.totalPages > 1 ? (
+        <nav
+          aria-label={tLead('pagination_label')}
+          className="flex flex-wrap items-center justify-between gap-4 text-sm"
+        >
+          <p className="text-neutral-600">
+            {tLead('pagination_info', { page: summary.page, totalPages: summary.totalPages })}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {Array.from({ length: summary.totalPages }, (_, index) => index + 1).map((page) => (
+              <Link
+                aria-current={page === summary.page ? 'page' : undefined}
+                className={page === summary.page
+                  ? 'rounded-lg border border-primary bg-primary px-3 py-1.5 text-white'
+                  : 'rounded-lg border border-neutral-200 px-3 py-1.5 hover:bg-background-muted'}
+                href={`/dashboard/chatpro-roi?page=${page}`}
+                key={page}
+              >
+                {page}
+              </Link>
+            ))}
+          </div>
+        </nav>
+      ) : null}
 
       <AdminCallout variant="tip">{t('worker_hint')}</AdminCallout>
     </div>
