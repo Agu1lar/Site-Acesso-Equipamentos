@@ -1,7 +1,11 @@
 import { sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { brand } from '@/lib/brand';
-import { isGoogleAdsOfflineConversionConfigured } from '@/lib/google-ads-offline-conversions';
+import {
+  isGoogleAdsOfflineConversionConfigured,
+  isGoogleAdsQualifiedLeadConversionConfigured,
+} from '@/lib/google-ads-offline-conversions';
+import { isGoogleAdsApiConfigured } from '@/lib/google-ads-spend';
 import { legacyRedirectStats } from '@/lib/legacy-redirects';
 import { db } from '@/libs/DB';
 import { Env } from '@/libs/Env';
@@ -38,7 +42,8 @@ export async function GET() {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       dashboardPasswordColumn =
-        /password_hash/u.test(message) && (/does not exist|column/u.test(message) || /42703/u.test(message))
+        /password_hash/u.test(message) &&
+        (/does not exist|column/u.test(message) || /42703/u.test(message))
           ? 'missing'
           : 'error';
     }
@@ -105,14 +110,9 @@ export async function GET() {
     posthogConfigured,
     chatproWebhookConfigured: Boolean(Env.CHATPRO_WEBHOOK_SECRET?.trim()),
     chatproWebhookPath: 'POST /api/webhooks/chatpro?token=…',
-    googleAdsApiConfigured: Boolean(
-      Env.GOOGLE_ADS_DEVELOPER_TOKEN?.trim()
-      && Env.GOOGLE_ADS_CUSTOMER_ID?.trim()
-      && Env.GOOGLE_ADS_CLIENT_ID?.trim()
-      && Env.GOOGLE_ADS_CLIENT_SECRET?.trim()
-      && Env.GOOGLE_ADS_REFRESH_TOKEN?.trim(),
-    ),
+    googleAdsApiConfigured: isGoogleAdsApiConfigured(),
     googleAdsOfflineConversionConfigured: isGoogleAdsOfflineConversionConfigured(),
+    googleAdsQualifiedLeadConversionConfigured: isGoogleAdsQualifiedLeadConversionConfigured(),
     googleAdsRoiDoc: 'docs/GOOGLE-ADS-ROI-API.md',
     leadTracking: {
       cookieConsentLeadRequiresGoogleOneTap: true,

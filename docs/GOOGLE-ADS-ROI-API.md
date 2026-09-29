@@ -5,7 +5,6 @@ O relatório ChatPro ROI pode buscar **gasto por campanha** direto na Google Ads
 ## Variáveis (Vercel + local)
 
 ```env
-GOOGLE_ADS_DEVELOPER_TOKEN=...
 GOOGLE_ADS_CUSTOMER_ID=1234567890
 GOOGLE_ADS_LOGIN_CUSTOMER_ID=9876543210
 GOOGLE_ADS_CLIENT_ID=....apps.googleusercontent.com
@@ -16,12 +15,12 @@ GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID=123456789
 
 | Variável | Obrigatório | Descrição |
 |----------|-------------|-----------|
-| `GOOGLE_ADS_DEVELOPER_TOKEN` | Sim | Token de desenvolvedor (Google Ads API Center) |
+| `GOOGLE_ADS_DEVELOPER_TOKEN` | Não | Legado; desativado em 09/09/2026 e ignorado pela API atual |
 | `GOOGLE_ADS_CUSTOMER_ID` | Sim | ID da conta de anúncios (sem hífens) |
 | `GOOGLE_ADS_LOGIN_CUSTOMER_ID` | Se MCC | ID da conta gerente (manager) |
 | `GOOGLE_ADS_CLIENT_ID` | Sim | OAuth client (Google Cloud Console) |
 | `GOOGLE_ADS_CLIENT_SECRET` | Sim | Secret do OAuth client |
-| `GOOGLE_ADS_REFRESH_TOKEN` | Sim | Refresh token com escopo `https://www.googleapis.com/auth/adwords` |
+| `GOOGLE_ADS_REFRESH_TOKEN` | Sim | Refresh token com os escopos `adwords` e `datamanager` |
 | `GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID` | Para upload de conversões | ID da ação de conversão offline do tipo `UPLOAD_CLICKS` |
 | `GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME` | Alternativo ao ID | Resource completo: `customers/1234567890/conversionActions/987654321` |
 
@@ -40,12 +39,12 @@ Se `googleAdsApiConfigured=false`, falta uma das credenciais da API. Se `googleA
 
 ## Obter refresh token (uma vez)
 
-1. [Google Cloud Console](https://console.cloud.google.com/) → APIs → ativar **Google Ads API**
+1. [Google Cloud Console](https://console.cloud.google.com/) → APIs → ativar **Google Ads API** e **Data Manager API**
 2. Criar credencial OAuth (tipo **Desktop** ou **Web** com redirect local)
 3. Usar [OAuth Playground](https://developers.google.com/oauthplayground/) ou script oficial:
-   - Scope: `https://www.googleapis.com/auth/adwords`
+   - Scopes: `https://www.googleapis.com/auth/adwords https://www.googleapis.com/auth/datamanager`
    - Trocar código por refresh token
-4. Solicitar **Developer Token** em [Google Ads API Center](https://ads.google.com/aw/apicenter)
+4. Conferir o nível de acesso na página **Google Ads API Overview** do projeto no Google Cloud
 
 Guia oficial: [OAuth2 Google Ads API](https://developers.google.com/google-ads/api/docs/oauth/overview)
 
@@ -87,19 +86,20 @@ Além do disparo client-side da tag Ads, o backend pode subir uma conversão off
 - as credenciais da Google Ads API estão completas;
 - `GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID` ou `GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME` está configurado.
 
-O upload usa `ConversionUploadService.uploadClickConversions` com:
+O upload usa `POST https://datamanager.googleapis.com/v1/events:ingest` com:
 
 ```text
-conversion_action = customers/{customer_id}/conversionActions/{conversion_action_id}
-conversion_date_time = horário do clique recebido no backend
-conversion_value = 1
-currency_code = BRL
-order_id = wa-{analytics_event_id}
+destinations[].productDestinationId = ID da ação UPLOAD_CLICKS
+events[].eventTimestamp = horário do clique recebido no backend
+events[].adIdentifiers = gclid, gbraid ou wbraid
+events[].conversionValue = 1
+events[].currency = BRL
+events[].transactionId = identificador estável do evento ou lead
 ```
 
 Crie no Google Ads uma ação de conversão de **Importação** para **cliques**. A ação precisa ser do tipo `UPLOAD_CLICKS`; o rótulo `AW-.../label` usado pela tag do site não serve para esse endpoint.
 
-O banco registra cada tentativa em `google_ads_offline_conversions`, com status `uploaded` ou `failed`, para auditoria e deduplicação.
+O banco registra cada tentativa em `google_ads_offline_conversions`, com status `uploaded` ou `failed`, para auditoria e deduplicação. Nesse contexto, `uploaded` significa que a Data Manager API aceitou o lote e devolveu um `requestId`; o processamento e a atribuição são assíncronos e podem ser consultados posteriormente em `requestStatus:retrieve`.
 
 ### CLI
 
@@ -126,7 +126,7 @@ O custo vem em micros da moeda da conta Google Ads (`customer.currency_code`, em
 |-------------|--------|
 | `503 google_ads_not_configured` | Env incompleto ou `useGoogleAdsSpend` sem credenciais |
 | `google_ads_token_failed` | Refresh token inválido ou revogado |
-| `google_ads_search_failed` | Developer token em modo teste, customer ID errado, ou query bloqueada |
+| `google_ads_search_failed` | Projeto Cloud sem acesso à conta, customer ID errado ou query bloqueada |
 
 ## Segurança
 

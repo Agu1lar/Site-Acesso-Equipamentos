@@ -1,19 +1,20 @@
-import { formatDateTimeBrasilia } from '@/lib/app-datetime';
 import { getTranslations } from 'next-intl/server';
-import { LEAD_STATUSES } from '@/lib/lead-status';
-import type { LeadStatus } from '@/lib/lead-status';
-import { scoreLeadIntent } from '@/lib/lead-intent-score';
-import type { LeadRecord } from '@/lib/leads-admin';
-import { formatLeadCartItems } from '@/lib/leads-admin';
-import { leadActivityTimestamp } from '@/lib/lead-contact';
-import { classifyTrafficChannel, trafficChannelMessageKey } from '@/lib/traffic-channel';
 import { AdminCard } from '@/components/admin/AdminCard';
 import { AdminDragScroll } from '@/components/admin/AdminDragScroll';
 import { LeadPriorityBadge } from '@/components/admin/LeadPriorityBadge';
 import { LeadRecurringBadge } from '@/components/admin/LeadRecurringBadge';
 import { LeadWhatsAppBadge } from '@/components/admin/LeadWhatsAppBadge';
-import { Link } from '@/libs/I18nNavigation';
+import { formatDateTimeBrasilia } from '@/lib/app-datetime';
+import { leadActivityTimestamp } from '@/lib/lead-contact';
+import { scoreLeadIntent } from '@/lib/lead-intent-score';
+import { isLeadQualification } from '@/lib/lead-qualification';
+import { LEAD_STATUSES } from '@/lib/lead-status';
+import type { LeadStatus } from '@/lib/lead-status';
 import { resolveLeadWhatsAppStatus } from '@/lib/lead-whatsapp-status';
+import type { LeadRecord } from '@/lib/leads-admin';
+import { formatLeadCartItems } from '@/lib/leads-admin';
+import { classifyTrafficChannel, trafficChannelMessageKey } from '@/lib/traffic-channel';
+import { Link } from '@/libs/I18nNavigation';
 
 type LeadsTableProps = {
   leads: LeadRecord[];
@@ -46,19 +47,19 @@ export async function LeadsTable(props: LeadsTableProps) {
               <th className="px-4 py-3 font-semibold">{t('col_origin')}</th>
               <th className="px-4 py-3 font-semibold">{t('col_kind')}</th>
               <th className="px-4 py-3 font-semibold">{t('col_status')}</th>
+              <th className="px-4 py-3 font-semibold">{t('col_qualification')}</th>
               <th className="sticky right-0 z-10 bg-neutral-50/95 px-4 py-3 font-semibold shadow-[-8px_0_12px_-8px_rgba(0,0,0,0.18)]" />
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100">
             {leads.map((lead) => {
-              const itemsSummary = (formatLeadCartItems(lead.itemsJson) || lead.equipmentName) ?? '—';
+              const itemsSummary =
+                (formatLeadCartItems(lead.itemsJson) || lead.equipmentName) ?? '—';
               const statusKey = LEAD_STATUSES.includes(lead.status as LeadStatus)
                 ? (`status_${lead.status}` as 'status_new')
                 : 'status_new';
               const kindKey =
-                lead.leadKind === 'cookie_consent'
-                  ? 'lead_kind_cookie_consent'
-                  : 'lead_kind_quote';
+                lead.leadKind === 'cookie_consent' ? 'lead_kind_cookie_consent' : 'lead_kind_quote';
               const intent = scoreLeadIntent(lead);
               const priorityKey =
                 intent.tier === 'hot'
@@ -117,7 +118,9 @@ export async function LeadsTable(props: LeadsTableProps) {
                     <LeadWhatsAppBadge compact label={whatsappLabel} status={whatsappStatus} />
                   </td>
                   <td className="px-4 py-3 text-xs">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 font-medium ${originClass}`}>
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 font-medium ${originClass}`}
+                    >
                       {originLabel}
                     </span>
                   </td>
@@ -125,6 +128,15 @@ export async function LeadsTable(props: LeadsTableProps) {
                   <td className="px-4 py-3">
                     <span className="inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">
                       {t(statusKey)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">
+                      {t(
+                        isLeadQualification(lead.qualification)
+                          ? (`qualification_${lead.qualification}` as 'qualification_pending')
+                          : 'qualification_pending',
+                      )}
                     </span>
                   </td>
                   <td className="sticky right-0 z-10 bg-white px-4 py-3 shadow-[-8px_0_12px_-8px_rgba(0,0,0,0.18)] group-hover:bg-neutral-50">

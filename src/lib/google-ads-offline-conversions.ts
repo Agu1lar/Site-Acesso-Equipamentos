@@ -1,9 +1,7 @@
 import 'server-only';
-
 import { eq } from 'drizzle-orm';
 import type { AttributionInput } from '@/lib/attribution';
 import {
-  GOOGLE_ADS_API_VERSION,
   fetchGoogleAdsAccessToken,
   isGoogleAdsApiConfigured,
   normalizeGoogleAdsCustomerId,
@@ -15,9 +13,15 @@ import { logger } from '@/libs/Logger';
 import { googleAdsOfflineConversionsSchema } from '@/models/Schema';
 
 export type GoogleAdsOfflineConversionInput = {
-  analyticsEventId: number;
+  analyticsEventId?: number;
   attribution?: AttributionInput;
   leadId?: number;
+  conversionDate?: Date;
+};
+
+export type GoogleAdsQualifiedLeadConversionInput = {
+  attribution?: AttributionInput;
+  leadId: number;
   conversionDate?: Date;
 };
 
@@ -31,23 +35,20 @@ export type GoogleAdsOfflineConversionResult = {
     | 'request_failed';
 };
 
-type GoogleAdsClickConversion = {
-  conversionAction: string;
-  conversionDateTime: string;
+type GoogleAdsDataManagerEvent = {
+  adIdentifiers: Partial<Record<'gclid' | 'gbraid' | 'wbraid', string>>;
+  eventTimestamp: string;
+  eventSource: 'WEB';
   conversionValue: number;
-  currencyCode: string;
-  orderId: string;
-  gclid?: string;
-  gbraid?: string;
-  wbraid?: string;
+  currency: string;
+  transactionId: string;
 };
 
-type GoogleAdsUploadClickConversionsResponse = {
-  partialFailureError?: {
+type GoogleAdsDataManagerResponse = {
+  requestId?: string;
+  error?: {
     message?: string;
-    details?: unknown[];
   };
-  results?: unknown[];
 };
 
 const GOOGLE_ADS_CONVERSION_VALUE = 1;
@@ -68,12 +69,35 @@ function readOfflineConversionActionResourceName() {
   return `customers/${normalizeGoogleAdsCustomerId(customerId)}/conversionActions/${actionId}`;
 }
 
+function readQualifiedLeadConversionActionResourceName() {
+  const explicit = Env.GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_RESOURCE_NAME?.trim();
+  if (explicit) {
+    return explicit;
+  }
+
+  const actionId = Env.GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_ID?.replaceAll(/\D/gu, '');
+  const customerId = Env.GOOGLE_ADS_CUSTOMER_ID?.trim();
+  if (!actionId || !customerId) {
+    return null;
+  }
+
+  return `customers/${normalizeGoogleAdsCustomerId(customerId)}/conversionActions/${actionId}`;
+}
+
 /**
  * Returns true when Google Ads offline click conversion upload can run.
  * @returns Whether offline conversion upload is fully configured.
  */
 export function isGoogleAdsOfflineConversionConfigured() {
   return isGoogleAdsApiConfigured() && Boolean(readOfflineConversionActionResourceName());
+}
+
+/**
+ * Returns true when qualified lead conversion upload can run.
+ * @returns Whether the Google Ads API and qualified-lead action are configured.
+ */
+export function isGoogleAdsQualifiedLeadConversionConfigured() {
+  return isGoogleAdsApiConfigured() && Boolean(readQualifiedLeadConversionActionResourceName());
 }
 
 function resolveClickId(attribution: AttributionInput | undefined) {
@@ -89,28 +113,27 @@ function resolveClickId(attribution: AttributionInput | undefined) {
   return null;
 }
 
-function formatGoogleAdsConversionDateTime(date: Date) {
-  return date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/u, '+00:00');
-}
-
-function buildClickConversion(options: {
-  conversionAction: string;
+function buildDataManagerEvent(options: {
   conversionDate: Date;
   clickId: { type: 'gclid' | 'gbraid' | 'wbraid'; value: string };
   orderId: string;
-}): GoogleAdsClickConversion {
+}): GoogleAdsDataManagerEvent {
   return {
-    conversionAction: options.conversionAction,
-    conversionDateTime: formatGoogleAdsConversionDateTime(options.conversionDate),
+    adIdentifiers: { [options.clickId.type]: options.clickId.value },
+    eventTimestamp: options.conversionDate.toISOString(),
+    eventSource: 'WEB',
     conversionValue: GOOGLE_ADS_CONVERSION_VALUE,
-    currencyCode: GOOGLE_ADS_CONVERSION_CURRENCY,
-    orderId: options.orderId,
-    [options.clickId.type]: options.clickId.value,
+    currency: GOOGLE_ADS_CONVERSION_CURRENCY,
+    transactionId: options.orderId,
   };
 }
 
+function readConversionActionId(resourceName: string) {
+  return resourceName.split('/').at(-1)?.replaceAll(/\D/gu, '') || null;
+}
+
 async function insertPendingUpload(options: {
-  analyticsEventId: number;
+  analyticsEventId?: number;
   leadId?: number;
   clickId: { type: 'gclid' | 'gbraid' | 'wbraid'; value: string };
   conversionAction: string;
@@ -121,7 +144,7 @@ async function insertPendingUpload(options: {
     const [row] = await db
       .insert(googleAdsOfflineConversionsSchema)
       .values({
-        analyticsEventId: options.analyticsEventId,
+        analyticsEventId: options.analyticsEventId ?? null,
         leadId: options.leadId ?? null,
         clickId: options.clickId.value,
         clickIdType: options.clickId.type,
@@ -166,7 +189,35 @@ async function updateUploadStatus(options: {
 export async function uploadGoogleAdsOfflineClickConversion(
   input: GoogleAdsOfflineConversionInput,
 ): Promise<GoogleAdsOfflineConversionResult> {
-  if (!isGoogleAdsOfflineConversionConfigured()) {
+  return uploadGoogleAdsConversion({
+    ...input,
+    conversionAction: readOfflineConversionActionResourceName(),
+    orderId: (clickId) => `wa-${clickId.type}-${clickId.value}`,
+  });
+}
+
+/**
+ * Uploads a manually qualified lead as a separate Google Ads conversion.
+ * @param input Qualified lead and its original campaign attribution.
+ * @returns Upload result with skip/failure reason when not uploaded.
+ */
+export async function uploadGoogleAdsQualifiedLeadConversion(
+  input: GoogleAdsQualifiedLeadConversionInput,
+): Promise<GoogleAdsOfflineConversionResult> {
+  return uploadGoogleAdsConversion({
+    ...input,
+    conversionAction: readQualifiedLeadConversionActionResourceName(),
+    orderId: () => `qualified-lead-${input.leadId}`,
+  });
+}
+
+async function uploadGoogleAdsConversion(
+  input: GoogleAdsOfflineConversionInput & {
+    conversionAction: string | null;
+    orderId: (clickId: { type: 'gclid' | 'gbraid' | 'wbraid'; value: string }) => string;
+  },
+): Promise<GoogleAdsOfflineConversionResult> {
+  if (!isGoogleAdsApiConfigured() || !input.conversionAction) {
     return { uploaded: false, reason: 'not_configured' };
   }
 
@@ -175,21 +226,39 @@ export async function uploadGoogleAdsOfflineClickConversion(
     return { uploaded: false, reason: 'missing_click_id' };
   }
 
-  const conversionAction = readOfflineConversionActionResourceName();
-  if (!conversionAction) {
+  const conversionAction = input.conversionAction;
+  const conversionActionId = readConversionActionId(conversionAction);
+  if (!conversionActionId) {
     return { uploaded: false, reason: 'not_configured' };
   }
 
-  const orderId = `wa-${clickId.type}-${clickId.value}`;
-  const conversion = buildClickConversion({
-    conversionAction,
+  const orderId = input.orderId(clickId);
+  const event = buildDataManagerEvent({
     conversionDate: input.conversionDate ?? new Date(),
     clickId,
     orderId,
   });
+  const creds = readConfiguredGoogleAdsCredentials();
+  const customerId = normalizeGoogleAdsCustomerId(creds.customerId);
+  const loginCustomerId = creds.loginCustomerId
+    ? normalizeGoogleAdsCustomerId(creds.loginCustomerId)
+    : customerId;
   const requestPayload = {
-    conversions: [conversion],
-    partialFailure: true,
+    destinations: [
+      {
+        operatingAccount: {
+          accountType: 'GOOGLE_ADS',
+          accountId: customerId,
+        },
+        loginAccount: {
+          accountType: 'GOOGLE_ADS',
+          accountId: loginCustomerId,
+        },
+        productDestinationId: conversionActionId,
+      },
+    ],
+    encoding: 'HEX',
+    events: [event],
     validateOnly: false,
   };
 
@@ -207,36 +276,26 @@ export async function uploadGoogleAdsOfflineClickConversion(
   }
 
   try {
-    const creds = readConfiguredGoogleAdsCredentials();
-    const customerId = normalizeGoogleAdsCustomerId(creds.customerId);
-    const loginCustomerId = creds.loginCustomerId
-      ? normalizeGoogleAdsCustomerId(creds.loginCustomerId)
-      : null;
     const accessToken = await fetchGoogleAdsAccessToken();
 
     const response = await fetch(
-      `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${customerId}:uploadClickConversions`,
+      'https://datamanager.googleapis.com/v1/events:ingest',
       {
         method: 'POST',
         headers: {
           authorization: `Bearer ${accessToken}`,
-          'developer-token': creds.developerToken,
           'content-type': 'application/json',
-          ...(loginCustomerId ? { 'login-customer-id': loginCustomerId } : {}),
         },
         body: JSON.stringify(requestPayload),
         signal: AbortSignal.timeout(20_000),
       },
     );
 
-    const payload = (await response.json()) as GoogleAdsUploadClickConversionsResponse & {
-      error?: { message?: string };
-    };
+    const payload = (await response.json()) as GoogleAdsDataManagerResponse;
     const responsePayload = payload as Record<string, unknown>;
-    const partialFailure = payload.partialFailureError?.message;
 
-    if (!response.ok || partialFailure) {
-      const message = payload.error?.message ?? partialFailure ?? 'google_ads_offline_upload_failed';
+    if (!response.ok || !payload.requestId) {
+      const message = payload.error?.message ?? 'google_ads_offline_upload_failed';
       await updateUploadStatus({
         id: uploadRow.id,
         status: 'failed',
@@ -245,11 +304,12 @@ export async function uploadGoogleAdsOfflineClickConversion(
       });
       logger.warn('Google Ads offline conversion upload failed', {
         analyticsEventId: input.analyticsEventId,
+        leadId: input.leadId,
         message,
       });
       return {
         uploaded: false,
-        reason: partialFailure ? 'partial_failure' : 'request_failed',
+        reason: 'request_failed',
       };
     }
 
@@ -270,6 +330,7 @@ export async function uploadGoogleAdsOfflineClickConversion(
     });
     logger.warn('Google Ads offline conversion upload failed', {
       analyticsEventId: input.analyticsEventId,
+      leadId: input.leadId,
       message,
     });
     return { uploaded: false, reason: 'request_failed' };

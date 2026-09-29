@@ -39,6 +39,8 @@ export const Env = createEnv({
     GOOGLE_ADS_REFRESH_TOKEN: z.string().min(1).optional(),
     GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID: z.string().min(1).optional(),
     GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME: z.string().min(1).optional(),
+    GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_ID: z.string().min(1).optional(),
+    GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_RESOURCE_NAME: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
@@ -84,6 +86,10 @@ export const Env = createEnv({
     GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID: process.env.GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID,
     GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME:
       process.env.GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME,
+    GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_ID:
+      process.env.GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_ID,
+    GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_RESOURCE_NAME:
+      process.env.GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_RESOURCE_NAME,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     NEXT_PUBLIC_LOGGING_LEVEL: process.env.NEXT_PUBLIC_LOGGING_LEVEL,
@@ -99,11 +105,7 @@ export const Env = createEnv({
  * Reads Blob store id at request time (Vercel injects storage env on the server).
  */
 export function getBlobStoreId() {
-  return (
-    process.env.BLOB_STORE_ID ??
-    process.env.Blob_STORE_ID ??
-    Env.BLOB_STORE_ID
-  );
+  return process.env.BLOB_STORE_ID ?? process.env.Blob_STORE_ID ?? Env.BLOB_STORE_ID;
 }
 
 /**
@@ -121,9 +123,5 @@ export function getBlobReadWriteToken() {
  * Returns true when code runs on Vercel infrastructure.
  */
 export function isVercelRuntime() {
-  return (
-    Env.VERCEL === '1' ||
-    Boolean(Env.VERCEL_ENV) ||
-    Boolean(process.env.VERCEL_URL)
-  );
+  return Env.VERCEL === '1' || Boolean(Env.VERCEL_ENV) || Boolean(process.env.VERCEL_URL);
 }

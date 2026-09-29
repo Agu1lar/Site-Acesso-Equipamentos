@@ -3,7 +3,7 @@ import 'server-only';
 import { Env } from '@/libs/Env';
 
 export const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
-export const GOOGLE_ADS_API_VERSION = 'v18';
+export const GOOGLE_ADS_API_VERSION = 'v25';
 
 export type GoogleAdsSpendOptions = {
   dateFrom: string;
@@ -32,7 +32,7 @@ type GoogleAdsCredentials = {
 };
 
 type ConfiguredGoogleAdsCredentials = {
-  developerToken: string;
+  developerToken: string | null;
   customerId: string;
   loginCustomerId: string | null;
   clientId: string;
@@ -60,8 +60,7 @@ export function readGoogleAdsCredentials(): GoogleAdsCredentials {
 export function isGoogleAdsApiConfigured() {
   const creds = readGoogleAdsCredentials();
   return Boolean(
-    creds.developerToken
-    && creds.customerId
+    creds.customerId
     && creds.clientId
     && creds.clientSecret
     && creds.refreshToken,
@@ -76,7 +75,6 @@ export function isGoogleAdsApiConfigured() {
 export function readConfiguredGoogleAdsCredentials(): ConfiguredGoogleAdsCredentials {
   const creds = readGoogleAdsCredentials();
   if (
-    !creds.developerToken ||
     !creds.customerId ||
     !creds.clientId ||
     !creds.clientSecret ||
@@ -238,8 +236,8 @@ export async function fetchGoogleAdsCampaignSpend(
       method: 'POST',
       headers: {
         authorization: `Bearer ${accessToken}`,
-        'developer-token': creds.developerToken,
         'content-type': 'application/json',
+        ...(creds.developerToken ? { 'developer-token': creds.developerToken } : {}),
         ...(loginCustomerId ? { 'login-customer-id': loginCustomerId } : {}),
       },
       body: JSON.stringify({
@@ -258,12 +256,13 @@ export async function fetchGoogleAdsCampaignSpend(
     }
 
     for (const row of payload.results ?? []) {
-      currencyCode ??= addGoogleAdsSpendRow({
+      const rowCurrencyCode = addGoogleAdsSpendRow({
         row,
         prefix,
         prefixKey,
         spendByCampaign,
       });
+      currencyCode ??= rowCurrencyCode;
     }
 
     pageToken = payload.nextPageToken;

@@ -1,5 +1,16 @@
 import { sql } from 'drizzle-orm';
-import { boolean, date, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  date,
+  integer,
+  jsonb,
+  pgTable,
+  serial,
+  text,
+  timestamp,
+  uniqueIndex,
+  varchar,
+} from 'drizzle-orm/pg-core';
 import type { EquipmentSpec } from '@/types/equipment';
 
 // This file defines the structure of your database tables using the Drizzle ORM.
@@ -42,6 +53,8 @@ export const leadsSchema = pgTable('leads', {
   leadKind: varchar('lead_kind', { length: 40 }).notNull().default('quote'),
   googleSub: varchar('google_sub', { length: 255 }),
   status: varchar('status', { length: 40 }).notNull().default('new'),
+  qualification: varchar('qualification', { length: 40 }).notNull().default('pending'),
+  qualifiedAt: timestamp('qualified_at', { mode: 'date' }),
   utmSource: varchar('utm_source', { length: 120 }),
   utmMedium: varchar('utm_medium', { length: 120 }),
   utmCampaign: varchar('utm_campaign', { length: 200 }),
@@ -326,9 +339,7 @@ export const dashboardTrustedNetworksSchema = pgTable(
     expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   },
-  (table) => [
-    uniqueIndex('dashboard_trusted_networks_device_uidx').on(table.deviceId),
-  ],
+  (table) => [uniqueIndex('dashboard_trusted_networks_device_uidx').on(table.deviceId)],
 );
 
 /** Códigos temporários de redefinição de senha do painel */

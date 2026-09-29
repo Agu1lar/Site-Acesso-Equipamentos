@@ -1,23 +1,31 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { LeadChatProRoiSection } from '@/components/admin/LeadChatProRoiSection';
-import { LeadCartItemsList } from '@/components/admin/LeadCartItemsList';
-import { LeadContactHistory } from '@/components/admin/LeadContactHistory';
-import { LeadWhatsAppBadge } from '@/components/admin/LeadWhatsAppBadge';
-import { LeadNotesForm } from '@/components/admin/LeadNotesForm';
-import { LeadPriorityBadge } from '@/components/admin/LeadPriorityBadge';
-import { LeadRecurringBadge } from '@/components/admin/LeadRecurringBadge';
-import { LeadStatusForm } from '@/components/admin/LeadStatusForm';
 import { AdminCard } from '@/components/admin/AdminCard';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { LeadCartItemsList } from '@/components/admin/LeadCartItemsList';
+import { LeadChatProRoiSection } from '@/components/admin/LeadChatProRoiSection';
+import { LeadContactHistory } from '@/components/admin/LeadContactHistory';
+import { LeadNotesForm } from '@/components/admin/LeadNotesForm';
+import { LeadPriorityBadge } from '@/components/admin/LeadPriorityBadge';
+import { LeadQualificationForm } from '@/components/admin/LeadQualificationForm';
+import { LeadRecurringBadge } from '@/components/admin/LeadRecurringBadge';
+import { LeadStatusForm } from '@/components/admin/LeadStatusForm';
+import { LeadWhatsAppBadge } from '@/components/admin/LeadWhatsAppBadge';
 import { Button } from '@/components/ui/Button';
+import { formatDateTimeBrasilia } from '@/lib/app-datetime';
+import { scoreLeadIntent } from '@/lib/lead-intent-score';
+import { LEAD_QUALIFICATIONS } from '@/lib/lead-qualification';
+import type { LeadQualification } from '@/lib/lead-qualification';
 import { LEAD_STATUSES } from '@/lib/lead-status';
 import type { LeadStatus } from '@/lib/lead-status';
 import { resolveLeadWhatsAppStatus } from '@/lib/lead-whatsapp-status';
-import { scoreLeadIntent } from '@/lib/lead-intent-score';
-import { formatDateTimeBrasilia } from '@/lib/app-datetime';
-import { formatLeadCartItems, getLeadById, listRelatedLeads, parseLeadCartItems } from '@/lib/leads-admin';
+import {
+  formatLeadCartItems,
+  getLeadById,
+  listRelatedLeads,
+  parseLeadCartItems,
+} from '@/lib/leads-admin';
 import { classifyTrafficChannel, trafficChannelMessageKey } from '@/lib/traffic-channel';
 import { resolveAppLocale } from '@/utils/locale';
 
@@ -63,6 +71,12 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
     LEAD_STATUSES.map((status) => [status, t(`status_${status}` as 'status_new')]),
   ) as Record<LeadStatus, string>;
   const displayStatus = statusLabels[lead.status as LeadStatus] ?? lead.status;
+  const qualificationLabels = Object.fromEntries(
+    LEAD_QUALIFICATIONS.map((qualification) => [
+      qualification,
+      t(`qualification_${qualification}` as 'qualification_pending'),
+    ]),
+  ) as Record<LeadQualification, string>;
   const intent = scoreLeadIntent(lead);
   const whatsappStatus = resolveLeadWhatsAppStatus(lead);
   const whatsappStatusLabel =
@@ -76,7 +90,11 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
             ? t('whatsapp_status_not_applicable')
             : t('whatsapp_status_unknown');
   const priorityKey =
-    intent.tier === 'hot' ? 'priority_hot' : intent.tier === 'warm' ? 'priority_warm' : 'priority_cold';
+    intent.tier === 'hot'
+      ? 'priority_hot'
+      : intent.tier === 'warm'
+        ? 'priority_warm'
+        : 'priority_cold';
   let rentalLabel = lead.rentalPeriod ?? '—';
   if (lead.rentalPeriod === 'diaria') {
     rentalLabel = t('rental_diaria');
@@ -169,7 +187,9 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
               <dt className="text-neutral-500">{t('field_whatsapp')}</dt>
               <dd className="mt-1">
                 <LeadWhatsAppBadge label={whatsappStatusLabel} status={whatsappStatus} />
-                <p className="mt-1 text-xs text-neutral-500">{t(`whatsapp_status_hint_${whatsappStatus}`)}</p>
+                <p className="mt-1 text-xs text-neutral-500">
+                  {t(`whatsapp_status_hint_${whatsappStatus}`)}
+                </p>
               </dd>
             </div>
             <div>
@@ -196,6 +216,26 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
                 saveLabel={t('status_save')}
                 savedLabel={t('save_success')}
               />
+            </div>
+            <div className="border-t border-neutral-100 pt-3 sm:col-span-2">
+              <LeadQualificationForm
+                currentQualification={lead.qualification}
+                errorMessage={t('qualification_update_error')}
+                fieldLabel={t('field_qualification')}
+                labels={qualificationLabels}
+                leadId={lead.id}
+                resultLabels={{
+                  uploaded: t('qualification_conversion_uploaded'),
+                  duplicate: t('qualification_conversion_duplicate'),
+                  missing_click_id: t('qualification_conversion_missing_click_id'),
+                  not_configured: t('qualification_conversion_not_configured'),
+                  partial_failure: t('qualification_conversion_failed'),
+                  request_failed: t('qualification_conversion_failed'),
+                }}
+                saveLabel={t('qualification_save')}
+                savedLabel={t('qualification_saved')}
+              />
+              <p className="mt-2 text-xs text-neutral-500">{t('qualification_hint')}</p>
             </div>
             {lead.equipmentName ? (
               <div>
@@ -264,7 +304,7 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
             {lead.gclid ? (
               <div className="sm:col-span-2">
                 <dt className="text-neutral-500">{t('field_gclid')}</dt>
-                <dd className="break-all font-mono text-xs">{lead.gclid}</dd>
+                <dd className="font-mono text-xs break-all">{lead.gclid}</dd>
               </div>
             ) : null}
             {lead.landingPage ? (
@@ -293,10 +333,7 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
         </AdminCard>
       ) : null}
 
-      <AdminCard
-        description={t('internal_notes_hint')}
-        title={t('section_internal_notes')}
-      >
+      <AdminCard description={t('internal_notes_hint')} title={t('section_internal_notes')}>
         <LeadNotesForm
           errorMessage={t('notes_update_error')}
           fieldLabel={t('field_internal_notes')}

@@ -1,18 +1,24 @@
 import 'server-only';
-
 import { and, count, desc, eq, ilike, inArray, isNull, ne, not, or, sql } from 'drizzle-orm';
-import { APP_TIMEZONE, formatDateTimeBrasiliaExport } from '@/lib/app-datetime';
-import {
-  GOOGLE_ADS_NO_UTM_KEY,
-  NO_CAMPAIGN_KEY,
-} from '@/lib/campaign-analytics';
 import type { InferSelectModel } from 'drizzle-orm';
-import { countContactOrders, normalizeLeadEmail, normalizeLeadPhone, sortRelatedLeads } from '@/lib/lead-contact';
+import { APP_TIMEZONE, formatDateTimeBrasiliaExport } from '@/lib/app-datetime';
+import { GOOGLE_ADS_NO_UTM_KEY, NO_CAMPAIGN_KEY } from '@/lib/campaign-analytics';
 import { formatLeadCartItems } from '@/lib/lead-cart';
-import type { LeadStatus } from '@/lib/lead-status';
+import {
+  countContactOrders,
+  normalizeLeadEmail,
+  normalizeLeadPhone,
+  sortRelatedLeads,
+} from '@/lib/lead-contact';
 import { scoreLeadIntent } from '@/lib/lead-intent-score';
+import type { LeadQualification } from '@/lib/lead-qualification';
+import type { LeadStatus } from '@/lib/lead-status';
 import { currentWeekRange } from '@/lib/leads-date-presets';
-import { parseTrafficChannelParam, formatTrafficChannelLabel, type TrafficChannel } from '@/lib/traffic-channel';
+import {
+  parseTrafficChannelParam,
+  formatTrafficChannelLabel,
+  type TrafficChannel,
+} from '@/lib/traffic-channel';
 import { db } from '@/libs/DB';
 import { leadsSchema } from '@/models/Schema';
 
@@ -86,6 +92,7 @@ type LeadCsvRow = {
   origin: string;
   leadKind: string;
   status: string;
+  qualification: string;
   message: string;
   utmSource: string;
   utmMedium: string;
@@ -119,6 +126,7 @@ const CSV_COLUMNS: CsvColumn[] = [
   { key: 'origin', header: 'Origem' },
   { key: 'leadKind', header: 'Tipo' },
   { key: 'status', header: 'Status' },
+  { key: 'qualification', header: 'Qualificação' },
   { key: 'message', header: 'Mensagem' },
   { key: 'utmSource', header: 'UTM source' },
   { key: 'utmMedium', header: 'UTM medium' },
@@ -151,9 +159,7 @@ function buildWhere(filters: LeadListFilters) {
   if (filters.campaignKey?.trim()) {
     const campaignKey = filters.campaignKey.trim();
     if (campaignKey === NO_CAMPAIGN_KEY) {
-      conditions.push(
-        or(isNull(leadsSchema.utmCampaign), eq(leadsSchema.utmCampaign, ''))!,
-      );
+      conditions.push(or(isNull(leadsSchema.utmCampaign), eq(leadsSchema.utmCampaign, ''))!);
     } else if (campaignKey === GOOGLE_ADS_NO_UTM_KEY) {
       conditions.push(
         and(
@@ -281,7 +287,9 @@ export type LeadWithIntent = LeadRecord & ReturnType<typeof scoreLeadIntent>;
 /**
  * Returns new leads from the current week, sorted by commercial intent.
  */
-export async function listCommercialQueue(limit = COMMERCIAL_QUEUE_MAX): Promise<CommercialQueueResult> {
+export async function listCommercialQueue(
+  limit = COMMERCIAL_QUEUE_MAX,
+): Promise<CommercialQueueResult> {
   const weekRange = currentWeekRange();
   const activityWhere = buildActivityDateWhere(weekRange.dateFrom, weekRange.dateTo);
   const where = and(eq(leadsSchema.status, 'new'), activityWhere);
@@ -323,12 +331,7 @@ export async function listWeekOperationalLeads(
   const where = excludeArchivedWhere(activityWhere);
 
   const [rows, countRow] = await Promise.all([
-    db
-      .select()
-      .from(leadsSchema)
-      .where(where)
-      .orderBy(desc(leadActivityOrder))
-      .limit(limit),
+    db.select().from(leadsSchema).where(where).orderBy(desc(leadActivityOrder)).limit(limit),
     db.select({ count: count() }).from(leadsSchema).where(where),
   ]);
 
@@ -420,7 +423,9 @@ export async function listRelatedLeads(reference: LeadRecord) {
     matchConditions.push(eq(leadsSchema.email, email));
   }
   if (phoneDigits) {
-    matchConditions.push(sql`regexp_replace(${leadsSchema.phone}, '\\D', '', 'g') = ${phoneDigits}`);
+    matchConditions.push(
+      sql`regexp_replace(${leadsSchema.phone}, '\\D', '', 'g') = ${phoneDigits}`,
+    );
   }
   if (matchConditions.length === 0) {
     return [reference];
@@ -453,7 +458,9 @@ export async function buildContactOrderCounts(leads: LeadRecord[]) {
   ];
   const phones = [
     ...new Set(
-      leads.map((row) => normalizeLeadPhone(row.phone)).filter((value): value is string => Boolean(value)),
+      leads
+        .map((row) => normalizeLeadPhone(row.phone))
+        .filter((value): value is string => Boolean(value)),
     ),
   ];
 
@@ -507,6 +514,38 @@ export async function updateLeadStatus(id: number, status: LeadStatus) {
 }
 
 /**
+ * Updates manual lead qualification without conflating it with the sales pipeline.
+ *
+ * @param id - Lead primary key.
+ * @param qualification - Manual quality assessment.
+ * @returns Updated lead row when found.
+ */
+export function updateLeadQualification(id: number, qualification: LeadQualification) {
+  return db.transaction(async (tx) => {
+    const [current] = await tx
+      .select()
+      .from(leadsSchema)
+      .where(eq(leadsSchema.id, id))
+      .limit(1)
+      .for('update');
+
+    if (!current) {
+      return null;
+    }
+
+    const now = new Date();
+    const qualifiedAt = qualification === 'qualified' ? (current.qualifiedAt ?? now) : null;
+    const [lead] = await tx
+      .update(leadsSchema)
+      .set({ qualification, qualifiedAt, lastActivityAt: now })
+      .where(eq(leadsSchema.id, id))
+      .returning();
+
+    return lead;
+  });
+}
+
+/**
  * Updates internal notes for a lead.
  *
  * @param id - Lead primary key.
@@ -551,6 +590,7 @@ function leadToCsvRow(lead: LeadRecord): LeadCsvRow {
     origin: formatTrafficChannelLabel(lead),
     leadKind: lead.leadKind,
     status: lead.status,
+    qualification: lead.qualification,
     message: lead.message ?? '',
     utmSource: lead.utmSource ?? '',
     utmMedium: lead.utmMedium ?? '',

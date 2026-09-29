@@ -1,4 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
+const googleAdsEnv = vi.hoisted(() => ({
+  GOOGLE_ADS_CLIENT_ID: undefined as string | undefined,
+  GOOGLE_ADS_CLIENT_SECRET: undefined as string | undefined,
+  GOOGLE_ADS_CUSTOMER_ID: undefined as string | undefined,
+  GOOGLE_ADS_DEVELOPER_TOKEN: undefined as string | undefined,
+  GOOGLE_ADS_LOGIN_CUSTOMER_ID: undefined as string | undefined,
+  GOOGLE_ADS_REFRESH_TOKEN: undefined as string | undefined,
+}));
+
+vi.mock('@/libs/Env', () => ({ Env: googleAdsEnv }));
+
 import {
   fetchGoogleAdsCampaignSpend,
   googleAdsCampaignSpendKey,
@@ -14,13 +26,15 @@ describe('googleAdsCampaignSpendKey', () => {
 
 describe('fetchGoogleAdsCampaignSpend', () => {
   afterEach(() => {
-    vi.unstubAllEnvs();
+    for (const key of Object.keys(googleAdsEnv) as (keyof typeof googleAdsEnv)[]) {
+      googleAdsEnv[key] = undefined;
+    }
     vi.restoreAllMocks();
     resetGoogleAdsTokenCacheForTests();
   });
 
   it('returns not configured without env', async () => {
-    vi.stubEnv('GOOGLE_ADS_DEVELOPER_TOKEN', '');
+    googleAdsEnv.GOOGLE_ADS_DEVELOPER_TOKEN = undefined;
     expect(isGoogleAdsApiConfigured()).toBe(false);
     await expect(fetchGoogleAdsCampaignSpend({
       dateFrom: '2026-08-01',
@@ -30,11 +44,10 @@ describe('fetchGoogleAdsCampaignSpend', () => {
   });
 
   it('aggregates campaign cost_micros from search response', async () => {
-    vi.stubEnv('GOOGLE_ADS_DEVELOPER_TOKEN', 'dev-token');
-    vi.stubEnv('GOOGLE_ADS_CUSTOMER_ID', '1234567890');
-    vi.stubEnv('GOOGLE_ADS_CLIENT_ID', 'client-id');
-    vi.stubEnv('GOOGLE_ADS_CLIENT_SECRET', 'client-secret');
-    vi.stubEnv('GOOGLE_ADS_REFRESH_TOKEN', 'refresh-token');
+    googleAdsEnv.GOOGLE_ADS_CUSTOMER_ID = '1234567890';
+    googleAdsEnv.GOOGLE_ADS_CLIENT_ID = 'client-id';
+    googleAdsEnv.GOOGLE_ADS_CLIENT_SECRET = 'client-secret';
+    googleAdsEnv.GOOGLE_ADS_REFRESH_TOKEN = 'refresh-token';
 
     const fetchMock = vi.fn()
       .mockResolvedValueOnce({
@@ -76,5 +89,6 @@ describe('fetchGoogleAdsCampaignSpend', () => {
     });
     expect(result.currencyCode).toBe('BRL');
     expect(result.campaignsMatched).toBe(2);
+    expect(fetchMock.mock.calls[1][1].headers).not.toHaveProperty('developer-token');
   });
 });

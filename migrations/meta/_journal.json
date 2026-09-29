@@ -309,6 +309,13 @@
       "when": 1787590800000,
       "tag": "0047_drop_recreated_dashboard_trusted_ip_index",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1790683200000,
+      "tag": "0048_lead_qualification",
+      "breakpoints": true
     }
   ]
 }
