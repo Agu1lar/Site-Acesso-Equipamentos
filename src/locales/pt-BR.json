@@ -810,6 +810,7 @@
     "qualification_conversion_uploaded": "Qualificação salva e conversão enviada ao Google Ads.",
     "qualification_conversion_duplicate": "Qualificação salva. Essa conversão já havia sido enviada ao Google Ads.",
     "qualification_conversion_missing_click_id": "Qualificação salva. Este lead não possui identificador de clique do Google Ads.",
+    "qualification_conversion_not_eligible": "Qualificação salva. O lead precisa ter vindo de tráfego pago e ter passagem pelo WhatsApp.",
     "qualification_conversion_not_configured": "Qualificação salva. A ação de conversão de lead qualificado ainda não está configurada.",
     "qualification_conversion_failed": "Qualificação salva, mas o Google Ads recusou ou não respondeu ao envio.",
     "pagination_label": "Paginação",

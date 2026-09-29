@@ -30,6 +30,7 @@ export type GoogleAdsOfflineConversionResult = {
   reason?:
     | 'not_configured'
     | 'missing_click_id'
+    | 'not_eligible'
     | 'duplicate'
     | 'partial_failure'
     | 'request_failed';

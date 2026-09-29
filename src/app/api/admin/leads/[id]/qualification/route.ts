@@ -47,15 +47,17 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   const conversion =
     parsed.data.qualification === 'qualified'
-      ? await uploadGoogleAdsQualifiedLeadConversion({
-          leadId: lead.id,
-          attribution: {
-            gclid: lead.gclid ?? undefined,
-            gbraid: lead.gbraid ?? undefined,
-            wbraid: lead.wbraid ?? undefined,
-          },
-          conversionDate: lead.qualifiedAt ?? new Date(),
-        })
+      ? lead.whatsappOpened === true || lead.whatsappRepliedAt !== null
+        ? await uploadGoogleAdsQualifiedLeadConversion({
+            leadId: lead.id,
+            attribution: {
+              gclid: lead.gclid ?? undefined,
+              gbraid: lead.gbraid ?? undefined,
+              wbraid: lead.wbraid ?? undefined,
+            },
+            conversionDate: lead.qualifiedAt ?? new Date(),
+          })
+        : { uploaded: false, reason: 'not_eligible' as const }
       : null;
 
   return NextResponse.json({ ok: true, lead, conversion });

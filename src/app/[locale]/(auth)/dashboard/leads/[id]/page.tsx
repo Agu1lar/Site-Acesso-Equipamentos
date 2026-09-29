@@ -228,6 +228,7 @@ export default async function LeadDetailPage(props: LeadDetailPageProps) {
                   uploaded: t('qualification_conversion_uploaded'),
                   duplicate: t('qualification_conversion_duplicate'),
                   missing_click_id: t('qualification_conversion_missing_click_id'),
+                  not_eligible: t('qualification_conversion_not_eligible'),
                   not_configured: t('qualification_conversion_not_configured'),
                   partial_failure: t('qualification_conversion_failed'),
                   request_failed: t('qualification_conversion_failed'),
