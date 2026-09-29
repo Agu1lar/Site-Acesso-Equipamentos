@@ -514,7 +514,8 @@ export async function updateLeadStatus(id: number, status: LeadStatus) {
 }
 
 /**
- * Updates manual lead qualification without conflating it with the sales pipeline.
+ * Updates manual lead qualification without moving the lead in the weekly queue.
+ * Keeps createdAt and lastActivityAt so history and the week table stay on the original activity date.
  *
  * @param id - Lead primary key.
  * @param qualification - Manual quality assessment.
@@ -533,11 +534,10 @@ export function updateLeadQualification(id: number, qualification: LeadQualifica
       return null;
     }
 
-    const now = new Date();
-    const qualifiedAt = qualification === 'qualified' ? (current.qualifiedAt ?? now) : null;
+    const qualifiedAt = qualification === 'qualified' ? (current.qualifiedAt ?? new Date()) : null;
     const [lead] = await tx
       .update(leadsSchema)
-      .set({ qualification, qualifiedAt, lastActivityAt: now })
+      .set({ qualification, qualifiedAt })
       .where(eq(leadsSchema.id, id))
       .returning();
 
