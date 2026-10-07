@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { brasiliaDayStartUtc } from '@/lib/app-datetime';
 import {
+  analyticsPeriodDayCount,
   calendarMonthRange,
   currentCalendarMonthRange,
   currentMonthToDateRange,
@@ -25,6 +26,15 @@ describe('resolve analytics period', () => {
     const period = resolveAnalyticsPeriod({
       dateFrom: '2026-01-01',
       dateTo: '2026-01-31',
+    });
+    expect(period.dateFrom).toBe('2026-01-01');
+    expect(period.dateTo).toBe('2026-01-31');
+  });
+
+  it('orders an inverted explicit range', () => {
+    const period = resolveAnalyticsPeriod({
+      dateFrom: '2026-01-31',
+      dateTo: '2026-01-01',
     });
     expect(period.dateFrom).toBe('2026-01-01');
     expect(period.dateTo).toBe('2026-01-31');
@@ -67,6 +77,42 @@ describe('resolve comparison period', () => {
 
     expect(comparison.comparisonMode).toBe('auto');
     expect(comparison.dateTo).toBe('2026-05-31');
+  });
+
+  it('falls back to auto when compare dates match the analyzed period', () => {
+    const period = resolveAnalyticsPeriod({
+      dateFrom: '2026-08-09',
+      dateTo: '2026-08-24',
+    });
+    const comparison = resolveComparisonPeriod(period, {
+      compareDateFrom: '2026-08-09',
+      compareDateTo: '2026-08-24',
+    });
+
+    expect(comparison.comparisonMode).toBe('auto');
+    expect(comparison.dateFrom).toBe('2026-07-24');
+    expect(comparison.dateTo).toBe('2026-08-08');
+  });
+
+  it('orders a custom comparison range', () => {
+    const period = resolveAnalyticsPeriod({
+      dateFrom: '2026-08-01',
+      dateTo: '2026-08-07',
+    });
+    const comparison = resolveComparisonPeriod(period, {
+      compareDateFrom: '2026-07-14',
+      compareDateTo: '2026-07-08',
+    });
+
+    expect(comparison.comparisonMode).toBe('custom');
+    expect(comparison.dateFrom).toBe('2026-07-08');
+    expect(comparison.dateTo).toBe('2026-07-14');
+  });
+});
+
+describe('analytics period day count', () => {
+  it('counts both ends of the range', () => {
+    expect(analyticsPeriodDayCount('2026-08-01', '2026-08-07')).toBe(7);
   });
 });
 

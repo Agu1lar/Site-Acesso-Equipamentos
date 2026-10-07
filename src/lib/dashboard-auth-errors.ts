@@ -25,30 +25,42 @@ type AuthErrorLabels = {
  */
 export function mapAuthApiError(code: string | undefined, labels: AuthErrorLabels) {
   switch (code) {
-    case 'invalid_credentials':
+    case 'invalid_credentials': {
       return labels.invalidCredentials;
-    case 'invalid_email':
+    }
+    case 'invalid_email': {
       return labels.invalidEmail;
-    case 'password_too_short':
+    }
+    case 'password_too_short': {
       return labels.passwordTooShort;
-    case 'password_too_long':
+    }
+    case 'password_too_long': {
       return labels.passwordTooLong;
-    case 'rate_limited':
+    }
+    case 'rate_limited': {
       return labels.rateLimited;
-    case 'user_not_found':
+    }
+    case 'user_not_found': {
       return labels.userNotFound;
-    case 'invalid_code':
+    }
+    case 'invalid_code': {
       return labels.invalidCode;
-    case 'code_expired':
+    }
+    case 'code_expired': {
       return labels.codeExpired;
-    case 'no_active_code':
+    }
+    case 'no_active_code': {
       return labels.noActiveCode;
-    case 'too_many_attempts':
+    }
+    case 'too_many_attempts': {
       return labels.tooManyAttempts;
-    case 'email_send_failed':
+    }
+    case 'email_send_failed': {
       return labels.emailSendFailed;
-    default:
+    }
+    default: {
       return labels.generic;
+    }
   }
 }
 

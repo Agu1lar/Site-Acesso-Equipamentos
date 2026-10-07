@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 import { randomBytes } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const root = resolve(import.meta.dirname, '..');
 const secret = `acesso_internal_${randomBytes(24).toString('hex')}`;
 
 const localEnv = readFileSync(resolve(root, '.env.local'), 'utf8');

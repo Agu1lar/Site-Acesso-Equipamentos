@@ -3,7 +3,7 @@
  * Upserts the scissor-lift safety prototype blog article into Neon (published).
  * Usage: dotenv -c -- npx tsx scripts/seed-blog-seguranca-tesoura.mjs
  */
-import pg from 'pg';
+import { Client } from 'pg';
 
 const databaseUrl = process.env.DATABASE_URL?.trim();
 if (!databaseUrl) {
@@ -17,7 +17,7 @@ const {
 } = await import('../src/data/blog-seguranca-plataforma-tesoura.ts');
 
 const article = BLOG_SEGURANCA_PLATAFORMA_TESOURA;
-const client = new pg.Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
+const client = new Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
 
 await client.connect();
 

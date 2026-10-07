@@ -59,8 +59,8 @@ const FEATURED_META_OVERRIDES: Partial<Record<string, string>> = {
     'Alugue guindaste Franna FR17 (17 t) em BH e região. Pick and carry com lança até 20,40 m. Frota revisada — orçamento pelo site ou WhatsApp.',
   'plataforma-elevatoria-s80':
     'Alugue plataforma Genie S-85 XC E em BH. Lança telescópica: altura 27,91 m e alcance 22,71 m. Entrega na obra — solicite orçamento.',
-  'plataforma-elevatoria-s60':
-    'Alugue plataforma Genie Z-80/60 articulada em BH. Altura 25,77 m e alcance 18,29 m. Locação com entrega na obra — peça orçamento.',
+  'plataforma-elevatoria-s80-j':
+    'Alugue plataforma Genie S-80 J telescópica em BH. Altura de trabalho de 26,51 m, alcance de 16,69 m e capacidade de 300 kg.',
   'plataforma-elevatoria-gs4655':
     'Alugue tesoura Genie GS-4655 E-Drive em BH. Altura interna 15,95 m e capacidade 350 kg. Frota revisada — orçamento sob consulta.',
   'plataforma-elevatoria-1350sjp':

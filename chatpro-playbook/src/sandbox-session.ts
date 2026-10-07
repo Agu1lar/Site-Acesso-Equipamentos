@@ -5,10 +5,34 @@ import {
   stripAgentSignatures,
 } from './attendance-brain.js';
 import type { AttendanceTurn } from './attendance-brain.js';
+import type { AttendanceKnowledgeHit } from './attendance-agent.js';
+import { mergeAttendanceAgentState } from './attendance-state.js';
+import type { AttendanceAgentState } from './attendance-state.js';
 import { allTeamFolders, vaultFolderForTeam } from './attendance-team.js';
 import type { PlaybookConfig } from './config.js';
-import { retrievedFleetBlock } from './fleet-catalog.js';
-import { formatVaultSearchHits, searchVaultKnowledge, shouldSearchAttendanceModules } from './vault-search.js';
+import { searchVaultKnowledge } from './vault-search.js';
+
+function attendanceSearchRoots(config: PlaybookConfig) {
+  return [
+    ...allTeamFolders(config.obsidianCompanyFolder).flatMap((folder) => [
+      `${folder}/Modulos`,
+      `${folder}/Conhecimento`,
+    ]),
+    `${vaultFolderForTeam(config.obsidianCompanyFolder, 'mecanica')}/Manuais`,
+  ];
+}
+
+function searchAttendanceKnowledge(config: PlaybookConfig, query: string): AttendanceKnowledgeHit[] {
+  return searchVaultKnowledge({
+    vaultPath: config.obsidianVaultPath,
+    roots: attendanceSearchRoots(config),
+    query,
+  }).map((hit) => ({
+    id: `knowledge:${hit.title}`,
+    title: hit.title,
+    excerpt: hit.excerpt,
+  }));
+}
 
 /**
  * Builds the same retrieval block the sandbox REPL sends to the attendance bot.
@@ -19,24 +43,7 @@ export function retrieveSandboxKnowledge(options: {
   line: string;
   extraRetrieved?: string;
 }) {
-  const searchRoots = [
-    ...allTeamFolders(options.config.obsidianCompanyFolder).flatMap((folder) => [
-      `${folder}/Modulos`,
-      `${folder}/Conhecimento`,
-    ]),
-    `${vaultFolderForTeam(options.config.obsidianCompanyFolder, 'mecanica')}/Manuais`,
-  ];
-  return [
-    retrievedFleetBlock(options.userTurns),
-    shouldSearchAttendanceModules(options.line)
-      ? formatVaultSearchHits(searchVaultKnowledge({
-        vaultPath: options.config.obsidianVaultPath,
-        roots: searchRoots,
-        query: options.line,
-      }))
-      : '',
-    options.extraRetrieved ?? '',
-  ].filter(Boolean).join('\n\n');
+  return options.extraRetrieved?.trim() ?? '';
 }
 
 /**
@@ -53,6 +60,8 @@ export async function runSandboxTurn(options: {
   extraRetrieved?: string;
   live?: boolean;
   now?: Date;
+  agentState?: AttendanceAgentState | null;
+  inboundMessageId?: string | null;
 }) {
   const history = options.history.slice(-16).map((turn) => ({
     role: turn.role,
@@ -67,6 +76,7 @@ export async function runSandboxTurn(options: {
     userText: line,
     now: options.now,
   });
+  const activeAgentState = options.agentState ?? null;
   const retrieved = retrieveSandboxKnowledge({
     config: options.config,
     userTurns: triageContext.userTurns,
@@ -76,6 +86,7 @@ export async function runSandboxTurn(options: {
   const reply = await replyAsAttendanceBot({
     apiKey: options.apiKey,
     model: options.config.anthropicModel,
+    strongModel: options.config.anthropicStrongModel,
     vaultKnowledge: options.vaultKnowledge,
     retrievedKnowledge: retrieved || null,
     contactContext: options.contactContext ?? null,
@@ -85,9 +96,20 @@ export async function runSandboxTurn(options: {
     live: options.live,
     now: options.now,
     triageContext,
+    searchKnowledge: (query) => searchAttendanceKnowledge(options.config, query),
+    agentState: activeAgentState,
   });
+  const nextAgentState = reply.decision
+    ? mergeAttendanceAgentState({
+        previous: activeAgentState,
+        decision: reply.decision,
+        inboundMessageId: options.inboundMessageId,
+        now: options.now,
+      })
+    : options.agentState ?? null;
   return {
     ...reply,
     retrieved,
+    agentState: nextAgentState,
   };
 }

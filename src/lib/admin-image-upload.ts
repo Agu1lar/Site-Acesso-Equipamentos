@@ -140,7 +140,7 @@ async function uploadToVercelBlob(pathname: string, buffer: Buffer, contentType:
   } catch (error) {
     const friendly = blobAccessMismatchMessage(error);
     if (friendly) {
-      throw new Error(friendly);
+      throw new Error(friendly, { cause: error });
     }
     throw error;
   }

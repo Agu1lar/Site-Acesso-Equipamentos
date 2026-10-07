@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   date,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -95,7 +96,10 @@ export const chatproMessagesSchema = pgTable(
     eventAt: timestamp('event_at', { mode: 'date' }),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   },
-  (table) => [uniqueIndex('chatpro_messages_external_id_uidx').on(table.externalId)],
+  (table) => [
+    uniqueIndex('chatpro_messages_external_id_uidx').on(table.externalId),
+    index('chatpro_messages_lead_id_id_idx').on(table.leadId, table.id),
+  ],
 );
 
 /** Claude ROI evaluations for campaign-attributed leads (local worker, not dashboard UI). */
@@ -113,6 +117,11 @@ export const chatproLeadEvaluationsSchema = pgTable(
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   },
   (table) => [
+    index('chatpro_lead_evaluations_latest_idx').on(
+      table.leadId,
+      table.evaluatedAt.desc(),
+      table.id.desc(),
+    ),
     uniqueIndex('chatpro_lead_evaluations_lead_last_message_uidx')
       .on(table.leadId, table.lastMessageId)
       .where(sql`${table.lastMessageId} is not null`),

@@ -28,9 +28,9 @@ async function postAdminUpload(props: {
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === 'TimeoutError') {
-      throw new Error('Upload demorou demais. Tente novamente.');
+      throw new Error('Upload demorou demais. Tente novamente.', { cause: error });
     }
-    throw new Error('Falha na conexão com o servidor.');
+    throw new Error('Falha na conexão com o servidor.', { cause: error });
   }
 
   let payload: { url?: string; error?: string };

@@ -3,8 +3,8 @@ import { buildLlmsTxtContent, buildPublicCatalogJson } from '@/lib/ai-discovery'
 import type { Equipment } from '@/types/equipment';
 
 const sampleEquipment: Equipment = {
-  slug: 'plataforma-elevatoria-s60',
-  name: 'Plataforma Genie Z-80/60',
+  slug: 'plataforma-elevatoria-s80-j',
+  name: 'Plataforma Genie S-80 J',
   category: 'plataformas-elevatorias',
   shortDescription: 'Locação de plataforma articulada.',
   longDescription: 'Descrição técnica.',
@@ -23,7 +23,7 @@ describe('buildPublicCatalogJson', () => {
     expect(json.publisher.name).toBe('Acesso Equipamentos');
     expect(json.categories.some((item) => item.slug === 'plataformas-elevatorias')).toBe(true);
     expect(json.equipment[0]?.url).toBe(
-      'https://example.com/equipamentos/plataforma-elevatoria-s60',
+      'https://example.com/equipamentos/plataforma-elevatoria-s80-j',
     );
     expect(json.counts.equipment).toBe(1);
   });

@@ -1,7 +1,7 @@
 'use client';
 
 import type { JSONContent } from '@tiptap/core';
-import Placeholder from '@tiptap/extension-placeholder';
+import TiptapPlaceholder from '@tiptap/extension-placeholder';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
@@ -58,7 +58,7 @@ export function BlogTiptapEditor(props: BlogTiptapEditorProps) {
     immediatelyRender: false,
     extensions: [
       ...createBlogTiptapExtensions(),
-      Placeholder.configure({
+      TiptapPlaceholder.configure({
         placeholder: t('editor_placeholder'),
       }),
     ],

@@ -336,7 +336,7 @@ function buildAndaimesFaqs(regiao: RegiaoContent): RegiaoCategoriaFaq[] {
     {
       question: 'Como solicitar orçamento de andaimes?',
       answer:
-        'Informe altura, tipo de serviço (fachada, interno, estrutura), endereço em ' + city + ' e duração estimada.',
+        `Informe altura, tipo de serviço (fachada, interno, estrutura), endereço em ${city} e duração estimada.`,
     },
   ];
 }

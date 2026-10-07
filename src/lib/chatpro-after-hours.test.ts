@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   AFTER_HOURS_NOTICE_MARKER,
   decideAfterHoursNotice,
@@ -1922,20 +1922,64 @@ describe('sanitizeAttendanceReply with captured triage', () => {
   });
 });
 
-describe('deterministic attendance recommendation', () => {
-  it('does not call AI or recommend a platform for a two-ton pallet request', async () => {
-    const reply = await replyAsAttendanceBot({
-      apiKey: 'not-used-for-deterministic-answer',
-      model: 'not-used',
-      vaultKnowledge: '',
-      history: [],
-      userText: 'Preciso elevar pallets de 2 toneladas a 5 metros, qual equipamento recomenda?',
-      offHours: true,
-    });
-    expect(reply.text).toContain('Não encontrei no catálogo um equipamento');
-    expect(reply.text).not.toMatch(/mastro|tesoura|articulada/iu);
-    expect(reply.text).toContain('sem promessa de disponibilidade');
-    expect(reply.text).toContain('horário útil');
+describe('grounded attendance recommendation', () => {
+  it('keeps an unsupported heavy-load request for human analysis', async () => {
+    const fetchMock = vi.fn(async () => Response.json({
+      stop_reason: 'tool_use',
+      content: [{
+        type: 'tool_use',
+        id: 'decision-1',
+        name: 'submit_attendance_decision',
+        input: {
+          intent: 'commercial',
+          reply: 'Não encontrei no catálogo uma indicação comprovada para essa carga. O comercial avaliará a necessidade no horário comercial, de segunda a sexta, 7h30–17h15.',
+          questions: ['Em qual cidade será a operação?', 'Para quando você precisa?'],
+          facts: {
+            equipment: null,
+            application: 'elevar pallets',
+            heightM: 5,
+            capacityKg: 2000,
+            city: null,
+            startDate: null,
+            durationDays: null,
+            symptom: null,
+            location: null,
+            peopleAtRisk: null,
+            trainingPeople: null,
+            notes: [],
+          },
+          resetState: false,
+          missingInformation: ['cidade', 'data de início', 'duração'],
+          claims: [],
+          recommendation: null,
+          handoff: {
+            required: true,
+            department: 'commercial',
+            reason: 'Não há recomendação comprovada no catálogo',
+            queueAction: 'keep_waiting',
+          },
+          confidence: 0.9,
+          complexity: 'routine',
+        },
+      }],
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      const reply = await replyAsAttendanceBot({
+        apiKey: 'test-key',
+        model: 'test-model',
+        vaultKnowledge: '',
+        history: [],
+        userText: 'Preciso elevar pallets de 2 toneladas a 5 metros, qual equipamento recomenda?',
+        offHours: true,
+      });
+      expect(reply.text).toContain('Não encontrei no catálogo uma indicação comprovada');
+      expect(reply.text).not.toMatch(/mastro|tesoura|articulada/iu);
+      expect(reply.text).toContain('horário comercial');
+      expect(reply.decision?.handoff.queueAction).toBe('keep_waiting');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
 

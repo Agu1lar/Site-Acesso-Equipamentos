@@ -61,7 +61,11 @@ async function main() {
     text: transcription,
   });
 
-  const enriched = await enrichMessagesWithAudioTranscriptions(context.messages, {
+  const messages = context.messages.map((message) => ({
+    ...message,
+    eventAt: message.eventAt ? new Date(message.eventAt) : null,
+  }));
+  const enriched = await enrichMessagesWithAudioTranscriptions(messages, {
     apiKey: config.anthropicApiKey ?? 'dry-run',
     model: config.anthropicModel,
     pdfAllowedHostSuffixes: config.pdfAllowedHostSuffixes,

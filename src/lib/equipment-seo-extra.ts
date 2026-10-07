@@ -25,10 +25,10 @@ const SLUG_SEO_EXTRA: Partial<Record<string, EquipmentSeoExtra>> = {
       `Combine locação com treinamento de operadores alinhado à NR-18 quando necessário. Solicite orçamento informando endereço, datas e altura de trabalho.`,
     ],
   },
-  'plataforma-elevatoria-s60': {
-    title: 'Locação de plataforma articulada Genie Z-80/60 em Belo Horizonte',
+  'plataforma-elevatoria-s80-j': {
+    title: 'Locação de plataforma telescópica Genie S-80 J em Belo Horizonte',
     paragraphs: [
-      `A Genie Z-80/60 é lança articulada com altura de trabalho de 25,77 m e alcance horizontal de 18,29 m — indicada para contornar obstáculos e trabalhos up-and-over em ${BH_REGION}.`,
+      `A Genie S-80 J é uma lança telescópica com jib, altura de trabalho de 26,51 m, alcance horizontal de 16,69 m e capacidade de 300 kg — indicada para obras externas e manutenção industrial em ${BH_REGION}.`,
       `Nossa equipe comercial orienta sobre documentação, entrega na obra e condições de locação sob consulta.`,
     ],
   },

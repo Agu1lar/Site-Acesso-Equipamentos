@@ -25,6 +25,12 @@ export type GoogleAdsQualifiedLeadConversionInput = {
   conversionDate?: Date;
 };
 
+export type GoogleAdsConfirmedContactConversionInput = {
+  attribution?: AttributionInput;
+  leadId: number;
+  conversionDate?: Date;
+};
+
 export type GoogleAdsOfflineConversionResult = {
   uploaded: boolean;
   reason?:
@@ -85,6 +91,21 @@ function readQualifiedLeadConversionActionResourceName() {
   return `customers/${normalizeGoogleAdsCustomerId(customerId)}/conversionActions/${actionId}`;
 }
 
+function readConfirmedContactConversionActionResourceName() {
+  const explicit = Env.GOOGLE_ADS_CONFIRMED_CONTACT_CONVERSION_ACTION_RESOURCE_NAME?.trim();
+  if (explicit) {
+    return explicit;
+  }
+
+  const actionId = Env.GOOGLE_ADS_CONFIRMED_CONTACT_CONVERSION_ACTION_ID?.replaceAll(/\D/gu, '');
+  const customerId = Env.GOOGLE_ADS_CUSTOMER_ID?.trim();
+  if (!actionId || !customerId) {
+    return null;
+  }
+
+  return `customers/${normalizeGoogleAdsCustomerId(customerId)}/conversionActions/${actionId}`;
+}
+
 /**
  * Returns true when Google Ads offline click conversion upload can run.
  * @returns Whether offline conversion upload is fully configured.
@@ -99,6 +120,14 @@ export function isGoogleAdsOfflineConversionConfigured() {
  */
 export function isGoogleAdsQualifiedLeadConversionConfigured() {
   return isGoogleAdsApiConfigured() && Boolean(readQualifiedLeadConversionActionResourceName());
+}
+
+/**
+ * Returns true when confirmed-contact conversion upload can run.
+ * @returns Whether the Google Ads API and confirmed-contact action are configured.
+ */
+export function isGoogleAdsConfirmedContactConversionConfigured() {
+  return isGoogleAdsApiConfigured() && Boolean(readConfirmedContactConversionActionResourceName());
 }
 
 function resolveClickId(attribution: AttributionInput | undefined) {
@@ -159,7 +188,30 @@ async function insertPendingUpload(options: {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (/duplicate|unique/iu.test(message)) {
-      return null;
+      const [existing] = await db
+        .select({
+          id: googleAdsOfflineConversionsSchema.id,
+          status: googleAdsOfflineConversionsSchema.status,
+        })
+        .from(googleAdsOfflineConversionsSchema)
+        .where(eq(googleAdsOfflineConversionsSchema.orderId, options.orderId))
+        .limit(1);
+
+      if (!existing || existing.status !== 'failed') {
+        return null;
+      }
+
+      await db
+        .update(googleAdsOfflineConversionsSchema)
+        .set({
+          status: 'pending',
+          responsePayload: null,
+          errorMessage: null,
+          uploadedAt: null,
+        })
+        .where(eq(googleAdsOfflineConversionsSchema.id, existing.id));
+
+      return { id: existing.id };
     }
     throw error;
   }
@@ -209,6 +261,21 @@ export async function uploadGoogleAdsQualifiedLeadConversion(
     ...input,
     conversionAction: readQualifiedLeadConversionActionResourceName(),
     orderId: () => `qualified-lead-${input.leadId}`,
+  });
+}
+
+/**
+ * Uploads one paid lead after WhatsApp opens or the first inbound reply arrives.
+ * @param input Lead and its original campaign attribution.
+ * @returns Upload result with skip/failure reason when not uploaded.
+ */
+export async function uploadGoogleAdsConfirmedContactConversion(
+  input: GoogleAdsConfirmedContactConversionInput,
+): Promise<GoogleAdsOfflineConversionResult> {
+  return uploadGoogleAdsConversion({
+    ...input,
+    conversionAction: readConfirmedContactConversionActionResourceName(),
+    orderId: () => `confirmed-contact-${input.leadId}`,
   });
 }
 

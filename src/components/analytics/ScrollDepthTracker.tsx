@@ -14,7 +14,7 @@ function isScrollDepthPage(pathname: string) {
   return (
     /\/categorias\//u.test(pathname)
     || /\/equipamentos(?:\/|$)/u.test(pathname)
-    || /\/orcamento$/u.test(pathname)
+    || pathname.endsWith('/orcamento')
   );
 }
 

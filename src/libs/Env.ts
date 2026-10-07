@@ -26,6 +26,8 @@ export const Env = createEnv({
     CHATPRO_PDF_URL_ALLOWLIST: z.string().optional(),
     /** Bearer token for server-to-server internal APIs. */
     INTERNAL_API_SECRET: z.string().min(24).optional(),
+    /** Bearer secret sent automatically by Vercel Cron. */
+    CRON_SECRET: z.string().min(16).optional(),
     ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-').optional(),
     ANTHROPIC_MODEL: z.string().min(1).default('claude-haiku-4-5-20251001'),
     /** OpenAI Whisper — transcrição de áudios ChatPro sem alt_message. */
@@ -39,6 +41,8 @@ export const Env = createEnv({
     GOOGLE_ADS_REFRESH_TOKEN: z.string().min(1).optional(),
     GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID: z.string().min(1).optional(),
     GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME: z.string().min(1).optional(),
+    GOOGLE_ADS_CONFIRMED_CONTACT_CONVERSION_ACTION_ID: z.string().min(1).optional(),
+    GOOGLE_ADS_CONFIRMED_CONTACT_CONVERSION_ACTION_RESOURCE_NAME: z.string().min(1).optional(),
     GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_ID: z.string().min(1).optional(),
     GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_RESOURCE_NAME: z.string().min(1).optional(),
   },
@@ -74,6 +78,7 @@ export const Env = createEnv({
     CHATPRO_WEBHOOK_SECRET: process.env.CHATPRO_WEBHOOK_SECRET,
     CHATPRO_PDF_URL_ALLOWLIST: process.env.CHATPRO_PDF_URL_ALLOWLIST,
     INTERNAL_API_SECRET: process.env.INTERNAL_API_SECRET,
+    CRON_SECRET: process.env.CRON_SECRET,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
@@ -86,6 +91,10 @@ export const Env = createEnv({
     GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID: process.env.GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID,
     GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME:
       process.env.GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME,
+    GOOGLE_ADS_CONFIRMED_CONTACT_CONVERSION_ACTION_ID:
+      process.env.GOOGLE_ADS_CONFIRMED_CONTACT_CONVERSION_ACTION_ID,
+    GOOGLE_ADS_CONFIRMED_CONTACT_CONVERSION_ACTION_RESOURCE_NAME:
+      process.env.GOOGLE_ADS_CONFIRMED_CONTACT_CONVERSION_ACTION_RESOURCE_NAME,
     GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_ID:
       process.env.GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_ID,
     GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_RESOURCE_NAME:

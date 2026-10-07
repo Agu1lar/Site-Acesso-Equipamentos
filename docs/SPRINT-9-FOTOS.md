@@ -130,4 +130,4 @@ python docs/scripts/enrich-equipment-specs.py
 - **9.2** Cases de obra na home (2–3 fotos de obra real + texto curto).
 - **9.3** Textos long-tail (já parcialmente em categorias).
 
-Ver [ROADMAP.temp.md](../ROADMAP.temp.md).
+Ver [GO-LIVE-GATE.md](./GO-LIVE-GATE.md).

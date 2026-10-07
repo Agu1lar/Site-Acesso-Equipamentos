@@ -67,15 +67,19 @@ function mapAllowlistError(
   labels: AccessAllowlistPanelProps['labels'],
 ) {
   switch (code) {
-    case 'duplicate':
+    case 'duplicate': {
       return labels.errorDuplicate;
-    case 'invalid':
+    }
+    case 'invalid': {
       return labels.errorInvalid;
-    case 'last_admin':
+    }
+    case 'last_admin': {
       return labels.errorLastAdmin;
+    }
+    default: {
+      return labels.errorGeneric;
+    }
   }
-
-  return labels.errorGeneric;
 }
 
 export function AccessAllowlistPanel(props: AccessAllowlistPanelProps) {
@@ -345,7 +349,6 @@ export function AccessAllowlistPanel(props: AccessAllowlistPanelProps) {
 
                                     if (!result.ok) {
                                       setError(mapAllowlistError(result.code, props.labels));
-                                      return;
                                     }
                                   } catch {
                                     setError(props.labels.errorNetwork);

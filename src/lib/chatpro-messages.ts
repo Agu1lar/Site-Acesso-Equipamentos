@@ -7,7 +7,8 @@ import {
 } from '@/lib/chatpro-audio-transcription';
 import { enqueueChatProOutboxEvent } from '@/lib/chatpro-outbox';
 import {
-  buildChatProMessageDedupKey,
+  chatProEventDedupKey,
+  isChatProMessageEvent,
   type ChatProInboundEvent,
 } from '@/lib/chatpro-webhook';
 import { findLeadIdForChatProPhone, loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
@@ -24,7 +25,7 @@ export type PersistChatProMessageResult =
   | {
     ok: true;
     inserted: false;
-    reason: 'duplicate' | 'missing_phone' | 'no_lead_match' | 'not_campaign_lead' | 'roi_journey_frozen';
+    reason: 'duplicate' | 'missing_phone' | 'no_lead_match' | 'not_campaign_lead' | 'roi_journey_frozen' | 'not_message_event';
   };
 
 async function loadLastEvaluationStage(leadId: number) {
@@ -87,11 +88,14 @@ export async function persistChatProMessage(
   event: ChatProInboundEvent,
   rawPayload: unknown,
 ): Promise<PersistChatProMessageResult> {
+  if (!isChatProMessageEvent(event)) {
+    return { ok: true, inserted: false, reason: 'not_message_event' };
+  }
   if (!event.phoneKey) {
     return { ok: true, inserted: false, reason: 'missing_phone' };
   }
 
-  const externalId = event.externalId ?? buildChatProMessageDedupKey(event);
+  const externalId = chatProEventDedupKey(event);
   const existing = await db
     .select({ id: chatproMessagesSchema.id })
     .from(chatproMessagesSchema)

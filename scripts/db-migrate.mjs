@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import pg from 'pg';
-
-const { Client } = pg;
+import { Client } from 'pg';
 
 function normalizeDatabaseUrlForMigration(value) {
   if (!value) {
@@ -34,7 +32,7 @@ if (!databaseUrl) {
   const help = [
     'DATABASE_URL não está configurada (string vazia).',
     '',
-    'O comando `npm run build` executa migrações antes do Next.js e precisa de Postgres.',
+    'O comando `npm run db:migrate` precisa de uma conexão PostgreSQL ativa.',
     '',
     'Vercel (Production):',
     '  1. Vercel → Project → Settings → Environment Variables',
@@ -44,7 +42,7 @@ if (!databaseUrl) {
     '',
     'Local:',
     '  Copie .env.example para .env.local e preencha DATABASE_URL',
-    '  Ou use `npm run dev` (PGlite na porta 5433) e `npm run build:next` sem migrate',
+    '  Ou use `npm run dev` (PGlite na porta 5433) e `npm run build` sem migrate',
     '',
     'Documentação: docs/GO-LIVE-GATE.md e docs/PASSOS-MANUAIS.md',
   ].join('\n');
@@ -87,7 +85,7 @@ const result = spawnSync('npx', ['drizzle-kit', 'migrate'], {
 
 if (result.status !== 0) {
   console.error('');
-  console.error('ERROR: db:migrate falhou antes do build do Next.js.');
+  console.error('ERROR: db:migrate falhou. O build não foi iniciado.');
   console.error('');
   console.error('Se o log acima contém "exceeded the compute time quota", o problema é limite do Neon/Postgres.');
   console.error('Nesse caso, o código não consegue aplicar migrations até o banco ser reativado, pausado/despausado, ou o plano/limite ser ajustado.');

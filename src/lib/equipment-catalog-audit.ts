@@ -33,11 +33,6 @@ export type CatalogAuditReport = {
 
 const KNOWN_SLUG_ALIASES: { slug: string; expectedInName: RegExp; note: string }[] = [
   {
-    slug: 'plataforma-elevatoria-s60',
-    expectedInName: /z-80\/60|z80/i,
-    note: 'Slug legado s60 aponta para Genie Z-80/60',
-  },
-  {
     slug: 'plataforma-elevatoria-s80',
     expectedInName: /s-85|s85/i,
     note: 'Slug legado s80 aponta para Genie S-85 XC E',
@@ -177,8 +172,7 @@ export function auditEquipmentCatalog(props: {
  * Formats audit report for CLI or logs.
  */
 export function formatCatalogAuditReport(report: CatalogAuditReport) {
-  const lines: string[] = [];
-  lines.push(`JSON: ${report.totalJson} itens`);
+  const lines: string[] = [`JSON: ${report.totalJson} itens`];
   if (report.totalDb !== null) {
     lines.push(`Postgres: ${report.totalDb} slugs`);
     lines.push(`Só JSON (painel): ${report.jsonOnlyCount}`);

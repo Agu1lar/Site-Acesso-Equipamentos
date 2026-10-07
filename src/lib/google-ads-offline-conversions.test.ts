@@ -4,6 +4,7 @@ const dbState = {
   rows: [] as Record<string, unknown>[],
   nextId: 1,
   updates: [] as Record<string, unknown>[],
+  duplicateOrderId: null as string | null,
 };
 
 vi.mock('@/libs/DB', () => ({
@@ -13,6 +14,7 @@ vi.mock('@/libs/DB', () => ({
         returning: () => {
           const duplicate = dbState.rows.some((row) => row.orderId === value.orderId);
           if (duplicate) {
+            dbState.duplicateOrderId = String(value.orderId);
             throw new Error('duplicate key value violates unique constraint');
           }
 
@@ -23,10 +25,24 @@ vi.mock('@/libs/DB', () => ({
         },
       }),
     }),
+    select: () => ({
+      from: () => ({
+        where: () => ({
+          limit: () => {
+            const row = dbState.rows.find((item) => item.orderId === dbState.duplicateOrderId);
+            return Promise.resolve(row ? [{ id: row.id, status: row.status }] : []);
+          },
+        }),
+      }),
+    }),
     update: () => ({
       set: (value: Record<string, unknown>) => ({
         where: () => {
           dbState.updates.push(value);
+          const lastRow = dbState.rows.at(-1);
+          if (lastRow) {
+            Object.assign(lastRow, value);
+          }
           return Promise.resolve();
         },
       }),
@@ -49,6 +65,7 @@ function stubGoogleAdsEnv() {
   vi.stubEnv('GOOGLE_ADS_CLIENT_SECRET', 'client-secret');
   vi.stubEnv('GOOGLE_ADS_REFRESH_TOKEN', 'refresh-token');
   vi.stubEnv('GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_ID', '987654321');
+  vi.stubEnv('GOOGLE_ADS_CONFIRMED_CONTACT_CONVERSION_ACTION_ID', '987654323');
   vi.stubEnv('GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_ID', '987654322');
 }
 
@@ -58,6 +75,7 @@ describe('google ads offline conversions', () => {
     dbState.rows = [];
     dbState.updates = [];
     dbState.nextId = 1;
+    dbState.duplicateOrderId = null;
     stubGoogleAdsEnv();
   });
 
@@ -177,6 +195,55 @@ describe('google ads offline conversions', () => {
     });
   });
 
+  it('deduplicates opened WhatsApp and ChatPro reply for the same lead', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ access_token: 'access-token', expires_in: 3600 }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ requestId: 'request-confirmed-contact' }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { uploadGoogleAdsConfirmedContactConversion } =
+      await import('@/lib/google-ads-offline-conversions');
+
+    const opened = await uploadGoogleAdsConfirmedContactConversion({
+      leadId: 91,
+      attribution: { gclid: 'confirmed-gclid' },
+      conversionDate: new Date('2026-10-07T12:00:00.000Z'),
+    });
+    const replied = await uploadGoogleAdsConfirmedContactConversion({
+      leadId: 91,
+      attribution: { gclid: 'confirmed-gclid' },
+      conversionDate: new Date('2026-10-07T12:02:00.000Z'),
+    });
+
+    expect(opened).toEqual({ uploaded: true });
+    expect(replied).toEqual({ uploaded: false, reason: 'duplicate' });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(dbState.rows).toHaveLength(1);
+    expect(dbState.rows[0]).toMatchObject({
+      leadId: 91,
+      orderId: 'confirmed-contact-91',
+    });
+    expect(dbState.rows[0]?.requestPayload).toMatchObject({
+      destinations: [
+        {
+          productDestinationId: '987654323',
+        },
+      ],
+      events: [
+        {
+          transactionId: 'confirmed-contact-91',
+        },
+      ],
+    });
+  });
+
   it('deduplicates by click id order id', async () => {
     const fetchMock = vi
       .fn()
@@ -232,5 +299,45 @@ describe('google ads offline conversions', () => {
       status: 'failed',
       errorMessage: 'CLICK_NOT_FOUND',
     });
+  });
+
+  it('retries a failed upload with the same order id', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ access_token: 'access-token', expires_in: 3600 }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        json: () => Promise.resolve({ error: { message: 'temporary timeout' } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ requestId: 'request-retry' }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { uploadGoogleAdsOfflineClickConversion } =
+      await import('@/lib/google-ads-offline-conversions');
+
+    const first = await uploadGoogleAdsOfflineClickConversion({
+      attribution: { gclid: 'gclid-123' },
+    });
+    const second = await uploadGoogleAdsOfflineClickConversion({
+      attribution: { gclid: 'gclid-123' },
+    });
+
+    expect(first).toEqual({ uploaded: false, reason: 'request_failed' });
+    expect(second).toEqual({ uploaded: true });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(dbState.rows).toHaveLength(1);
+    expect(dbState.updates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ status: 'failed' }),
+        expect.objectContaining({ status: 'pending' }),
+        expect.objectContaining({ status: 'uploaded' }),
+      ]),
+    );
   });
 });

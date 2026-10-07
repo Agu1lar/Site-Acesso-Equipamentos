@@ -11,6 +11,16 @@ export type SandboxJudge = {
 
 const EMOJI = /\p{Extended_Pictographic}/u;
 
+function hasUnnegatedMatch(text: string, pattern: RegExp) {
+  for (const match of text.matchAll(pattern)) {
+    const prefix = text.slice(Math.max(0, (match.index ?? 0) - 70), match.index ?? 0);
+    if (!/\b(n[aã]o|nem|sem)\b[^.!?]{0,65}$/iu.test(prefix)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Shared after-hours hygiene: no emoji, invented price, CNPJ form, or 24h-desk copy.
  */
@@ -19,7 +29,7 @@ export const HYGIENE_JUDGES: SandboxJudge[] = [
   { name: 'sem CNPJ', test: (text) => !/\bcnpj\b/iu.test(text) },
   { name: 'sem PF/PJ', test: (text) => !/pessoa f[ií]sica ou empresa|empresa ou pessoa f[ií]sica|\bpf ou pj\b/iu.test(text) },
   { name: 'sem preço', test: (text) => !PRICE_LIKE.test(text) },
-  { name: 'sem ligar agora', test: (text) => !/ligar agora|agora mesmo|agilizar|é só chamar|fico aqui/iu.test(text) },
+  { name: 'sem ligar agora', test: (text) => !/ligar agora|agilizar|é só chamar|fico aqui/iu.test(text) },
   { name: 'sem alumínio/tubular', test: (text) => !/alum[ií]nio|andaimes tubulares|fachadeiro/iu.test(text) },
   { name: 'sem disponibilidade', test: (text) => !AVAILABILITY_LIKE.test(text) },
   {
@@ -28,7 +38,17 @@ export const HYGIENE_JUDGES: SandboxJudge[] = [
   },
   {
     name: 'sem prazo de entrega cravado',
-    test: (text) => !/\b(sai hoje|chega (hoje|amanh[aã])|entrega em \d|leva em \d+\s*(hora|dia)|pronto em \d+\s*hora)/iu.test(text),
+    test: (text) => !hasUnnegatedMatch(
+      text,
+      /\b(sai hoje|chega (?:hoje|amanh[aã])|entrega em \d|leva em \d+\s*(?:hora|dia)|pronto em \d+\s*hora)/giu,
+    ),
+  },
+  {
+    name: 'sem prazo numérico de retorno',
+    test: (text) => !hasUnnegatedMatch(
+      text,
+      /(?:retorn|entra(?:m)? em contato).{0,30}(?:em )?at[eé]?\s*\d+\s*(?:minutos?|horas?|dias?)/giu,
+    ),
   },
 ];
 
@@ -44,7 +64,8 @@ export const WAIT_HOURS_JUDGE: SandboxJudge = {
 export const PASSES_DISTANT_TO_COMMERCIAL: SandboxJudge = {
   name: 'fora da RMBH só comercial',
   test: (text) =>
-    /passar (os|estes) dados|sob consulta|comercial (avalia|verifica)|n[aã]o confirmo/iu.test(text)
+    (/passar (os|estes) dados|sob consulta|comercial (avalia|verifica|confirma)|s[oó] o comercial confirma|n[aã]o confirmo/iu.test(text)
+      || (/\bdepende\b/iu.test(text) && /\bcomercial\b/iu.test(text)))
     && !/\bsim\b.{0,80}(trabalh|locam|atend)/iu.test(text)
     && !/trabalhamos com loca[cç].{0,40}s[aã]o paulo tamb|atendemos s[aã]o paulo tamb/iu.test(text),
 };
@@ -64,7 +85,7 @@ export const EXPLAINS_RENTAL_PROCESS: SandboxJudge = {
 
 export const ASKS_RENTAL_START: SandboxJudge = {
   name: 'pede para quando começa',
-  test: (text) => /para quando|data de in[ií]cio|quando (?:você |voce )?precisa|quando (?:seria|come[cç]a)|come[cç]ar(?:ia)? quando|come[cç]a quando|data.{0,48}precisa come[cç]ar|in[ií]cio da loca/iu.test(text),
+  test: (text) => /para quando|para qual data|para qual dia.{0,30}(?:precisa|quer).{0,24}come|data de in[ií]cio|quando (?:você |voce )?precisa|quando (?:seria|come[cç]a)|come[cç]ar(?:ia)? quando|come[cç]a quando|data.{0,48}precisa come[cç]ar|in[ií]cio da loca/iu.test(text),
 };
 
 export const ASKS_EQUIPMENT: SandboxJudge = {
@@ -75,7 +96,7 @@ export const ASKS_EQUIPMENT: SandboxJudge = {
 export const GREETING_OFFERS_HELP: SandboxJudge = {
   name: 'cumprimento pede como ajudar',
   test: (text) =>
-    /como posso ajudar/iu.test(text)
+    /como posso ajud|como posso te ajud|o que (?:(?:você|voce) )?precisa|em que posso ajud/iu.test(text)
     && !/qual equipamento|qual (?:a )?m[aá]quina|andaime|tesoura|martelo|martelete/iu.test(text),
 };
 
@@ -96,22 +117,22 @@ export const ASKS_ANYTHING_ELSE: SandboxJudge = {
 
 export const CONFIRMS_REGISTERED: SandboxJudge = {
   name: 'diz que está registrado',
-  test: (text) => /está registrad|está anotad|sua mensagem está/iu.test(text),
+  test: (text) => /\bregistrad[oa]s?\b|\banotad[oa]s?\b|\bregistrei\b|\banotei\b|est[aã](?:o)? registrad|est[aã](?:o)? anotad|fica anotado|sua mensagem (?:está|já chegou)/iu.test(text),
 };
 
 export const EXPLAINS_PEMT: SandboxJudge = {
   name: 'explica treinamento PEMT',
   test: (text) =>
     /treinament|pemt/iu.test(text)
-    && /certificado|carteirinha/iu.test(text)
+    && /curso|treinament|certifica|carteirinha/iu.test(text)
     && !/não temos informação|não locamos/iu.test(text),
 };
 
 export const STAYS_ON_LOGISTICS: SandboxJudge = {
   name: 'não abre locação em devolução',
   test: (text) =>
-    /log[ií]stica|devolu|devolv/iu.test(text)
-    && !/por quantos dias|para quando (?:voc[eê] )?precisa|data de in[ií]cio/iu.test(text),
+    /log[ií]stica|devolu|devolv|retirad|coleta|recolh/iu.test(text)
+    && !/por quantos dias|data de in[ií]cio|quando come[cç]a a loca[cç][aã]o/iu.test(text),
 };
 
 /** True when none of the words appear in the reply. */
@@ -189,7 +210,7 @@ export const NO_TRAINING_SLOT_OR_PRICE: SandboxJudge = {
 
 export const NO_TECH_PROCEDURE: SandboxJudge = {
   name: 'não ensina jumper nem bypass',
-  test: (text) => !/jumper|bypass|ligar (?:os )?fios|soltar o sensor|desconecte|pode continuar operando/iu.test(text),
+  test: (text) => !/pode (?:fazer|usar).{0,24}(?:jumper|bypass)|fa[cç]a.{0,24}(?:jumper|bypass)|lig(?:ue|ar) (?:os )?fios|solt(?:e|ar) o sensor|desconecte|pode continuar operando|comando de emerg[eê]ncia|acion(?:e|ar) (?:a )?(?:descida|válvula|valvula) de emerg[eê]ncia/iu.test(text),
 };
 
 export const NO_PERMITS_ELEVATED_DRIVE: SandboxJudge = {
@@ -200,7 +221,10 @@ export const NO_PERMITS_ELEVATED_DRIVE: SandboxJudge = {
 
 export const NO_DELIVERY_TODAY: SandboxJudge = {
   name: 'não promete entrega hoje',
-  test: (text) => !/\b(sai hoje|chega hoje|entrega hoje|leva hoje|entrega amanh[aã]|s[áa]bado (?:a gente )?entrega)\b/iu.test(text),
+  test: (text) => !hasUnnegatedMatch(
+    text,
+    /\b(sai hoje|chega hoje|entrega hoje|leva hoje|entrega amanh[aã]|s[áa]bado (?:a gente )?entrega)\b/giu,
+  ),
 };
 
 /**

@@ -75,6 +75,34 @@ ALTER TABLE after_hours_notices ADD COLUMN IF NOT EXISTS delivery_alerted_at TIM
 CREATE INDEX IF NOT EXISTS after_hours_notices_unassign_idx
   ON after_hours_notices (status, next_unassign_at);
 
+CREATE TABLE IF NOT EXISTS attendance_agent_states (
+  session_id TEXT PRIMARY KEY REFERENCES sessions (id) ON DELETE CASCADE,
+  state JSONB NOT NULL,
+  last_inbound_message_id TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS attendance_agent_runs (
+  id BIGSERIAL PRIMARY KEY,
+  session_id TEXT REFERENCES sessions (id) ON DELETE SET NULL,
+  inbound_message_id TEXT,
+  model TEXT NOT NULL,
+  escalated_model TEXT,
+  intent TEXT,
+  department TEXT,
+  confidence DOUBLE PRECISION,
+  tool_calls JSONB NOT NULL DEFAULT '[]'::jsonb,
+  input_tokens INTEGER NOT NULL DEFAULT 0,
+  output_tokens INTEGER NOT NULL DEFAULT 0,
+  duration_ms INTEGER NOT NULL DEFAULT 0,
+  outcome TEXT NOT NULL,
+  failure_reason TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS attendance_agent_runs_session_idx
+  ON attendance_agent_runs (session_id, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS playbook_runs (
   id BIGSERIAL PRIMARY KEY,
   started_at TIMESTAMPTZ NOT NULL DEFAULT now(),

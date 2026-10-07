@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-30
+
+### Medição e conversões Google Ads
+
+- Conversão offline de **lead qualificado** documentada como uma ação `UPLOAD_CLICKS`
+  separada da tag de contato e da contingência de clique WhatsApp.
+- Idempotência documentada por `transactionId` estável, com auditoria em
+  `google_ads_offline_conversions` e retry controlado apenas para tentativas que falharam.
+- Health check passou a ser documentado com os sinais de tag client-side, API, clique
+  offline e lead qualificado.
+- Critério de envio esclarecido: só leads de tráfego pago com identificador de clique e
+  passagem confirmada pelo WhatsApp podem gerar conversão qualificada.
+
+### Atribuição e URL canônica
+
+- Redirect permanente `www.acessoequipamentos.com.br` →
+  `acessoequipamentos.com.br`, preservando caminho e parâmetros de atribuição.
+- `.env.example`, README e guias de operação atualizados com a ação unificada de contato
+  (`NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_CONTACT`) e a separação entre tag e Data Manager API.
+
 ## 2026-09-22
 
 ### Documentação do site (refresh geral)
@@ -184,4 +204,4 @@ Instrumentação comercial, reorganização do painel de métricas, geolocaliza�
 
 ## Referência rápida (estado atual do produto)
 
-Para inventário completo de rotas, APIs e pendências de go-live, ver [README.md](README.md) e [ROADMAP.temp.md](ROADMAP.temp.md).
+Para inventário de rotas, APIs e procedimentos de go-live, ver [README.md](README.md) e [docs/GO-LIVE-GATE.md](docs/GO-LIVE-GATE.md).

@@ -3410,35 +3410,35 @@
     "available": true
   },
   {
-    "slug": "plataforma-elevatoria-s60",
-    "name": "Plataforma elevatória Genie Z-80/60",
+    "slug": "plataforma-elevatoria-s80-j",
+    "name": "Plataforma elevatória Genie S-80 J",
     "category": "plataformas-elevatorias",
-    "shortDescription": "Locação de plataforma elevatória articulada Genie Z-80/60 para trabalho em altura.",
-    "longDescription": "A Genie Z-80/60 é lança articulada com altura de trabalho de 25,77 m, alcance horizontal de 18,29 m e capacidade de 227 kg — ideal para contornar obstáculos e posicionamento up-and-over em obras externas. Locação com entrega e retirada na região metropolitana de Belo Horizonte e operações sob consulta em todo o território nacional. Período mínimo, disponibilidade e valores sob consulta com a Acesso Equipamentos.",
+    "shortDescription": "Locação de plataforma elevatória telescópica Genie S-80 J para trabalho em altura.",
+    "longDescription": "A Genie S-80 J é uma lança telescópica com jib, altura de trabalho de 26,51 m, alcance horizontal de 16,69 m e capacidade de 300 kg — indicada para obras externas, manutenção industrial e acesso preciso em altura. Locação com entrega e retirada na região metropolitana de Belo Horizonte e operações sob consulta em todo o território nacional. Período mínimo, disponibilidade e valores sob consulta com a Acesso Equipamentos.",
     "specs": [
       {
         "label": "Modelo",
-        "value": "Genie Z-80/60"
+        "value": "Genie S-80 J"
       },
       {
         "label": "Tipo",
-        "value": "Lança articulada"
+        "value": "Lança telescópica com jib"
       },
       {
         "label": "Altura de trabalho",
-        "value": "25,77 m"
+        "value": "26,51 m"
       },
       {
         "label": "Altura da plataforma",
-        "value": "23,77 m"
+        "value": "24,51 m"
       },
       {
         "label": "Alcance horizontal",
-        "value": "18,29 m"
+        "value": "16,69 m"
       },
       {
         "label": "Capacidade da plataforma",
-        "value": "227 kg"
+        "value": "300 kg"
       },
       {
         "label": "Alimentação",
@@ -3449,7 +3449,7 @@
       "plataforma",
       "genie",
       "altura",
-      "articulada"
+      "telescopica"
     ],
     "featured": true,
     "available": true

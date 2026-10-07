@@ -14,6 +14,11 @@ export type ChatProInboundEvent = {
   messagePreview: string | null;
   eventAt: Date | null;
   externalId: string | null;
+  sessionId: string | null;
+  departmentId: string | null;
+  assigneeId: string | null;
+  deliveryStatus: number | null;
+  deliveryError: string | null;
   media: ChatProMediaInfo;
 };
 
@@ -122,6 +127,29 @@ function readExternalId(record: Record<string, unknown> | null, root: Record<str
   );
 }
 
+function readNumber(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function sessionFields(record: Record<string, unknown> | null, root: Record<string, unknown>) {
+  return {
+    sessionId:
+      readString(record?.session_id)
+      ?? readString(record?.sessionId)
+      ?? readString(root.session_id)
+      ?? readString(root.sessionId),
+    departmentId:
+      readString(record?.department_id)
+      ?? readString(record?.departmentId)
+      ?? readString(root.department_id),
+    assigneeId:
+      readString(record?.assing_to)
+      ?? readString(record?.assigned_to)
+      ?? readString(record?.assignedTo)
+      ?? readString(root.assing_to),
+  };
+}
+
 /** Extracts digits from ChatPro JID (`5511999...@s.whatsapp.net`) or raw phone. */
 export function extractChatProPhone(raw: string | null | undefined) {
   if (!raw?.trim()) {
@@ -162,22 +190,26 @@ export function parseChatProWebhookPayload(payload: unknown): ChatProInboundEven
         ?? parseEventDate(root.event_ts)
         ?? parseEventDate(root.eventTs),
       externalId: readExternalId(messageData, root),
+      ...sessionFields(messageData, root),
+      deliveryStatus: readNumber(messageData?.status),
+      deliveryError: readString(messageData?.error_message) ?? readString(messageData?.error),
       media: readMediaFromRecord(messageData),
     };
   }
 
-  if (event === 'opened_session' || sessionData) {
+  if (['opened_session', 'assigned_session', 'transferred_session'].includes(event) || sessionData) {
     return {
       event: event === 'unknown' ? 'opened_session' : event,
       phoneKey: extractChatProPhone(
-        readString(sessionData?.number)
-          ?? readString(root.number)
-          ?? readString(sessionData?.lead_id),
+        readString(sessionData?.number) ?? readString(root.number),
       ),
       fromMe: true,
       messagePreview: readString(sessionData?.last_message),
       eventAt: parseEventDate(root.event_ts) ?? parseEventDate(sessionData?.open_ts),
-      externalId: readExternalId(sessionData, root),
+      externalId: null,
+      ...sessionFields(sessionData, root),
+      deliveryStatus: null,
+      deliveryError: null,
       media: readMediaFromRecord(sessionData),
     };
   }
@@ -189,6 +221,9 @@ export function parseChatProWebhookPayload(payload: unknown): ChatProInboundEven
     messagePreview: null,
     eventAt: parseEventDate(root.event_ts),
     externalId: readExternalId(null, root),
+    ...sessionFields(root, root),
+    deliveryStatus: readNumber(root.status),
+    deliveryError: readString(root.error_message) ?? readString(root.error),
     media: readMediaFromRecord(root),
   };
 }
@@ -201,10 +236,33 @@ export function isChatProClientReply(event: ChatProInboundEvent) {
   return event.event === 'received_message' || event.event.toLowerCase().includes('received');
 }
 
+/** True only when ChatPro explicitly reports a session assigned to a human user. */
+export function isChatProHumanAssignment(event: ChatProInboundEvent) {
+  return event.event === 'assigned_session' && Boolean(event.assigneeId);
+}
+
+/** True for webhook events that represent actual conversation messages. */
+export function isChatProMessageEvent(event: ChatProInboundEvent) {
+  return event.event === 'received_message' || event.event === 'sent_message';
+}
+
+/** Keeps customer/bot activity out of "contacted" until ChatPro confirms a human assignment. */
+export function leadStatusAfterChatProEvent(currentStatus: string, event: ChatProInboundEvent) {
+  return currentStatus === 'new' && isChatProHumanAssignment(event) ? 'contacted' : currentStatus;
+}
+
 /** Builds a stable dedup key when ChatPro does not send an external id. */
 export function buildChatProMessageDedupKey(event: ChatProInboundEvent) {
   const stamp = event.eventAt?.toISOString() ?? 'unknown';
   const text = event.messagePreview?.slice(0, 80) ?? '';
   const media = event.media.mediaUrl ?? '';
-  return `${event.phoneKey}:${stamp}:${event.fromMe}:${text}:${media}`;
+  return `${event.event}:${event.sessionId ?? ''}:${event.phoneKey}:${stamp}:${event.fromMe}:${text}:${media}:${event.deliveryStatus ?? ''}`;
+}
+
+/** Keeps each sent_message delivery transition while deduplicating repeated webhook deliveries. */
+export function chatProEventDedupKey(event: ChatProInboundEvent) {
+  const base = event.externalId ?? buildChatProMessageDedupKey(event);
+  return event.event === 'sent_message'
+    ? `${base}:status:${event.deliveryStatus ?? 'unknown'}`
+    : base;
 }

@@ -2,7 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { applyChatProReplyToLead } from '@/lib/chatpro-lead-match';
 import { persistChatProMessage } from '@/lib/chatpro-messages';
-import { parseChatProWebhookPayload } from '@/lib/chatpro-webhook';
+import { isChatProClientReply, parseChatProWebhookPayload } from '@/lib/chatpro-webhook';
 import { claimWhatsAppAttributionFromMessage } from '@/lib/whatsapp-attribution-token';
 import { Env } from '@/libs/Env';
 import { logger } from '@/libs/Logger';
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
 
   try {
     let bridgeLeadId: number | null = null;
-    if (event.phoneKey && !event.fromMe) {
+    if (isChatProClientReply(event) && event.phoneKey) {
       bridgeLeadId = await claimWhatsAppAttributionFromMessage(
         event.phoneKey,
         event.messagePreview,

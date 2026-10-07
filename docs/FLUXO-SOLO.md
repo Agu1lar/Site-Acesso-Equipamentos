@@ -1,44 +1,57 @@
-# Fluxo solo (um desenvolvedor)
+# Fluxo solo com proteção de produção
 
-Guia mínimo para commitar sem PR, branch protection leve e Vercel só em **Production**.
+Mesmo com um único desenvolvedor, a `main` deve representar código revisado e pronto para produção. Mudanças entram por pull request para que o CI valide a aplicação e as migrations antes do deploy automático da Vercel.
 
 ## Git no dia a dia
 
 ```bash
 git checkout main
 git pull origin main
+git checkout -b tipo/resumo-curto
 # ... editar arquivos ...
 git add .
 git commit -m "feat: descreva o que mudou em uma frase"
-git push origin main
+git push -u origin tipo/resumo-curto
 ```
 
-Mensagem de commit: `tipo: resumo em minúsculas` — exemplos: `feat:`, `fix:`, `chore:`, `docs:`.
-
-**Não precisa abrir PR** se você é o único no repositório e a `main` aceita push direto.
+Abra um pull request para `main` e aguarde os checks obrigatórios. Use mensagens `tipo: resumo em minúsculas`, por exemplo `feat:`, `fix:`, `chore:` ou `docs:`.
 
 ## O que roda sozinho
 
 | Quando | O quê |
-|--------|--------|
-| **Cada push** (PR ou `main`) | Build 24.x, lint, types, knip, i18n, testes unitários |
-| **Só push na `main`** | Build com migrate, Storybook, E2E |
-| **Vercel** | Deploy de **Production** (variáveis só lá) |
-| **Ignorar** | Check Vercel no PR, Crowdin, Checkly |
+|--------|-------|
+| Pull request e `main` | Build, lint, tipos, dependências, i18n e testes unitários |
+| Pull request e `main` | Migration e build contra PostgreSQL descartável do CI |
+| Push na `main` | Storybook e E2E |
+| Merge na `main` | Deploy de produção na Vercel, sem alterar o banco |
+| Ação manual protegida | Migration no banco de produção |
 
-## Branch protection (recomendado — 3 checks)
+## Branch protection
 
-Em **Settings → Branches → `main`**, marque só:
+Em **Settings -> Branches -> `main`**, configure:
 
-1. `Build with 24.x`
-2. `Run static checks`
-3. `Run unit tests`
+1. Exigir pull request antes do merge.
+2. Exigir que a branch esteja atualizada antes do merge.
+3. Bloquear push direto e force push na `main`.
+4. Exigir os checks `Build with 24.x`, `Validate migration and build`, `Run static checks` e `Run unit tests`.
 
-Opcional: exigir PR — para solo costuma ser mais simples **desligar** “Require pull request” e permitir push direto na `main`.
+Checks de E2E e Storybook podem continuar pós-merge enquanto forem lentos ou dependerem de serviços externos. Eleve-os a obrigatórios quando estiverem estáveis em pull requests.
 
-Não marque: `Build with 22.x`, `Build with db migrate`, `Run E2E tests`, `Run Storybook`, Vercel, Crowdin.
+## Migrations de produção
 
-## Antes do push (opcional, ~1 min)
+`npm run build` compila a aplicação e não altera o banco. O CI executa `npm run build:with-migrate` somente contra um PostgreSQL descartável.
+
+Para aplicar uma migration em produção:
+
+1. Prefira migrations aditivas e compatíveis com a versão atual da aplicação.
+2. Aguarde o CI verde no pull request.
+3. Execute **Actions -> Migrate production database -> Run workflow** na branch revisada.
+4. Digite `MIGRAR PRODUCAO` quando solicitado.
+5. Confirme o sucesso da migration e só então faça o merge.
+
+Configure o ambiente `production` do GitHub com aprovação obrigatória e o secret `DATABASE_URL`. Alterações destrutivas, como remover coluna ou tabela, devem ocorrer em uma implantação posterior, depois que o código deixar de usá-las.
+
+## Antes do push
 
 ```bash
 npm run lint
@@ -46,24 +59,14 @@ npm run check:types
 npm run test
 ```
 
-Só rode `npm run test:e2e` antes de mudanças grandes (formulário, 301, API leads).
+Rode `npm run test:e2e` também para mudanças em formulário, redirects ou API de leads.
 
-## Hooks locais (lefthook)
+## Hooks locais
 
-Se `git commit` ficar lento ou falhar, desative temporariamente:
-
-```bash
-git commit -m "fix: algo" --no-verify
-```
-
-Ou desinstale hooks: `npx lefthook uninstall`
+Os hooks do Lefthook antecipam falhas do CI. Use `--no-verify` somente quando o hook estiver tecnicamente indisponível; o pull request ainda precisará passar pelos checks obrigatórios.
 
 ## Vercel
 
-Variáveis **apenas em Production** — ver [DEPLOY-PREVIEW-VERCEL.md](./DEPLOY-PREVIEW-VERCEL.md#só-production-sem-preview-no-pr).
+A Vercel deve usar `npm run build` tanto em Preview quanto em Production. A conexão de produção com o banco continua disponível em runtime, mas nenhuma migration é executada pelo build.
 
-Preview de PR pode falhar no GitHub; isso não impede deploy em produção.
-
-## Referência completa do CI
-
-[CI.md](./CI.md)
+Detalhes em [DEPLOY-PREVIEW-VERCEL.md](./DEPLOY-PREVIEW-VERCEL.md) e [CI.md](./CI.md).

@@ -10,6 +10,7 @@ export type PlaybookConfig = {
   chatproInstanceToken: string;
   anthropicApiKey: string | null;
   anthropicModel: string;
+  anthropicStrongModel: string;
   obsidianVaultPath: string;
   obsidianCompanyFolder: string;
   obsidianPlaybookFolder: string;
@@ -79,6 +80,7 @@ export function loadPlaybookConfig(): PlaybookConfig {
     chatproInstanceToken: process.env.CHATPRO_INSTANCE_TOKEN?.trim() || '',
     anthropicApiKey: process.env.ANTHROPIC_API_KEY?.trim() || null,
     anthropicModel: process.env.ANTHROPIC_MODEL?.trim() || 'claude-haiku-4-5-20251001',
+    anthropicStrongModel: process.env.ANTHROPIC_STRONG_MODEL?.trim() || 'claude-sonnet-5',
     obsidianVaultPath: process.env.OBSIDIAN_VAULT_PATH?.trim()
       || 'C:\\Users\\User\\Documents\\CofreObsidian\\Aguilar',
     obsidianCompanyFolder: process.env.OBSIDIAN_COMPANY_FOLDER?.trim()

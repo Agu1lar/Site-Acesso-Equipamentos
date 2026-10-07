@@ -11,6 +11,7 @@ import { getOperationalDashboard, probeAnalyticsDashboard } from '@/lib/analytic
 import type { OperationalDashboard } from '@/lib/analytics-admin-types';
 import { parseAnalyticsDashboardFailure } from '@/lib/analytics-dashboard-errors';
 import { parseAnalyticsSection } from '@/lib/analytics-sections';
+import { formatBrasiliaDateRangePt } from '@/lib/app-datetime';
 import { resolveAppLocale } from '@/utils/locale';
 import { logger } from '@/libs/Logger';
 
@@ -82,17 +83,29 @@ async function buildDashboardLabels(
     whatsapp_tracking_hint: t('whatsapp_tracking_hint'),
     schema_pending_hint: t('schema_pending_hint'),
     empty_data: t('empty_data'),
-    delta_vs_custom_period: t('delta_vs_custom_period'),
-    delta_vs_auto_previous: t('delta_vs_auto_previous'),
+    delta_vs_custom_period: t('delta_vs_custom_period', {
+      range: formatBrasiliaDateRangePt(
+        dashboard.comparisonPeriod.dateFrom,
+        dashboard.comparisonPeriod.dateTo,
+      ),
+    }),
+    delta_vs_auto_previous: t('delta_vs_auto_previous', {
+      range: formatBrasiliaDateRangePt(
+        dashboard.comparisonPeriod.dateFrom,
+        dashboard.comparisonPeriod.dateTo,
+      ),
+    }),
     whatsapp_hero_title: t('whatsapp_hero_title'),
-    whatsapp_hero_period: t('whatsapp_hero_period'),
+    whatsapp_hero_period: t('whatsapp_hero_period', {
+      range: formatBrasiliaDateRangePt(dashboard.period.dateFrom, dashboard.period.dateTo),
+    }),
     whatsapp_hero_clicks_label: t('whatsapp_hero_clicks_label', { count: dashboard.whatsappClicks }),
     whatsapp_hero_consent_label: t('whatsapp_hero_consent_label', {
       withConsent: dashboard.whatsappClicksWithConsent,
       total: dashboard.whatsappClicks,
     }),
     whatsapp_hero_empty_hint: t('whatsapp_hero_empty_hint'),
-    whatsapp_hero_rate: t('whatsapp_hero_rate'),
+    whatsapp_hero_rate: t('whatsapp_hero_rate', { rate: '{rate}' }),
     whatsapp_hero_previous_period: t('whatsapp_hero_previous_period', {
       count: dashboard.whatsappClicksPrevious,
     }),
@@ -110,7 +123,7 @@ async function buildDashboardLabels(
     kpi_phone: t('kpi_phone'),
     hint_kpi_phone: t('hint_kpi_phone'),
     kpi_cookie_consent_leads: t('kpi_cookie_consent_leads', { count: dashboard.cookieConsentLeads }),
-    kpi_whatsapp_rate: t('kpi_whatsapp_rate'),
+    kpi_whatsapp_rate: t('kpi_whatsapp_rate', { rate: '{rate}' }),
     chart_conversion_funnel: t('chart_conversion_funnel'),
     hint_chart_conversion_funnel: t('hint_chart_conversion_funnel'),
     chart_lead_reply_funnel: t('chart_lead_reply_funnel'),
@@ -123,9 +136,14 @@ async function buildDashboardLabels(
     funnel_step_leads: t('funnel_step_leads'),
     funnel_step_whatsapp_replied: t('funnel_step_whatsapp_replied'),
     funnel_step_won: t('funnel_step_won'),
-    funnel_rate_from_top: t('funnel_rate_from_top'),
-    funnel_rate_from_previous: t('funnel_rate_from_previous'),
-    quote_abandon_summary: t('quote_abandon_summary'),
+    funnel_rate_from_top: t('funnel_rate_from_top', { rate: '{rate}' }),
+    funnel_rate_from_previous: t('funnel_rate_from_previous', { rate: '{rate}' }),
+    quote_abandon_summary: t('quote_abandon_summary', {
+      add: '{add}',
+      submits: '{submits}',
+      abandons: '{abandons}',
+      rate: '{rate}',
+    }),
     chart_quote_abandon: t('chart_quote_abandon'),
     chart_top_pages: t('chart_top_pages'),
     hint_chart_top_pages: t('hint_chart_top_pages'),
@@ -264,16 +282,18 @@ export default async function AnalyticsAdminPage(props: AnalyticsPageProps) {
   const headerDescription =
     dashboard.comparisonMode === 'custom'
       ? t('period_comparison_summary', {
-          from: dashboard.period.dateFrom,
-          to: dashboard.period.dateTo,
-          compareFrom: dashboard.comparisonPeriod.dateFrom,
-          compareTo: dashboard.comparisonPeriod.dateTo,
+          range: formatBrasiliaDateRangePt(dashboard.period.dateFrom, dashboard.period.dateTo),
+          compareRange: formatBrasiliaDateRangePt(
+            dashboard.comparisonPeriod.dateFrom,
+            dashboard.comparisonPeriod.dateTo,
+          ),
         })
       : t('period_summary_with_auto_compare', {
-          from: dashboard.period.dateFrom,
-          to: dashboard.period.dateTo,
-          compareFrom: dashboard.comparisonPeriod.dateFrom,
-          compareTo: dashboard.comparisonPeriod.dateTo,
+          range: formatBrasiliaDateRangePt(dashboard.period.dateFrom, dashboard.period.dateTo),
+          compareRange: formatBrasiliaDateRangePt(
+            dashboard.comparisonPeriod.dateFrom,
+            dashboard.comparisonPeriod.dateTo,
+          ),
         });
 
   const exportParams = new URLSearchParams();
@@ -290,13 +310,16 @@ export default async function AnalyticsAdminPage(props: AnalyticsPageProps) {
         <AnalyticsSectionNav activeSection={activeSection} labels={labels.sections} />
       </Suspense>
 
-      <AnalyticsPeriodFilters
-        compareDateFrom={searchParams.compareDateFrom ?? dashboard.comparisonPeriod.dateFrom}
-        compareDateTo={searchParams.compareDateTo ?? dashboard.comparisonPeriod.dateTo}
-        dateFrom={searchParams.dateFrom ?? dashboard.period.dateFrom}
-        dateTo={searchParams.dateTo ?? dashboard.period.dateTo}
-        section={activeSection}
-      />
+      <Suspense fallback={<div className="h-48 animate-pulse rounded-xl bg-neutral-100" />}>
+        <AnalyticsPeriodFilters
+          compareDateFrom={searchParams.compareDateFrom}
+          compareDateTo={searchParams.compareDateTo}
+          comparisonMode={dashboard.comparisonMode}
+          dateFrom={searchParams.dateFrom ?? dashboard.period.dateFrom}
+          dateTo={searchParams.dateTo ?? dashboard.period.dateTo}
+          section={activeSection}
+        />
+      </Suspense>
 
       <Suspense fallback={null}>
         <AnalyticsDashboard

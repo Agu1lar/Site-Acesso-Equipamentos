@@ -1,140 +1,100 @@
-# Deploy preview na Vercel (Sprint 8.1)
+# Deploy na Vercel
 
-Guia interno para publicar a landing em `*.vercel.app` **sem domínio customizado**, para validação do cliente.
+Guia para publicar Preview e Production sem executar migrations durante o build.
 
----
+## Ambientes
 
-## Só Production (sem Preview no PR)
+| Ambiente | Uso | Build |
+|----------|-----|-------|
+| Preview | Validar pull requests | `npm run build` |
+| Production | Site oficial após merge em `main` | `npm run build` |
 
-Fluxo usado quando **só você** mexe no projeto e as variáveis ficam **apenas em Production** na Vercel.
-
-| Ambiente | Variáveis | Deploy |
-|----------|-----------|--------|
-| **Production** | Todas (`DATABASE_URL`, `DASHBOARD_SESSION_SECRET`, `NEXT_PUBLIC_APP_URL`, Resend, etc.) | Site real / domínio |
-| **Preview** | Vazio ou mínimo | PR no GitHub pode mostrar **Vercel vermelho** — normal |
-
-**No GitHub:** não use o check **Vercel** como obrigatório no merge. O gate é o workflow **CI** (Build, static, unit).
-
-**Validar mudanças:** deploy em Production na Vercel ou `npm run dev` local com `.env.local`.
-
-Build Command em **Production:** `npm run build` (migrate + Next). Preview opcional: `npm run build:next` se um dia configurar variáveis em Preview.
-
----
+O build apenas compila o Next.js. Migrations são validadas no CI contra PostgreSQL descartável e aplicadas em produção pelo workflow manual protegido do GitHub.
 
 ## Pré-requisitos
 
-- [ ] Conta em [vercel.com](https://vercel.com)
-- [ ] Repositório Git do projeto (GitHub/GitLab/Bitbucket) — **não** usar só o remote do boilerplate ixartz
-- [ ] `DASHBOARD_SESSION_SECRET` (≥ 32 caracteres) — ver [CLERK-ACESSO-ADMIN.md](./CLERK-ACESSO-ADMIN.md)
-- [ ] `DATABASE_URL` PostgreSQL (recomendado: [Neon](https://neon.tech) free tier) — necessário para o build validar env
+- Conta na [Vercel](https://vercel.com).
+- Repositório Git deste projeto.
+- `DASHBOARD_SESSION_SECRET` com pelo menos 32 caracteres.
+- `DATABASE_URL` PostgreSQL para runtime.
+- Demais variáveis validadas por `Env.ts`.
 
----
+## Configuração do projeto
 
-## Opção A — Vercel + Git (recomendado)
-
-1. Crie repositório privado, por exemplo `LandPage-Acesso`, e faça push do projeto.
-2. No Vercel: **Add New Project** → importe o repositório.
-3. **Root Directory:** se o repo tiver pasta pai, aponte para `LandPage-Acesso`.
-4. **Framework Preset:** Next.js (detectado automaticamente).
-
-### Build settings (preview marketing)
+1. Na Vercel, escolha **Add New Project** e importe o repositório.
+2. Se necessário, selecione `LandPage-Acesso` como **Root Directory**.
+3. Use o preset Next.js.
+4. Configure os comandos abaixo.
 
 | Campo | Valor |
-|-------|--------|
-| **Build Command** | `npm run build:next` |
+|-------|-------|
+| **Build Command** | `npm run build` |
 | **Install Command** | `npm install` |
-| **Output Directory** | _(padrão Next.js)_ |
+| **Output Directory** | Padrão do Next.js |
 
-> Usamos `build:next` no preview para não exigir migration no CI. O formulário de leads (Sprint 5) voltará a usar `npm run build` com `db:migrate` em produção.
+## Variáveis
 
-### Variáveis de ambiente (Vercel → Settings → Environment Variables)
+Cadastre cada variável somente nos ambientes que realmente a utilizam. Preview deve usar credenciais isoladas sempre que a funcionalidade fizer escrita.
 
-Copie de `.env.local` / Neon. Mínimo para build:
+| Variável | Preview | Production |
+|----------|---------|------------|
+| `DASHBOARD_SESSION_SECRET` | Valor próprio | Valor próprio |
+| `DATABASE_URL` | Banco isolado | Banco de produção |
+| `NEXT_PUBLIC_APP_URL` | URL do preview | Domínio oficial |
+| `NEXT_PUBLIC_SENTRY_DISABLED` | `true`, opcional | Conforme monitoramento |
 
-| Variável | Preview | Produção |
-|----------|---------|----------|
-| `DASHBOARD_SESSION_SECRET` | ✓ (≥ 32 chars) | ✓ |
-| `DATABASE_URL` | ✓ (Neon) | ✓ |
-| `NEXT_PUBLIC_APP_URL` | `https://SEU-PROJETO.vercel.app` | domínio oficial |
-| `NEXT_PUBLIC_SENTRY_DISABLED` | `true` | opcional |
+Variáveis como `RESEND_API_KEY`, `LEADS_NOTIFY_EMAIL` e `RESEND_FROM_EMAIL` devem usar destinos de teste no Preview para evitar notificações reais.
 
-Opcional (desativar ruído no preview):
+## Migration de produção
 
-```
-NEXT_PUBLIC_SENTRY_DISABLED=true
-```
+1. Abra um pull request e aguarde todos os checks obrigatórios.
+2. Confirme que a migration é compatível com a versão atualmente publicada.
+3. Em **Actions**, execute **Migrate production database** na branch revisada.
+4. Informe `MIGRAR PRODUCAO`.
+5. Após o sucesso, faça merge para iniciar o deploy da Vercel.
 
-5. **Deploy** → aguarde build verde.
-6. Copie a URL `https://….vercel.app` e cole em `docs/PREVIEW-VALIDACAO.md` (campo do link).
-7. Valide com o checklist em [PREVIEW-VALIDACAO.md](./PREVIEW-VALIDACAO.md) e registre o sign-off.
+O ambiente `production` do GitHub deve exigir aprovação e armazenar `DATABASE_URL`. Não cadastre a URL de produção como secret comum do workflow principal.
 
----
-
-## Opção B — Vercel CLI (rápido, local)
-
-Na pasta `LandPage-Acesso`:
+## Vercel CLI
 
 ```bash
 npm install
 npx vercel login
 npx vercel link
 npx vercel env pull .env.vercel.preview
-# Configure as variáveis no dashboard se faltar
-npx vercel --prod=false
+npx vercel
 ```
 
-A CLI imprime a URL de preview. Para produção futura: `npx vercel --prod` (Sprint 10).
+Para produção, prefira o merge protegido em `main`. `npx vercel --prod` deve ficar restrito a recuperação operacional documentada.
 
----
+## Verificação
 
-## Verificação pós-deploy
+Antes do push:
 
 ```bash
-# Local (antes de subir)
-npm run build:next
+npm run build
 npm run check:types
+npm run test
 ```
 
-No preview, testar manualmente:
+No Preview, valide pelo menos:
 
-- [ ] `/` home
-- [ ] `/equipamentos`
-- [ ] `/equipamentos/plataforma-elevatoria-hb-1430`
-- [ ] `/categorias/equipamentos-aereos`
-- [ ] `/faq`
-- [ ] WhatsApp abre com mensagem contextual
-
----
+- `/`
+- `/equipamentos`
+- uma página de equipamento
+- uma página de categoria
+- `/faq`
+- formulário de orçamento
+- abertura do WhatsApp com contexto correto
 
 ## Problemas comuns
 
-| Erro | Solução |
-|------|---------|
-| **Build Error: Invalid environment variables** | No Vercel → **Settings → Environment Variables**, marque **Production** e **Preview** e adicione as 4 obrigatórias abaixo. Redeploy depois. |
-| Build falha em `Env.ts` | Mesmo caso: faltam `DASHBOARD_SESSION_SECRET` ou `DATABASE_URL` no painel (não basta só no `.env.local`) |
-| `db:migrate` falha no build padrão | Trocar Build Command para `npm run build:next` |
-| Página 404 em rotas | Confirmar `pt-BR` na URL: `/pt-BR` ou redirect do next-intl |
-| Login do painel | `/sign-in` com senha; marketing não depende de login |
+| Erro | Tratativa |
+|------|-----------|
+| Variáveis inválidas | Verifique os ambientes marcados em **Settings -> Environment Variables** |
+| Falha em `Env.ts` | Cadastre as variáveis obrigatórias no ambiente do deploy |
+| Migration falha | Corrija no pull request; não mova `db:migrate` para o build |
+| Escrita de Preview em produção | Use banco e credenciais isolados para Preview |
+| Rota retorna 404 | Confira a estratégia de locale e redirects |
 
-### Checklist obrigatório no Vercel (copiar do `.env.local`)
-
-| Variável | Production | Preview |
-|----------|:------------:|:-------:|
-| `DASHBOARD_SESSION_SECRET` | ✓ | ✓ |
-| `DATABASE_URL` | ✓ (Neon) | ✓ |
-| `NEXT_PUBLIC_APP_URL` | URL do domínio ou `https://landing-page-acesso.vercel.app` | URL do preview |
-| `NEXT_PUBLIC_SENTRY_DISABLED` | `true` (opcional) | `true` |
-
-**Resend (e-mail de lead):** só depois do build passar — `RESEND_API_KEY`, `LEADS_NOTIFY_EMAIL`, `RESEND_FROM_EMAIL`.
-
-> `DATABASE_URL` use `sslmode=require` no final (não `sslmode=req`).
-
----
-
-## Após aprovação do cliente
-
-1. Registrar aprovação (e-mail/WhatsApp) — Sprint 8.4.
-2. Sprint 9: fotos e ajustes de copy.
-3. Sprint 10: domínio, `npm run build` completo, Neon produção, Search Console.
-
-Ver [ROADMAP.temp.md](../ROADMAP.temp.md) §14.2 e §14.3.
+O checklist funcional completo está em [PREVIEW-VALIDACAO.md](./PREVIEW-VALIDACAO.md).

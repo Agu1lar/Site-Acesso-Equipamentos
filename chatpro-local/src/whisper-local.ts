@@ -5,13 +5,15 @@ import { join } from 'node:path';
 import {
   downloadChatProAudioBuffer,
   resolveChatProAudioFilename,
-  type ChatProAudioTranscriptionInput,
 } from '../../src/lib/chatpro-audio-transcription.ts';
-import type { ChatProAudioTranscriber } from '../../src/lib/chatpro-roi-ai-core.ts';
+import type {
+  ChatProAudioTranscriber,
+  ChatProAudioTranscriptionInput,
+} from '../../src/lib/chatpro-roi-ai-core.ts';
 import type { LocalConfig } from './config.js';
 
 type TransformersPipeline = (
-  input: string,
+  input: Float32Array,
   options?: Record<string, unknown>,
 ) => Promise<{ text?: string; chunks?: Array<{ text?: string }> }>;
 
@@ -45,9 +47,10 @@ async function writeTempAudioFile(
 async function loadTransformersPipeline(model: string) {
   if (!transformersPipelinePromise) {
     console.info('[chatpro-local] loading local Whisper model (first run may download files)', { model });
-    transformersPipelinePromise = import('@huggingface/transformers').then(({ pipeline }) =>
-      pipeline('automatic-speech-recognition', model),
-    );
+    transformersPipelinePromise = import('@huggingface/transformers').then(async ({ pipeline }) => {
+      const loaded: unknown = await pipeline('automatic-speech-recognition', model);
+      return loaded as TransformersPipeline;
+    });
   }
   return transformersPipelinePromise;
 }
@@ -69,9 +72,8 @@ async function decodeAudioToFloat32(audioPath: string, samplingRate = 16_000) {
     child.stdout.on('data', (chunk: Buffer) => {
       chunks.push(chunk);
     });
-    child.stderr.on('data', () => {
-      // ffmpeg progress logs go to stderr
-    });
+    // Drain ffmpeg progress logs so the child process cannot block on stderr.
+    child.stderr.resume();
     child.on('error', reject);
     child.on('close', (code) => {
       if (code !== 0) {
@@ -174,10 +176,11 @@ export function createLocalAudioTranscriber(config: LocalConfig): ChatProAudioTr
     return null;
   }
 
-  if (config.localWhisperMode === 'cli') {
-    if (!config.whisperCliPath || !config.whisperModelPath) {
-      throw new Error('local_whisper_cli_not_configured');
-    }
+  if (
+    config.localWhisperMode === 'cli'
+    && (!config.whisperCliPath || !config.whisperModelPath)
+  ) {
+    throw new Error('local_whisper_cli_not_configured');
   }
 
   return async (input: ChatProAudioTranscriptionInput) => {

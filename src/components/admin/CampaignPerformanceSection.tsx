@@ -1,5 +1,6 @@
 import { Link } from '@/libs/I18nNavigation';
 import { percentChange } from '@/lib/analytics-percent';
+import { formatBrasiliaDatePt } from '@/lib/app-datetime';
 import { buildLeadsFilterQuery } from '@/lib/leads-filter-query';
 import type { CampaignDailyLeadsRow, CampaignPerformanceRow } from '@/lib/campaign-analytics';
 import type { LeadStatus } from '@/lib/lead-status';
@@ -214,7 +215,7 @@ export function CampaignPerformanceSection(props: CampaignPerformanceSectionProp
                     className="border-b border-neutral-100 last:border-0"
                     key={`${row.date}-${row.campaignKey}`}
                   >
-                    <td className="py-2.5 pr-4 tabular-nums text-neutral-700">{row.date}</td>
+                    <td className="py-2.5 pr-4 tabular-nums text-neutral-700">{formatBrasiliaDatePt(row.date)}</td>
                     <td className="py-2.5 pr-4 font-medium text-neutral-900">{row.campaignLabel}</td>
                     <td className="py-2.5 tabular-nums text-neutral-700">{row.totalLeads}</td>
                   </tr>

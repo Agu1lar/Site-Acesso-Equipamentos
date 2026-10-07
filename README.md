@@ -23,7 +23,7 @@ npm run dev
 
 Abra **http://localhost:3000**
 
-Migrações: aplicadas no `npm run dev` ou com `npm run db:migrate` se usar Neon.
+Migrações locais: aplicadas no `npm run dev` ou explicitamente com `npm run db:migrate`.
 
 ### Painel admin (opcional)
 
@@ -36,7 +36,9 @@ Migrações: aplicadas no `npm run dev` ou com `npm run db:migrate` se usar Neon
 | Comando | Uso |
 |---------|-----|
 | `npm run dev` | PGlite + Next.js |
-| `npm run build` | Migrações + build produção |
+| `npm run build` | Build sem alterar banco de dados |
+| `npm run build:with-migrate` | Migração + build em ambiente descartável/local |
+| `npm run db:migrate` | Aplica migrations explicitamente |
 | `npm run check:types` | TypeScript |
 | `npm run lint` | Lint |
 | `npm run test` | Vitest |
@@ -63,9 +65,12 @@ Workers locais (opcionais): **`chatpro-local/`** (ROI Claude no Neon) · **`chat
 
 ### Rastreamento e campanhas
 - **Atribuição paga:** origem Google Ads/GA4 (`gclid` / `gbraid` / `wbraid`, UTM), clique no WhatsApp, abertura do WhatsApp no envio do orçamento.
+- **Conversões Ads sem duplicidade:** uma ação client-side de contato por sessão (`WhatsApp`, orçamento ou telefone) e duas ações offline distintas para clique no WhatsApp e lead qualificado. Os uploads offline têm `transactionId` estável, auditoria no banco e retry de falhas.
+- **Qualificação comercial:** no detalhe do lead, a equipe marca `A avaliar`, `Qualificado` ou `Não qualificado`. Só um lead de tráfego pago com passagem confirmada pelo WhatsApp e identificador de clique pode virar conversão offline qualificada.
 - **Conversões otimizadas:** hash SHA-256 de e-mail/telefone (orçamento, One Tap, telefone opcional) no `user_data` da tag Ads — melhora atribuição no iOS. Guia: [docs/GOOGLE-ADS-GA4.md](docs/GOOGLE-ADS-GA4.md).
 - **Ponte clique → lead:** código `Cód. AB12CD34` no prefill do `wa.me` liga visitante de campanha ao lead mesmo sem formulário (`whatsapp_attribution_tokens`).
 - **Resposta real:** webhook **ChatPro** marca `whatsapp_replied_at` no CRM. Status `contacted` só avança quando um **humano** assume a sessão no ChatPro (`assigned_session`), não na primeira mensagem do cliente.
+- **URL canônica:** requisições a `www.acessoequipamentos.com.br` recebem redirect permanente (`308`) para `acessoequipamentos.com.br`, preservando caminho e parâmetros de atribuição, como `gclid` e UTM.
 
 ### ChatPro ROI (leads de campanha)
 Pipeline **fora do painel** — só leads com atribuição paga (`gclid`/`gbraid`/`wbraid` ou `utm_medium` cpc/ppc/paid):
@@ -92,18 +97,21 @@ Guia: **[docs/CHATPRO-PLAYBOOK.md](docs/CHATPRO-PLAYBOOK.md)** · ops: **[chatpr
 - Leads (semana + consulta), **clientes** (CRM-lite), métricas (`/dashboard/analytics` — 6 seções; campanhas UTM em **Tráfego**), ChatPro ROI, CRUD equipamentos (**Vercel Blob**), CMS de dicas (TipTap + gerador IA).
 - **Acesso:** e-mail allowlist + senha + sessão + papel (`admin` / `comercial`) + rate limit. Login funciona de **qualquer rede** (sem gate por IP). Guia: [docs/CLERK-ACESSO-ADMIN.md](docs/CLERK-ACESSO-ADMIN.md).
 
-Histórico: **[CHANGELOG.md](CHANGELOG.md)** · planejamento: **[ROADMAP.temp.md](ROADMAP.temp.md)**
+Histórico: **[CHANGELOG.md](CHANGELOG.md)**
 
 ---
 
 ## Publicar (Vercel)
 
-- Branch **main** → deploy automático.
-- Build: `npm run build` (roda `db:migrate` antes do Next — ver `vercel.json`).
+- Pull request aprovado e merge na **main** → deploy automático.
+- Build Vercel: `npm run build` apenas compila; migrations de produção usam workflow manual protegido.
 
 ```shell
-git push origin main
+git checkout -b tipo/resumo-curto
+git push -u origin tipo/resumo-curto
 ```
+
+Abra um pull request e aguarde os checks obrigatórios. O fluxo completo está em [docs/FLUXO-SOLO.md](docs/FLUXO-SOLO.md).
 
 Variáveis obrigatórias em **Production:** `DATABASE_URL`, `DASHBOARD_SESSION_SECRET`, `NEXT_PUBLIC_APP_URL`, Blob Public (`BLOB_STORE_ID`, `BLOB_ACCESS=public`). Go-live: **[docs/GO-LIVE-GATE.md](docs/GO-LIVE-GATE.md)**
 

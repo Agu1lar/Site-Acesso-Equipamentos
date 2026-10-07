@@ -20,7 +20,7 @@ describe('featured equipment slugs', () => {
     expect(FEATURED_EQUIPMENT_SLUGS).toEqual([
       'franna-fr17',
       'plataforma-elevatoria-s80',
-      'plataforma-elevatoria-s60',
+      'plataforma-elevatoria-s80-j',
       'plataforma-elevatoria-gs4655',
       'plataforma-elevatoria-1350sjp',
       'manipulador-telescopico-mxt840',

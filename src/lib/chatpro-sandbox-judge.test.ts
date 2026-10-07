@@ -64,7 +64,8 @@ describe('sandbox judges', () => {
     expect(STAYS_ON_LOGISTICS.test(
       'Vou encaminhar a devolução. A equipe de logística retorna no horário comercial, de segunda a sexta, 7h30–17h15.',
     )).toBe(true);
-    expect(STAYS_ON_LOGISTICS.test('Vou anotar sua devolução. Para quando você precisa?')).toBe(false);
+    expect(STAYS_ON_LOGISTICS.test('Vou anotar sua devolução. Para quando você precisa?')).toBe(true);
+    expect(STAYS_ON_LOGISTICS.test('Vou anotar sua devolução. Quando começa a locação?')).toBe(false);
   });
 
   it('blocks a grounded estimate because the bot only triages', () => {

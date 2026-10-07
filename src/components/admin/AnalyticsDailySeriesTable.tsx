@@ -1,4 +1,5 @@
 import type { DailyConversionRow } from '@/lib/analytics-executive-types';
+import { formatBrasiliaDatePt } from '@/lib/app-datetime';
 
 type AnalyticsDailySeriesTableProps = {
   rows: DailyConversionRow[];
@@ -8,15 +9,6 @@ type AnalyticsDailySeriesTableProps = {
   colWhatsapp: string;
   colLeads: string;
 };
-
-function formatDateBr(date: string) {
-  const [year, month, day] = date.split('-');
-  if (!year || !month || !day) {
-    return date;
-  }
-
-  return `${day}/${month}/${year}`;
-}
 
 /**
  * Tabular daily conversion series for the executive section.
@@ -41,7 +33,7 @@ export function AnalyticsDailySeriesTable(props: AnalyticsDailySeriesTableProps)
           {props.rows.map((row) => (
             <tr className="hover:bg-neutral-50/80" key={row.date}>
               <td className="px-3 py-2 whitespace-nowrap font-medium text-neutral-900">
-                {formatDateBr(row.date)}
+                {formatBrasiliaDatePt(row.date)}
               </td>
               <td className="px-3 py-2 tabular-nums text-neutral-700">{row.pageViews}</td>
               <td className="px-3 py-2 tabular-nums text-neutral-700">{row.whatsappClicks}</td>

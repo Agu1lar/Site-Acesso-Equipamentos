@@ -86,7 +86,7 @@ async function fetchLeadCountsByClientIds(clientIds: number[]) {
   }
 
   for (const row of rows) {
-    if (row.clientId == null) {
+    if (row.clientId === null || row.clientId === undefined) {
       continue;
     }
     empty.set(row.clientId, {

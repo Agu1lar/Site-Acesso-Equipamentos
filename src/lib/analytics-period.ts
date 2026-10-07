@@ -2,21 +2,31 @@ import {
   brasiliaDayEndUtc,
   brasiliaDayStartUtc,
   formatBrasiliaDateOnly,
+  isValidBrasiliaDateOnly,
 } from '@/lib/app-datetime';
+
+function orderedDateRange(dateFrom: string, dateTo: string) {
+  return dateFrom <= dateTo
+    ? { dateFrom, dateTo }
+    : { dateFrom: dateTo, dateTo: dateFrom };
+}
 
 /**
  * Resolves inclusive date range from filter strings or defaults to current month (day 1 → today, Brasília).
  */
 export function resolveAnalyticsPeriod(filters: { dateFrom?: string; dateTo?: string }) {
   const defaultRange = currentMonthToDateRange();
-  const dateFrom = filters.dateFrom?.trim() || defaultRange.dateFrom;
-  const dateTo = filters.dateTo?.trim() || defaultRange.dateTo;
+  const requestedFrom = filters.dateFrom?.trim() || '';
+  const requestedTo = filters.dateTo?.trim() || '';
+  const range = orderedDateRange(
+    isValidBrasiliaDateOnly(requestedFrom) ? requestedFrom : defaultRange.dateFrom,
+    isValidBrasiliaDateOnly(requestedTo) ? requestedTo : defaultRange.dateTo,
+  );
 
   return {
-    dateFrom,
-    dateTo,
-    from: brasiliaDayStartUtc(dateFrom),
-    to: brasiliaDayEndUtc(dateTo),
+    ...range,
+    from: brasiliaDayStartUtc(range.dateFrom),
+    to: brasiliaDayEndUtc(range.dateTo),
   };
 }
 
@@ -38,16 +48,26 @@ export function resolveComparisonPeriod(
   const compareFrom = filters.compareDateFrom?.trim();
   const compareTo = filters.compareDateTo?.trim();
 
-  if (compareFrom && compareTo) {
+  if (compareFrom && compareTo
+    && isValidBrasiliaDateOnly(compareFrom)
+    && isValidBrasiliaDateOnly(compareTo)) {
+    const range = orderedDateRange(compareFrom, compareTo);
+    if (range.dateFrom === period.dateFrom && range.dateTo === period.dateTo) {
+      return automaticComparisonPeriod(period);
+    }
+
     return {
       comparisonMode: 'custom',
-      dateFrom: compareFrom,
-      dateTo: compareTo,
-      from: brasiliaDayStartUtc(compareFrom),
-      to: brasiliaDayEndUtc(compareTo),
+      ...range,
+      from: brasiliaDayStartUtc(range.dateFrom),
+      to: brasiliaDayEndUtc(range.dateTo),
     };
   }
 
+  return automaticComparisonPeriod(period);
+}
+
+function automaticComparisonPeriod(period: { dateFrom: string; dateTo: string }): ComparisonPeriod {
   const auto = previousPeriodRange(period.dateFrom, period.dateTo);
   return {
     comparisonMode: 'auto',
@@ -56,6 +76,15 @@ export function resolveComparisonPeriod(
     from: auto.from,
     to: auto.to,
   };
+}
+
+/**
+ * Returns the inclusive number of calendar days in a valid range.
+ */
+export function analyticsPeriodDayCount(dateFrom: string, dateTo: string) {
+  const from = brasiliaDayStartUtc(dateFrom);
+  const to = brasiliaDayStartUtc(dateTo);
+  return Math.floor((to.getTime() - from.getTime()) / 86_400_000) + 1;
 }
 
 /**

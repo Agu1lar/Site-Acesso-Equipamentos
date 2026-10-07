@@ -45,6 +45,54 @@ GOOGLE_ADS_OFFLINE_CONVERSION_ACTION_RESOURCE_NAME=customers/1234567890/conversi
 
 O status aparece em `/api/health` como `googleAdsOfflineConversionConfigured`.
 
+### Contato confirmado automaticamente
+
+Uma ação offline separada consolida os dois sinais de que o contato avançou: WhatsApp aberto
+após o orçamento ou primeira mensagem recebida no ChatPro. Configure:
+
+```env
+GOOGLE_ADS_CONFIRMED_CONTACT_CONVERSION_ACTION_ID=123456791
+```
+
+Os dois caminhos usam `confirmed-contact-{id-do-lead}`. Portanto, se o WhatsApp abrir e o
+cliente também responder, o Google Ads recebe apenas uma conversão nessa ação. Considerar a
+abertura cobre o caso raro em que a pessoa chama por outro número e não pode ser associada pelo
+ChatPro. O envio exige `gclid`, `gbraid` ou `wbraid`, então tráfego orgânico não é importado.
+
+### Lead qualificado pelo comercial
+
+O detalhe do lead no painel permite marcar **A avaliar**, **Qualificado** ou **Não qualificado**. Ao salvar **Qualificado**, o backend envia automaticamente uma conversão offline com o `gclid`, `gbraid` ou `wbraid` original. Essa conversão usa outra ação `UPLOAD_CLICKS`, separada do clique no WhatsApp:
+
+```env
+GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_ID=123456790
+```
+
+ou:
+
+```env
+GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_RESOURCE_NAME=customers/1234567890/conversionActions/123456790
+```
+
+Cada lead usa um `orderId` estável e só é importado uma vez. Leads sem identificador de clique continuam qualificados no painel, mas não são enviados ao Google Ads. O status de configuração aparece em `/api/health` como `googleAdsQualifiedLeadConversionConfigured`.
+
+O envio exige também uma passagem confirmada pelo WhatsApp: o navegador abriu o WhatsApp
+ou o ChatPro registrou uma resposta do cliente. Isso evita importar como qualificado um
+cadastro pago que não virou conversa. Caso o envio falhe, salvar o mesmo lead como
+**Qualificado** novamente faz retry com o mesmo identificador, sem criar uma conversão
+duplicada.
+
+### Como as três conversões se relacionam
+
+| Ação | Origem | Quando ocorre | Uso recomendado |
+|------|--------|---------------|-----------------|
+| Contato do site | Tag do Google Ads no navegador | Primeiro CTA de WhatsApp, orçamento ou telefone na sessão | Primária enquanto a base de leads qualificados ainda é pequena |
+| Clique WhatsApp offline | Data Manager API | Clique atribuído com `gclid` / `gbraid` / `wbraid` | Auditoria e contingência para perda da tag client-side; ação separada |
+| Contato confirmado offline | Data Manager API | WhatsApp aberto ou primeira resposta no ChatPro | Secundária durante a validação; um registro por lead |
+| Lead qualificado offline | Data Manager API | Comercial marca o lead pago como qualificado após passagem pelo WhatsApp | Secundária inicialmente; promover a primária só com volume e consistência |
+
+Essas ações não são duplicatas técnicas: cada uma tem uma ação de conversão e um
+`transactionId` próprios. Não configure duas delas como a mesma ação no Google Ads.
+
 ### Webhook ChatPro
 
 O site expõe:
@@ -195,6 +243,9 @@ O sinal de conversa real (`whatsapp_replied_at`) hoje é registrado no banco e n
 1. Google Ads → **Configurações da conta** → **Configurações da conta**
 2. **Tag automática** = **Ativada**
 3. URLs finais devem ser do domínio `acessoequipamentos.com.br` (corrigir campanha Display que aponta para `fornecedoresdaindustria.com.br` — ver `src/data/google-ads-landing-urls.json`)
+4. Mantenha `acessoequipamentos.com.br` como URL final. O site redireciona o subdomínio
+   `www` com `308`, preservando parâmetros de campanha, mas a URL canônica evita uma etapa
+   adicional e facilita o diagnóstico de cobertura da tag.
 
 ---
 
@@ -252,6 +303,10 @@ Clicar no WhatsApp sem disparar evento = **0 conversões** no painel, mesmo com 
 - `src/lib/ads-contact-conversion.ts` — conversão única Ads + upgrade com PII
 - `src/components/marketing/AttributionCapture.tsx` e `src/lib/attribution.ts` — origem, UTMs e IDs Google (`gclid`/`gbraid`/`wbraid`)
 - `src/lib/track-whatsapp-click.ts` — Neon + PostHog + GA4 + Ads
+- `src/lib/google-ads-offline-conversions.ts` — Data Manager API, idempotência e retry
+- `src/app/api/admin/leads/[id]/qualification/route.ts` — qualificação comercial e upload
+  da conversão offline de lead qualificado
+- `src/lib/canonical-site-url.ts` e `src/proxy.ts` — redirect canônico `www` → raiz
 - `src/app/api/webhooks/chatpro/route.ts` — webhook ChatPro
 - `src/lib/chatpro-webhook.ts` — parser de eventos ChatPro
 - `src/lib/chatpro-lead-match.ts` — match por telefone e marcação de `whatsapp_replied_at`

@@ -1,5 +1,5 @@
 import createMiddleware from 'next-intl/middleware';
-import type { NextFetchEvent, NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import {
   isAdminOnlyDashboardPath,
@@ -7,6 +7,7 @@ import {
   requireDashboardAccessFromRequest,
 } from '@/lib/auth-roles';
 import { resolveLegacyRedirect } from '@/lib/legacy-redirects';
+import { canonicalSiteUrl } from '@/lib/canonical-site-url';
 import { getBlogSlugRedirectTarget } from '@/lib/blog-slug-redirects';
 import { getEquipmentSlugRedirectTarget } from '@/lib/equipment-slug-redirects';
 import { routing } from './libs/I18nRouting';
@@ -42,7 +43,12 @@ function equipmentSlugFromPath(pathname: string) {
   return match?.[1] ?? null;
 }
 
-export default async function proxy(request: NextRequest, _event: NextFetchEvent) {
+export default async function proxy(request: NextRequest) {
+  const canonicalUrl = canonicalSiteUrl(request.url);
+  if (canonicalUrl) {
+    return NextResponse.redirect(canonicalUrl, 308);
+  }
+
   const legacyDestination = resolveLegacyRedirect(request.nextUrl.pathname);
   if (legacyDestination) {
     return NextResponse.redirect(new URL(legacyDestination, request.url), 301);

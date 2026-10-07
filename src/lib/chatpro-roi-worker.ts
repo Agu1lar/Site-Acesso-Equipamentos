@@ -281,37 +281,83 @@ export async function listRecentChatProRoiEvaluations(leadIds?: number[], limit?
 }
 
 /**
- * Leads with campaign attribution that have new ChatPro messages since last evaluation.
+ * Returns only the newest ROI evaluation for each requested lead.
+ * @param leadIds Lead ids included in the result.
+ * @returns Latest evaluation rows joined with their leads.
  */
-export async function countPendingChatProRoiEvaluations() {
-  const candidateIds = await findCandidateLeadIds({ limit: 200 });
-  let pending = 0;
-
-  for (const leadId of candidateIds) {
-    const lead = await loadCampaignLeadSnapshot(leadId);
-    if (!lead || !leadHasCampaignAttribution(lead)) {
-      continue;
-    }
-
-    const messages = await loadLeadMessages(leadId);
-    const lastEval = await loadLastEvaluation(leadId);
-    const lastMessageId = messages.at(-1)?.id ?? null;
-    const hasNewMessages =
-      !lastEval
-      || messages.length > lastEval.messageCount
-      || (lastMessageId !== null && lastMessageId !== lastEval.lastMessageId);
-
-    const lastEvalStage = lastEval
-      ? (() => {
-          const parsed = ChatProRoiEvaluationSchema.safeParse(lastEval.result);
-          return parsed.success ? parsed.data.stage : null;
-        })()
-      : null;
-
-    if (shouldEvaluateLeadForRoi(lead, messages.length, hasNewMessages, {}, lastEvalStage)) {
-      pending += 1;
-    }
+export async function listLatestChatProRoiEvaluations(leadIds: number[]) {
+  if (leadIds.length === 0) {
+    return [];
   }
 
-  return pending;
+  return db
+    .selectDistinctOn([chatproLeadEvaluationsSchema.leadId], {
+      id: chatproLeadEvaluationsSchema.id,
+      leadId: chatproLeadEvaluationsSchema.leadId,
+      evaluatedAt: chatproLeadEvaluationsSchema.evaluatedAt,
+      messageCount: chatproLeadEvaluationsSchema.messageCount,
+      model: chatproLeadEvaluationsSchema.model,
+      trigger: chatproLeadEvaluationsSchema.trigger,
+      result: chatproLeadEvaluationsSchema.result,
+      leadName: leadsSchema.name,
+      leadStatus: leadsSchema.status,
+      utmCampaign: leadsSchema.utmCampaign,
+      gclid: leadsSchema.gclid,
+    })
+    .from(chatproLeadEvaluationsSchema)
+    .innerJoin(leadsSchema, eq(chatproLeadEvaluationsSchema.leadId, leadsSchema.id))
+    .where(inArray(chatproLeadEvaluationsSchema.leadId, leadIds))
+    .orderBy(
+      chatproLeadEvaluationsSchema.leadId,
+      desc(chatproLeadEvaluationsSchema.evaluatedAt),
+      desc(chatproLeadEvaluationsSchema.id),
+    );
+}
+
+/**
+ * Leads with campaign attribution that have new ChatPro messages since last evaluation.
+ * @returns Number of leads waiting for a new evaluation.
+ */
+export async function countPendingChatProRoiEvaluations() {
+  const result = await db.execute(sql`
+    WITH message_state AS (
+      SELECT
+        lead_id,
+        count(*)::integer AS message_count,
+        max(id)::integer AS last_message_id
+      FROM chatpro_messages
+      WHERE lead_id IS NOT NULL
+      GROUP BY lead_id
+    ),
+    latest_evaluation AS (
+      SELECT DISTINCT ON (lead_id)
+        lead_id,
+        last_message_id,
+        result->>'stage' AS stage
+      FROM chatpro_lead_evaluations
+      ORDER BY lead_id, evaluated_at DESC, id DESC
+    )
+    SELECT count(*)::integer AS value
+    FROM leads AS lead
+    INNER JOIN message_state AS messages ON messages.lead_id = lead.id
+    LEFT JOIN latest_evaluation AS evaluation ON evaluation.lead_id = lead.id
+    WHERE lead.lead_kind <> 'cookie_consent'
+      AND (
+        lead.gclid IS NOT NULL
+        OR lead.gbraid IS NOT NULL
+        OR lead.wbraid IS NOT NULL
+        OR lower(coalesce(lead.utm_medium, '')) IN ('cpc', 'ppc', 'paid')
+      )
+      AND coalesce(evaluation.stage, '') NOT IN ('closed_won', 'closed_lost')
+      AND (
+        evaluation.lead_id IS NULL
+        OR messages.last_message_id IS DISTINCT FROM evaluation.last_message_id
+      )
+  `);
+
+  const [row] = result.rows;
+  if (!row || typeof row !== 'object' || !('value' in row)) {
+    return 0;
+  }
+  return Number(row.value);
 }

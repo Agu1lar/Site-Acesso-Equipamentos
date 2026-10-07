@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Pool } from 'pg';
+import { attendanceAgentStateSchema } from './attendance-state.js';
+import type { AttendanceAgentState } from './attendance-state.js';
 import { type BotOutboundKind, matchBotOutbound } from './bot-origin.js';
 
 /** Opens a Postgres pool for the local playbook database. */
@@ -188,6 +190,77 @@ export async function insertBotOutbound(options: {
       options.windowId,
       options.inboundMessageId,
       options.chatproMessageId,
+    ],
+  );
+}
+
+/** Loads compact structured facts from the previous bot turn in a session. */
+export async function readAttendanceAgentState(options: {
+  pool: Pool;
+  sessionId: string;
+}) {
+  const result = await options.pool.query<{ state: unknown }>(
+    `SELECT state FROM attendance_agent_states WHERE session_id = $1`,
+    [options.sessionId],
+  );
+  const parsed = attendanceAgentStateSchema.safeParse(result.rows[0]?.state);
+  return parsed.success ? parsed.data : null;
+}
+
+/** Persists validated session facts after the matching response was accepted for sending. */
+export async function upsertAttendanceAgentState(options: {
+  pool: Pool;
+  sessionId: string;
+  state: AttendanceAgentState;
+}) {
+  await options.pool.query(
+    `INSERT INTO attendance_agent_states
+       (session_id, state, last_inbound_message_id, updated_at)
+     VALUES ($1, $2::jsonb, $3, now())
+     ON CONFLICT (session_id) DO UPDATE SET
+       state = EXCLUDED.state,
+       last_inbound_message_id = EXCLUDED.last_inbound_message_id,
+       updated_at = now()`,
+    [options.sessionId, JSON.stringify(options.state), options.state.lastInboundMessageId],
+  );
+}
+
+/** Stores a compact agent trace without saving API keys or full customer messages. */
+export async function insertAttendanceAgentRun(options: {
+  pool: Pool;
+  sessionId: string | null;
+  inboundMessageId: string | null;
+  model: string;
+  escalatedModel: string | null;
+  intent: string | null;
+  department: string | null;
+  confidence: number | null;
+  toolCalls: string[];
+  inputTokens: number;
+  outputTokens: number;
+  durationMs: number;
+  outcome: string;
+  failureReason: string | null;
+}) {
+  await options.pool.query(
+    `INSERT INTO attendance_agent_runs
+       (session_id, inbound_message_id, model, escalated_model, intent, department,
+        confidence, tool_calls, input_tokens, output_tokens, duration_ms, outcome, failure_reason)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12, $13)`,
+    [
+      options.sessionId,
+      options.inboundMessageId,
+      options.model,
+      options.escalatedModel,
+      options.intent,
+      options.department,
+      options.confidence,
+      JSON.stringify(options.toolCalls),
+      options.inputTokens,
+      options.outputTokens,
+      options.durationMs,
+      options.outcome,
+      options.failureReason,
     ],
   );
 }

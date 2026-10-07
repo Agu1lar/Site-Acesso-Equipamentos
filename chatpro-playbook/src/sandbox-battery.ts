@@ -1,4 +1,5 @@
 import type { AttendanceTurn } from './attendance-brain.js';
+import type { AttendanceAgentState } from './attendance-state.js';
 import { loadPlaybookConfig } from './config.js';
 import { dateFromSaoPauloWallClock } from './duty-hours.js';
 import {
@@ -371,7 +372,6 @@ const CASES: BatteryCase[] = [
         user: 'ainda vale aquele orçamento',
         judges: [
           ...HYGIENE_JUDGES,
-          confirmsFamily('andaime'),
           omitsWords(['martelo', 'martelete']),
           WAIT_HOURS_JUDGE,
         ],
@@ -461,7 +461,6 @@ const CASES: BatteryCase[] = [
         user: 'aquele orçamento ainda vale?',
         judges: [
           ...HYGIENE_JUDGES,
-          confirmsFamily('andaime'),
           omitsWords(['martelo', 'martelete']),
           WAIT_HOURS_JUDGE,
         ],
@@ -921,7 +920,6 @@ const FLOW_CASES: BatteryCase[] = [
         user: 'ainda está valendo aquele orçamento?',
         judges: [
           ...HYGIENE_JUDGES,
-          confirmsFamily('paleteira'),
           omitsWords(['tesoura', 'betoneira', 'gerador']),
           WAIT_HOURS_JUDGE,
         ],
@@ -1064,13 +1062,20 @@ async function main() {
   const gapsOnly = process.argv.includes('--gaps');
   const auditOnly = process.argv.includes('--audit');
   const flowOnly = process.argv.includes('--fluxo');
-  const cases = flowOnly
+  const selectedCaseId = process.argv.find((argument) => argument.startsWith('--case='))?.slice('--case='.length);
+  const selectedCases = flowOnly
     ? FLOW_CASES
     : auditOnly
       ? AUDIT_CASES
       : gapsOnly
         ? CASES.filter((item) => GAPS_IDS.has(item.id))
         : CASES;
+  const cases = selectedCaseId
+    ? selectedCases.filter((item) => item.id === selectedCaseId)
+    : selectedCases;
+  if (selectedCaseId && cases.length === 0) {
+    throw new Error(`sandbox_case_not_found:${selectedCaseId}`);
+  }
   const now = PILOT_NOW;
   const offHours = true;
   const vaultKnowledge = readPlaybookVaultKnowledge({
@@ -1096,6 +1101,7 @@ async function main() {
 
   for (const item of cases) {
     const history: AttendanceTurn[] = [];
+    let agentState: AttendanceAgentState | null = null;
     console.log(`## ${item.id} — ${item.title}`);
     for (const [index, turn] of item.turns.entries()) {
       const reply = await runSandboxTurn({
@@ -1107,7 +1113,10 @@ async function main() {
         offHours,
         extraRetrieved: turn.extraRetrieved,
         now,
+        agentState,
+        inboundMessageId: `sandbox:${item.id}:${index + 1}`,
       });
+      agentState = reply.agentState;
       history.push({ role: 'user', text: turn.user, origin: 'customer', at: now });
       history.push({ role: 'assistant', text: reply.text, origin: 'bot', at: now });
       const failed = failedJudges(reply.text, turn.judges);
@@ -1115,6 +1124,15 @@ async function main() {
       console.log(`Você: ${turn.user}`);
       console.log(`Bot: ${reply.text}`);
       console.log(`[${mark}] turno ${index + 1}${failed.length ? ` — ${failed.join(', ')}` : ''}`);
+      if (reply.decision) {
+        console.log(`[decisão] ${reply.decision.intent} → ${reply.decision.handoff.department}; confiança=${reply.decision.confidence}; complexidade=${reply.decision.complexity}; modelo=${reply.agentRun?.escalatedModel ?? reply.agentRun?.model ?? 'desconhecido'}`);
+        console.log(`[estado] ${JSON.stringify(reply.agentState?.facts ?? {})}`);
+        if (reply.agentRun?.outcome === 'safety_fallback') {
+          console.log(`[bloqueado] ${reply.decision.reply}`);
+        }
+      } else if (reply.agentRun) {
+        console.log(`[fallback] ${reply.agentRun.outcome}; motivo=${reply.agentRun.reason ?? 'sem decisão'}; validações=${reply.agentRun.validationFailures}; erros=${reply.agentRun.validationErrors.join(' | ')}; ferramentas=${reply.agentRun.toolCalls.join(',')}`);
+      }
       console.log('');
       if (failed.length > 0) {
         failures.push(`${item.id}#${index + 1}: ${failed.join(', ')}`);

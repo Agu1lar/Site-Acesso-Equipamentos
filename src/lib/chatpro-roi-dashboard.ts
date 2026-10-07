@@ -9,6 +9,7 @@ import {
 } from '@/lib/chatpro-roi-group';
 import {
   countPendingChatProRoiEvaluations,
+  listLatestChatProRoiEvaluations,
   listRecentChatProRoiEvaluations,
 } from '@/lib/chatpro-roi-worker';
 import {
@@ -126,9 +127,7 @@ export async function getChatProRoiDashboardSummary(options?: {
     const totalLeadGroups = Number(leadTotalRows[0]?.value ?? 0);
     const totalPages = Math.max(1, Math.ceil(totalLeadGroups / leadLimit));
     const pageLeadIds = leadPageRows.map((row) => row.leadId);
-    const evaluationRows = pageLeadIds.length > 0
-      ? await listRecentChatProRoiEvaluations(pageLeadIds)
-      : [];
+    const evaluationRows = await listLatestChatProRoiEvaluations(pageLeadIds);
     const evaluations = evaluationRows.map(mapEvaluationRow);
     const leadGroups = groupChatProRoiEvaluationsByLead(evaluations, leadLimit);
     const closedWonSignals = leadGroups.filter(

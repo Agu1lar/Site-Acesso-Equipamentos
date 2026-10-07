@@ -316,6 +316,20 @@
       "when": 1790683200000,
       "tag": "0048_lead_qualification",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1791295200000,
+      "tag": "0049_correct_genie_s80_j",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1791357600000,
+      "tag": "0050_chatpro_retention",
+      "breakpoints": true
     }
   ]
 }

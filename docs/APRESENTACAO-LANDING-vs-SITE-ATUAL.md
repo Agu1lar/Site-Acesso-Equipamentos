@@ -102,4 +102,4 @@ O site oficial continua como vitrine no domínio principal. A nova landing é um
 
 ---
 
-*Documento gerado a partir do projeto LandPage-Acesso. Detalhes técnicos em ROADMAP.temp.md.*
+*Documento gerado a partir do projeto LandPage-Acesso. Detalhes técnicos no README e na documentação de go-live.*

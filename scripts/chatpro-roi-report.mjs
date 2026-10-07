@@ -46,9 +46,15 @@ if (remote) {
 
   const url = new URL('/api/internal/v1/chatpro-roi/report', apiUrl.replace(/\/$/, ''));
   url.searchParams.set('campaignPrefix', campaignPrefix);
-  if (fromArg) url.searchParams.set('from', fromArg.split('=')[1]);
-  if (toArg) url.searchParams.set('to', toArg.split('=')[1]);
-  if (useGoogleAdsSpend) url.searchParams.set('useGoogleAdsSpend', 'true');
+  if (fromArg) {
+    url.searchParams.set('from', fromArg.split('=')[1]);
+  }
+  if (toArg) {
+    url.searchParams.set('to', toArg.split('=')[1]);
+  }
+  if (useGoogleAdsSpend) {
+    url.searchParams.set('useGoogleAdsSpend', 'true');
+  }
   if (Object.keys(spendMap).length > 0) {
     url.searchParams.set('spendJson', encodeURIComponent(JSON.stringify(spendMap)));
   }
@@ -76,8 +82,12 @@ const {
 } = await import('../src/lib/chatpro-roi-report.ts');
 
 const searchParams = new URLSearchParams({ campaignPrefix });
-if (fromArg) searchParams.set('from', fromArg.split('=')[1]);
-if (toArg) searchParams.set('to', toArg.split('=')[1]);
+if (fromArg) {
+  searchParams.set('from', fromArg.split('=')[1]);
+}
+if (toArg) {
+  searchParams.set('to', toArg.split('=')[1]);
+}
 
 const { parseAdsQualityFilters } = await import('../src/lib/ads-quality-api.ts');
 const parsed = parseAdsQualityFilters(searchParams);

@@ -85,14 +85,15 @@ async function repairChatProOutboxSchema() {
   }
 }
 
-function ensureChatProOutboxSchema() {
-  outboxSchemaReady ??= repairChatProOutboxSchema().catch((error: unknown) => {
+async function ensureChatProOutboxSchema() {
+  outboxSchemaReady ??= repairChatProOutboxSchema();
+  try {
+    await outboxSchemaReady;
+  } catch (error) {
     // Allow the next request to retry after a transient pooler/DDL failure.
     outboxSchemaReady = null;
     throw error;
-  });
-
-  return outboxSchemaReady;
+  }
 }
 
 /** Extracts rows from the node-postgres result shape returned by Drizzle execute. */

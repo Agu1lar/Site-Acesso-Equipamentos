@@ -31,6 +31,8 @@ export function EquipmentEditToolbar(props: EquipmentEditToolbarProps) {
       <form
         action={props.archiveAction}
         onSubmit={(event) => {
+          // Native confirmation intentionally protects this destructive action.
+          // eslint-disable-next-line no-alert
           if (!window.confirm(tPage('archive_confirm'))) {
             event.preventDefault();
           }

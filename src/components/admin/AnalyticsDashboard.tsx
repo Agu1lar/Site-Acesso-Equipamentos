@@ -178,14 +178,7 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
   };
   const dataTypes = t.data_types;
 
-  const deltaLabel =
-    d.comparisonMode === 'custom'
-      ? t.delta_vs_custom_period
-          .replace('{from}', d.comparisonPeriod.dateFrom)
-          .replace('{to}', d.comparisonPeriod.dateTo)
-      : t.delta_vs_auto_previous
-          .replace('{from}', d.comparisonPeriod.dateFrom)
-          .replace('{to}', d.comparisonPeriod.dateTo);
+  const deltaLabel = d.comparisonMode === 'custom' ? t.delta_vs_custom_period : t.delta_vs_auto_previous;
 
   const visitsDelta = percentChange(d.pageViews, d.pageViewsPrevious);
   const whatsappDelta = percentChange(d.whatsappClicks, d.whatsappClicksPrevious);
@@ -228,9 +221,7 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
             helpLabel={t.meaning_toggle}
             helpText={t.hint_kpi_whatsapp}
             pageViews={d.pageViews}
-            periodLabel={t.whatsapp_hero_period
-              .replace('{from}', d.period.dateFrom)
-              .replace('{to}', d.period.dateTo)}
+            periodLabel={t.whatsapp_hero_period}
             previousPeriodLabel={t.whatsapp_hero_previous_period}
             rateLabel={
               d.pageViews > 0
@@ -249,9 +240,7 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
             paid={d.whatsappTraffic.paid}
             paidLabel={t.traffic_channel_paid}
             title={t.traffic_channel_title}
-            weekLabel={t.whatsapp_hero_period
-              .replace('{from}', d.period.dateFrom)
-              .replace('{to}', d.period.dateTo)}
+            weekLabel={t.whatsapp_hero_period}
           />
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -472,9 +461,7 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
             paid={d.whatsappTraffic.paid}
             paidLabel={t.traffic_channel_paid}
             title={t.traffic_channel_title}
-            weekLabel={t.whatsapp_hero_period
-              .replace('{from}', d.period.dateFrom)
-              .replace('{to}', d.period.dateTo)}
+            weekLabel={t.whatsapp_hero_period}
           />
 
           <CampaignPerformanceSection

@@ -37,8 +37,7 @@ describe('audit equipment catalog', () => {
     const text = formatCatalogAuditReport(report);
     expect(text).toContain(`JSON: ${catalog.length} itens`);
     if (report.issues.length > 0) {
-      // eslint-disable-next-line no-console -- intentional audit output in test run
-      console.log('\n' + text);
+      console.log(`\n${text}`);
     }
   });
 });

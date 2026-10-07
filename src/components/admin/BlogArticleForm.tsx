@@ -365,6 +365,8 @@ export function BlogArticleForm(props: BlogArticleFormProps) {
             label={t('unpublish')}
             name="intent"
             onClick={(event) => {
+              // Native confirmation intentionally protects this destructive action.
+              // eslint-disable-next-line no-alert
               if (!window.confirm(t('unpublish_confirm'))) {
                 event.preventDefault();
               }

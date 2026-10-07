@@ -23,6 +23,8 @@ export class AnalyticsErrorBoundary extends Component<
     return { hasError: true };
   }
 
+  // React requires this lifecycle hook to be an instance method.
+  // eslint-disable-next-line class-methods-use-this
   override componentDidCatch(error: Error, info: ErrorInfo) {
     console.debug('Analytics bundle error:', error.message, info.componentStack);
   }

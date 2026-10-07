@@ -13,6 +13,7 @@
 # testing
 /coverage
 /vitest-test-results
+/.vitest-attachments/
 
 # next.js
 /.next/
@@ -97,6 +98,7 @@ build-archive.log
 # Tutorial local (nunca commitar — uso pessoal/equipe offline)
 TUTORIAL-SISTEMA.local.md
 *.local.md
+/ROADMAP.temp.md
 
 # Fotos brutas antes do sync (ver docs/scripts/sync-equipment-photos.py)
 public/equipamentos/_incoming/

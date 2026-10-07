@@ -53,9 +53,13 @@ O domínio `acessoequipamentos.com.br` está registrado no **Registro.br**, mas 
 
 Guia completo com diagrama e checklist: [GO-LIVE-GATE.md](./GO-LIVE-GATE.md)
 
-### 2.3 Redirecionar www → raiz (ou o contrário)
+### 2.3 Redirecionar `www` → raiz
 
-Na Vercel, defina qual é o **primary domain** e ative redirect do alternativo.
+Na Vercel, defina `acessoequipamentos.com.br` como **primary domain** e mantenha
+`www.acessoequipamentos.com.br` associado ao projeto. Além do redirect configurado na
+Vercel, o site emite redirect permanente (`308`) do `www` para o domínio raiz,
+preservando caminho, `gclid`, `gbraid`, `wbraid` e UTMs. Isso evita que uma visita de
+campanha caia em uma versão sem a mesma medição.
 
 ### 2.4 Atualizar `NEXT_PUBLIC_APP_URL`
 
@@ -228,4 +232,3 @@ O código já limita pool Postgres (`max: 5` por instância) e rate limit de lea
 2. Resend → Emails (volume e bounces).
 3. GSC → Páginas com 404 (URLs WP faltando no JSON).
 4. `GET /api/health` em produção.
-

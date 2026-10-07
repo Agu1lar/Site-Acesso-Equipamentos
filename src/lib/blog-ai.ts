@@ -521,7 +521,7 @@ export async function generateBlogDraftWithClaude(
     return buildGeneratedBlogDraft(parsed, images);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new Error('invalid_draft');
+      throw new TypeError('invalid_draft', { cause: error });
     }
     throw error;
   }

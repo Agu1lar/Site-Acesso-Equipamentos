@@ -276,4 +276,4 @@ Foram analisados **5 concorrentes** com presença digital relevante em BH/MG. Ne
 
 ---
 
-_Próximo passo: implementar melhorias mapeadas no [ROADMAP.temp.md](../ROADMAP.temp.md) (Sprints 3–8); domínio/hospedagem ficam no **Sprint 10**, após aprovação da landing._
+_Próximo passo: implementar as melhorias priorizadas; domínio e hospedagem entram após a aprovação da landing._

@@ -30,17 +30,17 @@ describe.skipIf(!hasDatabase)('analytics dashboard load', () => {
   });
 
   it('loads full dashboard without throwing', async () => {
-    let error: unknown;
+    let loadError: unknown;
     let dashboard;
 
     try {
       dashboard = await getOperationalDashboard();
-    } catch (caught) {
-      error = caught;
+    } catch (error) {
+      loadError = error;
     }
 
-    if (error) {
-      const failure = parseAnalyticsDashboardFailure(error);
+    if (loadError) {
+      const failure = parseAnalyticsDashboardFailure(loadError);
       throw new Error(
         `Dashboard failed${failure.stepId ? ` at ${failure.stepId}` : ''}: ${failure.message}${
           failure.cause ? ` | ${failure.cause}` : ''

@@ -3,7 +3,7 @@
  * Upserts the IA / safety blog article into Neon (published).
  * Usage: dotenv -c -- npx tsx scripts/seed-blog-ia-article.mjs
  */
-import pg from 'pg';
+import { Client } from 'pg';
 
 const databaseUrl = process.env.DATABASE_URL?.trim();
 if (!databaseUrl) {
@@ -16,7 +16,7 @@ const { BLOG_IA_PREVER_ACIDENTES, BLOG_IA_PREVER_ACIDENTES_READING_MINUTES } = a
 );
 
 const article = BLOG_IA_PREVER_ACIDENTES;
-const client = new pg.Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
+const client = new Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
 
 await client.connect();
 

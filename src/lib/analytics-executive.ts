@@ -1,9 +1,8 @@
 import 'server-only';
 
 import { and, count, desc, eq, gte, lte, sql } from 'drizzle-orm';
-import { CATEGORY_LABELS } from '@/types/equipment';
 import type { EquipmentCategory } from '@/types/equipment';
-import { isEquipmentCategory } from '@/types/equipment';
+import { CATEGORY_LABELS, isEquipmentCategory } from '@/types/equipment';
 import type { DailyConversionRow, ExecutiveSummary } from '@/lib/analytics-executive-types';
 import { db } from '@/libs/DB';
 import { analyticsEventsSchema, leadsSchema, pageEngagementEventsSchema } from '@/models/Schema';

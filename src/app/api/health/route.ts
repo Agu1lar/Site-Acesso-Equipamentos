@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { brand } from '@/lib/brand';
 import {
+  isGoogleAdsConfirmedContactConversionConfigured,
   isGoogleAdsOfflineConversionConfigured,
   isGoogleAdsQualifiedLeadConversionConfigured,
 } from '@/lib/google-ads-offline-conversions';
@@ -112,6 +113,8 @@ export async function GET() {
     chatproWebhookPath: 'POST /api/webhooks/chatpro?token=…',
     googleAdsApiConfigured: isGoogleAdsApiConfigured(),
     googleAdsOfflineConversionConfigured: isGoogleAdsOfflineConversionConfigured(),
+    googleAdsConfirmedContactConversionConfigured:
+      isGoogleAdsConfirmedContactConversionConfigured(),
     googleAdsQualifiedLeadConversionConfigured: isGoogleAdsQualifiedLeadConversionConfigured(),
     googleAdsRoiDoc: 'docs/GOOGLE-ADS-ROI-API.md',
     leadTracking: {

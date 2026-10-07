@@ -311,6 +311,15 @@ function sumCampaignMetrics(rows: ChatProRoiCampaignMetrics[]): ChatProRoiCampai
   return finalizeCampaignMetrics(totals);
 }
 
+const EMPTY_SPEND_META: ChatProRoiReport['spendMeta'] = {
+  googleAdsCurrency: null,
+  googleAdsCampaignsMatched: null,
+};
+const EMPTY_SPEND_PARTS: { manual: CampaignSpendMap; googleAds: CampaignSpendMap } = {
+  manual: {},
+  googleAds: {},
+};
+
 /**
  * Builds ROI report crossing CRM leads, Claude evaluations and optional Ads spend.
  * @param filters Same filters as ads-quality (campaignPrefix required).
@@ -320,14 +329,8 @@ function sumCampaignMetrics(rows: ChatProRoiCampaignMetrics[]): ChatProRoiCampai
 export async function buildChatProRoiReport(
   filters: AdsQualityFilters,
   spendByCampaign: CampaignSpendMap = {},
-  spendMeta: ChatProRoiReport['spendMeta'] = {
-    googleAdsCurrency: null,
-    googleAdsCampaignsMatched: null,
-  },
-  spendParts: { manual: CampaignSpendMap; googleAds: CampaignSpendMap } = {
-    manual: {},
-    googleAds: {},
-  },
+  spendMeta: ChatProRoiReport['spendMeta'] = EMPTY_SPEND_META,
+  spendParts: { manual: CampaignSpendMap; googleAds: CampaignSpendMap } = EMPTY_SPEND_PARTS,
 ): Promise<ChatProRoiReport> {
   const leadRows = await db
     .select({

@@ -14,14 +14,17 @@ import type { PlaybookConfig } from './config.js';
 import {
   findAfterHoursNotice,
   findUnresolvedAfterHoursNotice,
+  insertAttendanceAgentRun,
   insertBotOutbound,
   listPendingAfterHoursHandoffs,
   listKnownAfterHoursSessionIds,
   listThreadsForAfterHours,
   listUnconfirmedAfterHoursDeliveries,
   markAfterHoursNoticeAlerted,
+  readAttendanceAgentState,
   updateAfterHoursQueueHandoff,
   updateAfterHoursDelivery,
+  upsertAttendanceAgentState,
   upsertAfterHoursNotice,
 } from './db.js';
 import type { MessageRow } from './db.js';
@@ -493,6 +496,10 @@ export async function runAfterHoursTick(options: {
         at: message.at,
       }));
       const previousAssistant = history.findLast((turn) => turn.role === 'assistant')?.text ?? null;
+      const storedAgentState = await readAttendanceAgentState({
+        pool: options.pool,
+        sessionId: thread.session.id,
+      });
       const generated = options.config.anthropicApiKey && inbound?.role === 'user'
         ? await runSandboxTurn({
             config: options.config,
@@ -503,6 +510,8 @@ export async function runAfterHoursTick(options: {
             offHours: true,
             live: true,
             now,
+            agentState: storedAgentState,
+            inboundMessageId: decision.inboundMessageId,
             contactContext: findContactNoteByPhone({
               vaultPath: options.config.obsidianVaultPath,
               folders: allTeamFolders(options.config.obsidianCompanyFolder),
@@ -527,6 +536,38 @@ export async function runAfterHoursTick(options: {
         provider: decision.provider,
       });
       messageWasSent = true;
+      try {
+        if (generated?.agentState) {
+          await upsertAttendanceAgentState({
+            pool: options.pool,
+            sessionId: thread.session.id,
+            state: generated.agentState,
+          });
+        }
+        if (generated?.agentRun) {
+          await insertAttendanceAgentRun({
+            pool: options.pool,
+            sessionId: thread.session.id,
+            inboundMessageId: decision.inboundMessageId,
+            model: generated.agentRun.model,
+            escalatedModel: generated.agentRun.escalatedModel,
+            intent: generated.decision?.intent ?? null,
+            department: generated.decision?.handoff.department ?? null,
+            confidence: generated.decision?.confidence ?? null,
+            toolCalls: generated.agentRun.toolCalls,
+            inputTokens: generated.agentRun.inputTokens,
+            outputTokens: generated.agentRun.outputTokens,
+            durationMs: generated.agentRun.durationMs,
+            outcome: generated.agentRun.outcome,
+            failureReason: generated.agentRun.reason,
+          });
+        }
+      } catch (stateError) {
+        console.warn('[after-hours] resposta enviada, mas estado do agente não foi persistido', {
+          sessionId: thread.session.id,
+          reason: stateError instanceof Error ? stateError.message : String(stateError),
+        });
+      }
       await upsertAfterHoursNotice({
         pool: options.pool,
         sessionId: thread.session.id,

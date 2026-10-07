@@ -164,7 +164,10 @@ export default async function ChatProRoiAdminPage(props: ChatProRoiPageProps) {
                 className={page === summary.page
                   ? 'rounded-lg border border-primary bg-primary px-3 py-1.5 text-white'
                   : 'rounded-lg border border-neutral-200 px-3 py-1.5 hover:bg-background-muted'}
-                href={`/dashboard/chatpro-roi?page=${page}`}
+                href={{
+                  pathname: '/dashboard/chatpro-roi',
+                  query: { page },
+                }}
                 key={page}
               >
                 {page}

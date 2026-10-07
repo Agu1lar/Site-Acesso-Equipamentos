@@ -20,13 +20,19 @@ import {
   ensureAttendanceIdentity,
   isAttendanceIdentityAsk,
 } from './attendance-identity.js';
-import { formatFleetRecommendation, loadFleetCatalog, recommendFleetEquipment } from './fleet-catalog.js';
+import { runAttendanceAgent } from './attendance-agent.js';
+import type { AttendanceDecision, AttendanceKnowledgeSearch } from './attendance-agent.js';
+import { formatAttendanceAgentState } from './attendance-state.js';
+import type { AttendanceAgentState } from './attendance-state.js';
+import { loadFleetCatalog } from './fleet-catalog.js';
 
 export const HOURS_CLOSE =
   'O comercial retorna no horário útil, segunda a sexta, 7h30–17h15.';
 
+const SAFE_FALLBACK_BODY = 'Recebemos. Fora do expediente não passo valor nem frete.';
+
 export const SANDBOX_SAFE_FALLBACK =
-  `Recebemos. Fora do expediente não passo valor nem frete.\n\n${HOURS_CLOSE}`;
+  `${SAFE_FALLBACK_BODY}\n\n${HOURS_CLOSE}`;
 
 export const OFF_HOURS_WAIT =
   `Sua mensagem já chegou. Fora desse horário o telefone não é atendido.\n\n${HOURS_CLOSE}`;
@@ -39,18 +45,20 @@ export const PRICE_LIKE =
 const FREIGHT_LIKE =
   /frete.{0,40}(?:r\$|\d[\d.]{2,}\s*reais)|entrega.{0,30}r\$|mobiliza.{0,24}(?:r\$|\d[\d.]{2,}\s*reais)/iu;
 export const AVAILABILITY_LIKE =
-  /\b(est[áa] dispon[ií]vel|temos dispon|temos disponibilidade|h[aá] disponibilidade|em estoque|\bestoque\b|unidades? livres?|sa(?:i|em) hoje|pronto para retirar|temos plataformas?|temos tesouras?)\b/iu;
+  /\b(est[áa] dispon[ií]vel|modelos? dispon[ií]ve(?:l|is)|temos dispon|temos disponibilidade|h[aá] disponibilidade|em estoque|\bestoque\b|unidades? livres?|sa(?:i|em) hoje|pronto para retirar|temos plataformas?|temos tesouras?)\b/iu;
 const IMPLICIT_STOCK =
-  /\btemos\s+(?:a|o|as|os|um|uma)\s+(?:gs|sj|hb|pep|plataforma|tesoura|betoneira|andaime|manipulador|manitou|mxt|franna)|\btemos\s+(?:plataformas?|tesouras?|manipulador|manitou|mxt|franna|gerador|paleteira|martelete|compactador|compressor)|\btemos de \d/iu;
+  /\btemos\s+(?:a|o|as|os|um|uma)\s+(?:modelos?|gs|sj|hb|pep|plataforma|tesoura|betoneira|andaime|manipulador|manitou|mxt|franna|gerador|paleteira|martelete|martelo|compactador|compressor|furadeira|esmerilhadeira|serra|bomba|guincho)|\btemos\s+(?:modelos?|plataformas?|tesouras?|manipulador|manitou|mxt|franna|gerador|paleteira|martelete|compactador|compressor)|\btemos de \d|\bconseguir (?:o |um )?equipamento\b.{0,30}\bn[aã]o [ée] problema\b/iu;
 const CALL_NOW_LIKE =
-  /agilizar|agora mesmo|ligar agora|chamar agora|pode ligar(?! no horário)|liga pra|cham(?:e|a) (?:no )?whats/iu;
+  /agilizar|ligar agora|chamar agora|pode ligar(?! no horário)|liga pra|cham(?:e|a) (?:no )?whats/iu;
 const EMOJI_LIKE = /\p{Extended_Pictographic}/gu;
 const DESK_ALWAYS_OPEN =
   /é só chamar|\bfico aqui\b|\bfico no aguardo\b|\bqualquer d[uú]vida\b|\bacelera(?:r)?\b|\bpode deixar os dados\b/iu;
 const VALUES_PROMISE =
   /proposta com valores|proposta com frete|proposta (?:é|ser[aá]) montada|enviar? a proposta|valores de loca[cç][aã]o|cronograma de entrega|detalhar a proposta|monta(?:r)? a proposta/iu;
 const URGENT_PROMISE =
-  /resolv(?:er|a).{0,30}agora|vai priorizar|ser[aá] priorizad|atendimento priorit[aá]rio|prioridade imediata|retorna (?:hoje|amanh[aã]|segunda)/iu;
+  /resolv(?:er|a).{0,30}agora|vai priorizar|ser[aá] priorizad|atendimento priorit[aá]rio|prioridade imediata|retorna (?:hoje|amanh[aã]|segunda)|(?:retorn|entra(?:m)? em contato).{0,30}(?:em )?at[eé]?\s*\d+\s*(?:minutos?|horas?|dias?)/iu;
+const UNSAFE_TECHNICAL_GUIDANCE =
+  /(?:descida|válvula|valvula|comando|alavanca|bot[aã]o) de emerg[eê]ncia|fa[cç]a (?:jumper|bypass)|lig(?:ue|ar) (?:os )?fios|desconecte|solte o sensor/iu;
 const FAKE_CLOSE =
   /\btemos solu[cç][aã]o\b|\boutras? solu[cç][oõ]es?(?: nossa)?\b|alternativa para (?:a|o)\b|\btemos diferentes tipos\b|confirmar.{0,60}(?:algo|equipamento|modelo) compat[ií]vel|ver(?:ificar)? se conseguimos.{0,40}(?:alternativa|algo)|\bandaimes tubulares\b|alum[ií]nio|tubular|fachadeiro/iu;
 const MODEL_PITCH =
@@ -141,7 +149,10 @@ export function attendanceReplyLooksUnsafe(
   _options?: { retrievedKnowledge?: string | null },
 ) {
   const normalized = text.toLowerCase();
-  if (FREIGHT_LIKE.test(normalized) || AVAILABILITY_LIKE.test(normalized) || IMPLICIT_STOCK.test(normalized)) {
+  if (FREIGHT_LIKE.test(normalized)
+    || AVAILABILITY_LIKE.test(normalized)
+    || IMPLICIT_STOCK.test(normalized)
+    || VALUES_PROMISE.test(normalized)) {
     return true;
   }
   return PRICE_LIKE.test(normalized);
@@ -149,6 +160,13 @@ export function attendanceReplyLooksUnsafe(
 
 function looksLikeCallNowInvite(text: string) {
   return CALL_NOW_LIKE.test(text);
+}
+
+function structuredAttendanceReplyLooksUnsafe(text: string) {
+  return attendanceReplyLooksUnsafe(text)
+    || looksLikeCallNowInvite(text)
+    || URGENT_PROMISE.test(text)
+    || UNSAFE_TECHNICAL_GUIDANCE.test(text);
 }
 
 function dropPushyUnits(text: string) {
@@ -1669,6 +1687,71 @@ const ATTENDANCE_STATIC_RULES = [
   'Pergunta de ficha (altura, carga, andar com a cesta): responda só o que estiver nas notas recuperadas. Não abra triagem de locação. Caminhão de coleta ou devolução não é locação de caminhão.',
 ].join('\n');
 
+const ATTENDANCE_AGENT_CONTRACT = [
+  'Modo de decisão estruturada: use as ferramentas disponíveis e termine obrigatoriamente com submit_attendance_decision.',
+  'Entenda a conversa de forma natural. Não siga um questionário rígido: pergunte no máximo dois dados que façam sentido para a necessidade atual.',
+  'Escreva afirmações no campo reply, sem perguntas e sem o fechamento de horário. Coloque até duas perguntas somente no campo questions; o sistema monta a mensagem final.',
+  'Use resetState=true apenas quando o cliente realmente iniciar outro assunto; caso contrário preserve e atualize o estado existente.',
+  'Em cumprimento isolado, não recapitule a triagem: deixe facts nulos, claims vazio e resetState=false. O sistema preserva o estado anterior sem expô-lo na resposta.',
+  'Se o cliente disser que não precisa de mais nada, que era só isso, agradecer ou encerrar, use intent=closing: despeça-se brevemente, sem recapitular, sem perguntas e sem apagar o estado.',
+  'Se, após esse cumprimento isolado, o cliente pedir um equipamento diferente, trate como assunto novo e use resetState=true. Só some ao pedido anterior quando o cliente disser claramente que quer junto, também ou adicionar.',
+  'Consulte search_catalog antes de afirmar que trabalhamos com uma linha ou recomendar equipamento. Catálogo não significa estoque ou disponibilidade.',
+  'Consulte search_company_knowledge antes de afirmar fatos da empresa, procedimentos ou orientação mecânica.',
+  'Toda afirmação factual sobre equipamento, empresa ou mecânica presente em reply precisa aparecer em claims com o id exato devolvido pela ferramenta.',
+  'Preencha todos os campos de facts; use null apenas quando o dado realmente não apareceu. Preserve em facts os dados do estado e da conversa atual.',
+  'Os fatos fixos de treinamento PEMT presentes nesta política podem usar sourceType=policy, sourceId=policy:attendance e category=company.',
+  'Nunca informe nem estime estoque, quantidade disponível, preço, valor de frete ou prazo de entrega. Nunca invente números ou dados empresariais.',
+  'Se a fonte não responder, diga com naturalidade que a equipe responsável confirmará no horário comercial.',
+  'O handoff é sempre obrigatório e queueAction é sempre keep_waiting. A IA faz triagem; ela não marca o contato como atendido.',
+  'Escolha o departamento que melhor corresponde à necessidade atual. Em dúvida, use general e explique o motivo.',
+  'Marque complexity como complex apenas quando houver ambiguidade relevante, múltiplas intenções, conflito de contexto ou questão técnica que exija raciocínio mais forte.',
+  'O sistema acrescenta o horário comercial no final. Não repita o horário no campo reply.',
+  'Quando a triagem comercial já estiver completa, deixe missingInformation vazio e use a pergunta “Precisa de mais alguma coisa?” em questions.',
+  'Se o cliente perguntar por orçamento anterior, identifique-o com o equipamento e os fatos persistidos antes de dizer que o comercial confirma a validade.',
+  'Nunca diga que o contato, solicitação ou orçamento tem prioridade.',
+  'Nunca calcule data relativa. Use resolve_date_expression antes de repetir hoje, amanhã, dia da semana ou semana que vem.',
+].join('\n');
+
+function formatStructuredAttendanceReply(decision: {
+  intent: string;
+  reply: string;
+  questions: string[];
+  missingInformation: string[];
+  handoff: { department: 'commercial' | 'logistics' | 'mechanical' | 'general' };
+}) {
+  const requestedQuestions = decision.intent === 'commercial'
+    && decision.missingInformation.length === 0
+    && decision.questions.length === 0
+    ? ['Precisa de mais alguma coisa?']
+    : decision.questions;
+  const questions = requestedQuestions.map((question) => (
+    question.endsWith('?') ? question : `${question}?`
+  ));
+  return [decision.reply, ...questions, hoursCloser(decision.handoff.department)]
+    .filter(Boolean)
+    .join('\n\n');
+}
+
+function structuredSafetyFallbackBody(
+  decision: AttendanceDecision,
+  userText: string,
+) {
+  if (decision.handoff.department === 'mechanical') {
+    return 'Não posso orientar procedimento técnico por aqui. Interrompa o uso, mantenha distância e aguarde a equipe de mecânica no horário comercial.';
+  }
+  if (decision.handoff.department === 'logistics') {
+    return 'A equipe de logística vai conferir o pedido e retorna no horário comercial para combinar os próximos passos.';
+  }
+  const family = estimateFamily(userText);
+  const catalogGrounded = decision.claims.some((claim) => (
+    claim.category === 'equipment' && claim.sourceType === 'catalog'
+  ));
+  if (family && catalogGrounded) {
+    return `Trabalhamos com ${FAMILY_LABEL[family] ?? family}. Valores, frete e disponibilidade são confirmados pelo comercial no horário útil.`;
+  }
+  return SAFE_FALLBACK_BODY;
+}
+
 /**
  * System blocks for the attendance bot. Cache breakpoint stays on rules + playbook.
  */
@@ -1678,6 +1761,7 @@ export function buildAttendanceSystemBlocks(options: {
   contactContext?: string | null;
   capturedTriage?: string | null;
   deskClock?: string | null;
+  agentState?: AttendanceAgentState | null;
   live?: boolean;
 }): AttendanceSystemBlock[] {
   const playbook = options.vaultKnowledge.trim()
@@ -1697,13 +1781,13 @@ export function buildAttendanceSystemBlocks(options: {
   return [
     {
       type: 'text',
-      text: `${role}\n${ATTENDANCE_STATIC_RULES}\n${playbook}`,
+      text: `${role}\n${ATTENDANCE_STATIC_RULES}\n${ATTENDANCE_AGENT_CONTRACT}\n${playbook}`,
       cache_control: { type: 'ephemeral' },
     },
     { type: 'text', text: retrieved },
     { type: 'text', text: contact },
     { type: 'text', text: desk },
-    { type: 'text', text: captured },
+    { type: 'text', text: `${captured}\n${formatAttendanceAgentState(options.agentState)}` },
   ];
 }
 
@@ -1728,6 +1812,7 @@ function logPromptCacheUsage(usage: ClaudeResponse['usage']) {
 export async function replyAsAttendanceBot(options: {
   apiKey: string;
   model: string;
+  strongModel?: string | null;
   vaultKnowledge: string;
   retrievedKnowledge?: string | null;
   contactContext?: string | null;
@@ -1736,6 +1821,8 @@ export async function replyAsAttendanceBot(options: {
   offHours: boolean;
   live?: boolean;
   triageContext?: AttendanceTriageContext;
+  searchKnowledge?: AttendanceKnowledgeSearch;
+  agentState?: AttendanceAgentState | null;
   now?: Date;
 }) {
   if (!options.offHours) {
@@ -1751,46 +1838,13 @@ export async function replyAsAttendanceBot(options: {
       userText: options.userText,
       now: options.now,
     });
-  const userTurns = triageContext.userTurns;
-  const now = triageContext.now;
-  const recommendation = mentionsOperatorTraining(userTurns.join('\n'))
-    ? null
-    : recommendFleetEquipment({ query: userTurns.join('\n') });
-  if (recommendation) {
-    const triage: string[] = [];
-    const blob = userTurns.join('\n');
-    if (!RMBH_PLACE.test(blob) && !DISTANT_PLACE.test(blob)) {
-      triage.push('cidade');
-    }
-    if (!hasUsableStart(blob, now)) {
-      triage.push('para quando precisa');
-    }
-    if (parseRentalDayCounts(blob).length === 0) {
-      triage.push('por quantos dias');
-    }
-    const triageText = triage.length > 0
-      ? `Para registrar a triagem, informe ${triage.join(', ').replace(/, ([^,]*)$/u, ' e $1')}.`
-      : '';
-    return {
-      text: sanitizeAttendanceReply(
-        [formatFleetRecommendation(recommendation), triageText].filter(Boolean).join('\n\n'),
-        {
-          userText: options.userText,
-          userTurns,
-          now,
-          introduce: triageContext.introduce,
-        },
-      ),
-      escalate: true,
-    };
-  }
-
   const system = buildAttendanceSystemBlocks({
     vaultKnowledge: options.vaultKnowledge,
     retrievedKnowledge: options.retrievedKnowledge,
     contactContext: options.contactContext,
     capturedTriage: formatCapturedTriageBlock(triageContext),
     deskClock: triageContext.deskClock,
+    agentState: options.agentState,
     live: options.live,
   });
   const messages = [
@@ -1801,37 +1855,128 @@ export async function replyAsAttendanceBot(options: {
     { role: 'user' as const, content: options.userText },
   ];
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-      'x-api-key': options.apiKey,
-    },
-    body: JSON.stringify({
+  const primaryStartedAt = Date.now();
+  let agent;
+  try {
+    agent = await runAttendanceAgent({
+      apiKey: options.apiKey,
       model: options.model,
-      max_tokens: 220,
       system,
       messages,
-    }),
-    signal: AbortSignal.timeout(60_000),
-  });
-  const payload = (await response.json()) as ClaudeResponse;
-  if (!response.ok) {
-    throw new Error(payload.error?.message || 'anthropic_request_failed');
+      searchKnowledge: options.searchKnowledge,
+      now: triageContext.now,
+      knownStartDate: typeof options.agentState?.facts.startDate === 'string'
+        ? options.agentState.facts.startDate
+        : null,
+      priorFacts: options.agentState?.facts,
+      previousIntent: options.agentState?.intent,
+    });
+  } catch (error) {
+    return {
+      text: SANDBOX_SAFE_FALLBACK,
+      escalate: true,
+      agentRun: {
+        model: options.model,
+        escalatedModel: null,
+        toolCalls: [],
+        inputTokens: 0,
+        outputTokens: 0,
+        validationFailures: 0,
+        validationErrors: [],
+        durationMs: Date.now() - primaryStartedAt,
+        reason: error instanceof Error ? error.message : String(error),
+        outcome: 'agent_error',
+      },
+    };
   }
-  logPromptCacheUsage(payload.usage);
-  const draft = payload.content?.find((block) => block.type === 'text')?.text ?? '';
-  const text = sanitizeAttendanceReply(draft, {
-    retrievedKnowledge: options.retrievedKnowledge,
-    userText: options.userText,
-    userTurns,
-    captured: triageContext.captured,
-    now,
-    introduce: triageContext.introduce,
-  });
+  logPromptCacheUsage(agent.usage);
+  let escalatedModel: string | null = null;
+  const contextTransitionNeedsStrongModel = options.agentState?.intent === 'greeting'
+    && Boolean(options.agentState.facts.equipment)
+    && agent.decision?.intent === 'commercial';
+  const primaryDraftLooksUnsafe = agent.decision
+    ? structuredAttendanceReplyLooksUnsafe(formatStructuredAttendanceReply(agent.decision))
+    : false;
+  const distantRegionNeedsStrongModel = userAsksDistantCoverage(options.userText)
+    || userAsksDistantCoverage(String(options.agentState?.facts.city ?? ''));
+  const shouldEscalate = !agent.decision
+    || agent.decision.complexity === 'complex'
+    || agent.decision.confidence < 0.65
+    || contextTransitionNeedsStrongModel
+    || primaryDraftLooksUnsafe
+    || distantRegionNeedsStrongModel;
+  if (shouldEscalate && options.strongModel && options.strongModel !== options.model) {
+    try {
+      const stronger = await runAttendanceAgent({
+        apiKey: options.apiKey,
+        model: options.strongModel,
+        system,
+        messages,
+        searchKnowledge: options.searchKnowledge,
+        now: triageContext.now,
+        knownStartDate: typeof options.agentState?.facts.startDate === 'string'
+          ? options.agentState.facts.startDate
+          : null,
+        priorFacts: options.agentState?.facts,
+        previousIntent: options.agentState?.intent,
+      });
+      logPromptCacheUsage(stronger.usage);
+      const strongerDowngradesIntent = Boolean(
+        agent.decision
+        && agent.decision.intent !== 'unknown'
+        && stronger.decision?.intent === 'unknown',
+      );
+      const strongerDowngradesDepartment = Boolean(
+        agent.decision
+        && agent.decision.handoff.department !== 'general'
+        && stronger.decision?.handoff.department === 'general',
+      );
+      if (stronger.decision && !strongerDowngradesIntent && !strongerDowngradesDepartment) {
+        agent = stronger;
+        escalatedModel = options.strongModel;
+      }
+    } catch (error) {
+      console.warn('[attendance] modelo forte indisponível; mantendo decisão primária', {
+        model: options.strongModel,
+        reason: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  if (agent.decision) {
+    const draft = stripAgentSignatures(formatStructuredAttendanceReply(agent.decision));
+    const safetyBlocked = !draft || structuredAttendanceReplyLooksUnsafe(draft);
+    const safeQuestions = safetyBlocked
+      ? agent.decision.questions.filter((question) => !UNSAFE_TECHNICAL_GUIDANCE.test(question))
+      : agent.decision.questions;
+    const text = safetyBlocked
+      ? formatStructuredAttendanceReply({
+        ...agent.decision,
+        questions: safeQuestions,
+        reply: structuredSafetyFallbackBody(agent.decision, options.userText),
+      })
+      : draft;
+    return {
+      text,
+      escalate: true,
+      decision: agent.decision,
+      agentRun: {
+        model: options.model,
+        escalatedModel,
+        ...agent.trace,
+        outcome: safetyBlocked ? 'safety_fallback' : 'structured_decision',
+        reason: safetyBlocked ? 'unsafe_structured_reply' : agent.trace.reason,
+      },
+    };
+  }
+
   return {
-    text,
-    escalate: /comercial|próximo dia útil|pessoa/iu.test(text),
+    text: SANDBOX_SAFE_FALLBACK,
+    escalate: true,
+    agentRun: {
+      model: options.model,
+      escalatedModel,
+      ...agent.trace,
+      outcome: 'safe_fallback',
+    },
   };
 }

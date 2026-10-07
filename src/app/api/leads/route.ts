@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import * as z from 'zod';
 import { notifyLeadByEmail } from '@/lib/email';
 import { createLead } from '@/lib/leads';
+import { uploadGoogleAdsConfirmedContactConversion } from '@/lib/google-ads-offline-conversions';
 import {
   enrichQuoteCartItemsWithSpecs,
   resolveEquipmentSpecsSummary,
@@ -147,10 +148,27 @@ export const PATCH = async (request: Request) => {
       return NextResponse.json({ error: 'Dados inválidos' }, { status: 422 });
     }
 
-    await db
+    const [lead] = await db
       .update(leadsSchema)
       .set({ whatsappOpened: parsed.data.whatsappOpened })
-      .where(eq(leadsSchema.id, parsed.data.leadId));
+      .where(eq(leadsSchema.id, parsed.data.leadId))
+      .returning({
+        id: leadsSchema.id,
+        gclid: leadsSchema.gclid,
+        gbraid: leadsSchema.gbraid,
+        wbraid: leadsSchema.wbraid,
+      });
+
+    if (lead && parsed.data.whatsappOpened) {
+      await uploadGoogleAdsConfirmedContactConversion({
+        leadId: lead.id,
+        attribution: {
+          gclid: lead.gclid ?? undefined,
+          gbraid: lead.gbraid ?? undefined,
+          wbraid: lead.wbraid ?? undefined,
+        },
+      });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
