@@ -7,8 +7,8 @@ export const brand = {
   foundedYear: 2013,
   phone: '3133763377',
   phoneDisplay: '(31) 3376-3377',
-  whatsapp: '5531994700201',
-  whatsappDisplay: '(31) 99470-0201',
+  whatsapp: '553194700201',
+  whatsappDisplay: '(31) 9470-0201',
   email: 'comercial@acessoequipamentos.com.br',
   techSupportEmail: 'tecnologia@acessoequipamentos.com.br',
   /** Canonical public site URL (go-live domain). */
