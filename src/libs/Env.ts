@@ -22,6 +22,7 @@ export const Env = createEnv({
     WHATSAPPOS_WIDGET_KEY: z.string().min(1).optional(),
     /** Shared secret for ChatPro → /api/webhooks/chatpro (?token= or header). */
     CHATPRO_WEBHOOK_SECRET: z.string().min(16).optional(),
+    CHATWOOT_WEBHOOK_SECRET: z.string().min(24).optional(),
     /** Comma-separated extra host suffixes allowed for ChatPro PDF fetch (SSRF guard). */
     CHATPRO_PDF_URL_ALLOWLIST: z.string().optional(),
     /** Bearer token for server-to-server internal APIs. */
@@ -76,6 +77,7 @@ export const Env = createEnv({
     WHATSAPPOS_API_URL: process.env.WHATSAPPOS_API_URL,
     WHATSAPPOS_WIDGET_KEY: process.env.WHATSAPPOS_WIDGET_KEY,
     CHATPRO_WEBHOOK_SECRET: process.env.CHATPRO_WEBHOOK_SECRET,
+    CHATWOOT_WEBHOOK_SECRET: process.env.CHATWOOT_WEBHOOK_SECRET,
     CHATPRO_PDF_URL_ALLOWLIST: process.env.CHATPRO_PDF_URL_ALLOWLIST,
     INTERNAL_API_SECRET: process.env.INTERNAL_API_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,
