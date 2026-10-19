@@ -10,6 +10,7 @@ import {
 const conversation = {
   id: 25,
   inbox_id: 2,
+  created_at: 1792440000,
   updated_at: 1792440000,
   meta: {
     sender: { phone_number: '+5531999990000' },

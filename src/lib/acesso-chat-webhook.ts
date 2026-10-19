@@ -29,7 +29,7 @@ const payloadSchema = z.object({
   message_type: z.string().optional(),
   private: z.boolean().optional(),
   content: z.string().nullable().optional(),
-  created_at: z.string().optional(),
+  created_at: z.union([z.string(), z.number()]).optional(),
   status: z.string().optional(),
   content_attributes: z.object({ external_error: z.string().nullable().optional() }).optional(),
   attachments: z
@@ -100,9 +100,9 @@ export function parseAcessoChatWebhook(payload: unknown): ChatProInboundEvent | 
   if (root.event === 'message_updated' && root.message_type !== 'outgoing') {
     return null;
   }
-  const date = isMessage
-    ? new Date(root.created_at ?? '')
-    : new Date((root.updated_at ?? 0) * 1000);
+  const createdAt =
+    typeof root.created_at === 'number' ? root.created_at * 1000 : (root.created_at ?? '');
+  const date = isMessage ? new Date(createdAt) : new Date((root.updated_at ?? 0) * 1000);
   if (Number.isNaN(date.getTime()) || date.getTime() === 0) {
     return null;
   }
