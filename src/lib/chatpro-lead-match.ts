@@ -57,7 +57,8 @@ export async function applyChatProReplyToLead(event: ChatProInboundEvent): Promi
   const nextStatus = leadStatusAfterChatProEvent(lead.status, event);
   const firstReply = clientReply && !lead.whatsappRepliedAt;
   const stamp = now.toISOString().slice(0, 16).replace('T', ' ');
-  const noteLine = `[ChatPro] ${humanAssignment ? 'Atendimento humano atribuído' : 'Cliente respondeu no WhatsApp'} (${stamp} UTC)`;
+  const sourceLabel = event.externalId?.startsWith('chatwoot:') ? 'Acesso Chat' : 'ChatPro';
+  const noteLine = `[${sourceLabel}] ${humanAssignment ? 'Atendimento humano atribuído' : 'Cliente respondeu no WhatsApp'} (${stamp} UTC)`;
   const nextNotes = firstReply
     ? [lead.internalNotes?.trim(), noteLine].filter(Boolean).join('\n')
     : lead.internalNotes;
