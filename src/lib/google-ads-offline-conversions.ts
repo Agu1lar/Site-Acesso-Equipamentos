@@ -186,8 +186,8 @@ async function insertPendingUpload(options: {
 
     return row ?? null;
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (/duplicate|unique/iu.test(message)) {
+    const cause = error instanceof Error ? error.cause : null;
+    if (cause && typeof cause === 'object' && 'code' in cause && cause.code === '23505') {
       const [existing] = await db
         .select({
           id: googleAdsOfflineConversionsSchema.id,

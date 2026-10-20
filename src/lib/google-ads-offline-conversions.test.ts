@@ -15,7 +15,9 @@ vi.mock('@/libs/DB', () => ({
           const duplicate = dbState.rows.some((row) => row.orderId === value.orderId);
           if (duplicate) {
             dbState.duplicateOrderId = String(value.orderId);
-            throw new Error('duplicate key value violates unique constraint');
+            throw new Error('Failed query: insert into google_ads_offline_conversions', {
+              cause: Object.assign(new Error('duplicate key value violates unique constraint'), { code: '23505' }),
+            });
           }
 
           const row = { id: dbState.nextId, ...value };
