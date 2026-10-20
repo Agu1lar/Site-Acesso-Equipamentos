@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import {
   isChatProClientReply,
   isChatProHumanAssignment,
@@ -67,7 +67,7 @@ export async function applyChatProReplyToLead(event: ChatProInboundEvent): Promi
     .update(leadsSchema)
     .set({
       whatsappRepliedAt: clientReply ? lead.whatsappRepliedAt ?? now : lead.whatsappRepliedAt,
-      lastActivityAt: now,
+      lastActivityAt: sql`greatest(coalesce(${leadsSchema.lastActivityAt}, ${leadsSchema.createdAt}), ${now.toISOString()}::timestamp)`,
       status: nextStatus,
       ...(firstReply ? { internalNotes: nextNotes } : {}),
     })
