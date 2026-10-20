@@ -1,4 +1,5 @@
 import type { AttributionInput } from '@/lib/attribution';
+import { readMetaConversionContext } from '@/lib/meta-conversion-context';
 import { pickEssentialCampaignAttribution, readStoredAttribution } from '@/lib/attribution';
 import { readStoredVisitorGeo } from '@/lib/visitor-geo';
 import type { VisitorGeoInput } from '@/lib/visitor-geo';
@@ -37,6 +38,7 @@ export type WhatsAppClickAnalyticsPayload = {
   pathname: string;
   device?: string;
   analyticsConsent: boolean;
+  metaContext?: ReturnType<typeof readMetaConversionContext>;
   attribution?: AttributionInput;
   visitorGeo?: VisitorGeoInput;
 };
@@ -108,7 +110,7 @@ function buildWhatsAppClickRequestBody(input: WhatsAppClickInput) {
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
   const attribution = readStoredAttribution();
 
-  return buildWhatsAppClickAnalyticsPayload({
+  return { ...buildWhatsAppClickAnalyticsPayload({
     origin: input.origin,
     equipmentSlug: input.equipmentSlug,
     equipmentName: input.equipmentName,
@@ -117,7 +119,7 @@ function buildWhatsAppClickRequestBody(input: WhatsAppClickInput) {
     analyticsConsent,
     attribution,
     visitorGeo: analyticsConsent ? readStoredVisitorGeo() : null,
-  });
+  }), metaContext: analyticsConsent ? readMetaConversionContext() : undefined };
 }
 
 /**

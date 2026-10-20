@@ -41,6 +41,7 @@ export const POST = async (request: Request) => {
       }
 
       refCode = await mintWhatsAppAttributionToken({
+        metaContext: data.analyticsConsent === true ? data.metaContext : undefined,
         origin: data.origin,
         equipmentSlug: data.equipmentSlug,
         equipmentName: data.equipmentName,

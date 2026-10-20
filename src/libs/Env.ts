@@ -4,6 +4,8 @@ import * as z from 'zod';
 export const Env = createEnv({
   emptyStringAsUndefined: true,
   server: {
+    META_CONVERSIONS_ACCESS_TOKEN: z.string().min(1).optional(),
+    META_GRAPH_API_VERSION: z.string().regex(/^v\d+\.0$/).default('v26.0'),
     /** Comma-separated public IPs allowed to access dashboard authentication. */
     DASHBOARD_ALLOWED_IPS: z.string().min(1).optional(),
     DASHBOARD_SESSION_SECRET: z.string().min(32).optional(),
@@ -48,6 +50,7 @@ export const Env = createEnv({
     GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_RESOURCE_NAME: z.string().min(1).optional(),
   },
   client: {
+    NEXT_PUBLIC_META_PIXEL_ID: z.string().regex(/^\d+$/).optional(),
     NEXT_PUBLIC_APP_URL: z.string().optional(),
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string().min(1).optional(),
     NEXT_PUBLIC_LOGGING_LEVEL: z
@@ -62,6 +65,8 @@ export const Env = createEnv({
     NODE_ENV: z.enum(['test', 'development', 'production']).optional(),
   },
   runtimeEnv: {
+    META_CONVERSIONS_ACCESS_TOKEN: process.env.META_CONVERSIONS_ACCESS_TOKEN,
+    META_GRAPH_API_VERSION: process.env.META_GRAPH_API_VERSION,
     DASHBOARD_ALLOWED_IPS: process.env.DASHBOARD_ALLOWED_IPS,
     DASHBOARD_SESSION_SECRET: process.env.DASHBOARD_SESSION_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
@@ -102,6 +107,7 @@ export const Env = createEnv({
     GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_RESOURCE_NAME:
       process.env.GOOGLE_ADS_QUALIFIED_LEAD_CONVERSION_ACTION_RESOURCE_NAME,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_META_PIXEL_ID: process.env.NEXT_PUBLIC_META_PIXEL_ID,
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     NEXT_PUBLIC_LOGGING_LEVEL: process.env.NEXT_PUBLIC_LOGGING_LEVEL,
     NEXT_PUBLIC_BETTER_STACK_SOURCE_TOKEN: process.env.NEXT_PUBLIC_BETTER_STACK_SOURCE_TOKEN,

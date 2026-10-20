@@ -6,6 +6,12 @@ type AnalyticsTrafficWeekStripProps = {
   organicLabel: string;
   directLabel: string;
   paid: number;
+  googleAds: number;
+  metaAds: number;
+  otherPaid: number;
+  googleAdsLabel: string;
+  metaAdsLabel: string;
+  otherPaidLabel: string;
   organic: number;
   direct: number;
 };
@@ -42,6 +48,9 @@ export function AnalyticsTrafficWeekStrip(props: AnalyticsTrafficWeekStripProps)
         </div>
         <div className="flex flex-wrap items-end gap-5 sm:gap-8">
           <ChannelStat label={props.paidLabel} tone="text-primary" value={props.paid} />
+          <ChannelStat label={props.googleAdsLabel} tone="text-blue-700" value={props.googleAds} />
+          <ChannelStat label={props.metaAdsLabel} tone="text-indigo-700" value={props.metaAds} />
+          {props.otherPaid > 0 ? <ChannelStat label={props.otherPaidLabel} tone="text-amber-700" value={props.otherPaid} /> : null}
           <ChannelStat label={props.organicLabel} tone="text-emerald-700" value={props.organic} />
           <ChannelStat label={props.directLabel} tone="text-neutral-700" value={props.direct} />
         </div>

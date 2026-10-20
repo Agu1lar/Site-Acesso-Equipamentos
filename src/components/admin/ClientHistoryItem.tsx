@@ -3,7 +3,7 @@
 import { formatDateTimeBrasilia } from '@/lib/app-datetime';
 import { formatLeadCartItems } from '@/lib/lead-cart';
 import { LEAD_STATUSES, type LeadStatus } from '@/lib/lead-status';
-import { classifyTrafficChannel, TRAFFIC_CHANNEL_LABELS_PT } from '@/lib/traffic-channel';
+import { formatTrafficChannelLabel } from '@/lib/traffic-channel';
 import { LeadStatusForm } from '@/components/admin/LeadStatusForm';
 import { Link } from '@/libs/I18nNavigation';
 
@@ -50,7 +50,7 @@ export function ClientHistoryItem(props: ClientHistoryItemProps) {
     : 'new';
   const statusLabel = labels.statusLabels[statusKey] ?? labels.statusLabels.new ?? lead.status;
   const kindLabel = lead.leadKind === 'cookie_consent' ? labels.kindCookie : labels.kindQuote;
-  const summary = formatLeadCartItems(lead.itemsJson) || lead.equipmentName || TRAFFIC_CHANNEL_LABELS_PT[classifyTrafficChannel(lead)];
+  const summary = formatLeadCartItems(lead.itemsJson) || lead.equipmentName || formatTrafficChannelLabel(lead);
 
   return (
     <li className="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:justify-between">
@@ -64,7 +64,7 @@ export function ClientHistoryItem(props: ClientHistoryItemProps) {
           </span>
         </div>
         <p className="text-xs text-neutral-500">
-          {kindLabel} · {TRAFFIC_CHANNEL_LABELS_PT[classifyTrafficChannel(lead)]}
+          {kindLabel} · {formatTrafficChannelLabel(lead)}
         </p>
         <p className="text-sm text-neutral-700">{summary}</p>
         <LeadStatusForm

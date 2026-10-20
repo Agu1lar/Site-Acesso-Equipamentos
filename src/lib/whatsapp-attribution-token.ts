@@ -25,6 +25,7 @@ import { leadsSchema, whatsappAttributionTokensSchema } from '@/models/Schema';
 const TOKEN_TTL_DAYS = 7;
 
 export type MintWhatsAppAttributionTokenInput = {
+  metaContext?: { consent: true; fbp?: string; fbc?: string };
   origin: string;
   equipmentSlug?: string;
   equipmentName?: string;
@@ -148,6 +149,7 @@ export async function mintWhatsAppAttributionToken(input: MintWhatsAppAttributio
       .insert(whatsappAttributionTokensSchema)
       .values({
         token,
+        metaContext: input.metaContext ?? null,
         origin: input.origin,
         equipmentSlug: input.equipmentSlug ?? null,
         equipmentName: input.equipmentName ?? null,

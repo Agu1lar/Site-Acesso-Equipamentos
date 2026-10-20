@@ -330,6 +330,13 @@
       "when": 1791357600000,
       "tag": "0050_chatpro_retention",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1791568446320,
+      "tag": "0051_meta_confirmed_contacts",
+      "breakpoints": true
     }
   ]
 }

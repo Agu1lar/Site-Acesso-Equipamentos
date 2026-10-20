@@ -4,13 +4,15 @@ import { Suspense, useEffect, useLayoutEffect, useState } from 'react';
 import { AnalyticsConsentContext } from '@/components/analytics/AnalyticsConsentContext';
 import { AnalyticsErrorBoundary } from '@/components/analytics/AnalyticsErrorBoundary';
 import { CookieConsentBanner } from '@/components/analytics/CookieConsentBanner';
-import { GoogleOneTapManager } from '@/components/analytics/GoogleOneTapManager';
 import { GaPageView } from '@/components/analytics/GaPageView';
 import { GoogleAnalyticsScripts } from '@/components/analytics/GoogleAnalyticsScripts';
-import { PostHogAttributionSync } from '@/components/analytics/PostHogAttributionSync';
-import { PageEngagementTracker } from '@/components/analytics/PageEngagementTracker';
-import { PostHogPageView } from '@/components/analytics/PostHogPageView';
-import { ScrollDepthTracker } from '@/components/analytics/ScrollDepthTracker';
+import type { GoogleOneTapManager } from '@/components/analytics/GoogleOneTapManager';
+import type { PageEngagementTracker } from '@/components/analytics/PageEngagementTracker';
+import type { PostHogAttributionSync } from '@/components/analytics/PostHogAttributionSync';
+import type { PostHogPageView } from '@/components/analytics/PostHogPageView';
+import type { ScrollDepthTracker } from '@/components/analytics/ScrollDepthTracker';
+import { MetaPixel } from '@/components/analytics/MetaPixel';
+import { revokeMetaPixelConsent } from '@/lib/meta-pixel';
 import { COOKIE_CONSENT_STORAGE_KEY, parseConsentValue } from '@/lib/cookie-consent';
 import type { CookieConsentStatus, CookieConsentValue } from '@/lib/cookie-consent';
 import {
@@ -19,9 +21,16 @@ import {
   isGoogleAnalyticsConfigured,
   syncGoogleAnalyticsConsentFromStorage,
 } from '@/lib/google-analytics';
-import { initPostHog } from '@/lib/posthog-client';
 import { recordAnalyticsConsent } from '@/lib/record-analytics-consent';
 import { captureVisitorGeoAfterConsent } from '@/lib/visitor-geo';
+
+type DeferredAnalyticsModules = {
+  GoogleOneTapManager: typeof GoogleOneTapManager;
+  PageEngagementTracker: typeof PageEngagementTracker;
+  PostHogAttributionSync: typeof PostHogAttributionSync;
+  PostHogPageView: typeof PostHogPageView;
+  ScrollDepthTracker: typeof ScrollDepthTracker;
+};
 
 type AnalyticsConsentProviderProps = {
   children: React.ReactNode;
@@ -38,6 +47,30 @@ function persistConsent(value: CookieConsentValue) {
   window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, value);
 }
 
+async function initializePostHog() {
+  const { initPostHog } = await import('@/lib/posthog-client');
+  initPostHog();
+}
+
+async function loadDeferredAnalytics(): Promise<DeferredAnalyticsModules> {
+  const [googleOneTap, pageEngagement, postHogAttribution, postHogPageView, scrollDepth] =
+    await Promise.all([
+      import('@/components/analytics/GoogleOneTapManager'),
+      import('@/components/analytics/PageEngagementTracker'),
+      import('@/components/analytics/PostHogAttributionSync'),
+      import('@/components/analytics/PostHogPageView'),
+      import('@/components/analytics/ScrollDepthTracker'),
+    ]);
+
+  return {
+    GoogleOneTapManager: googleOneTap.GoogleOneTapManager,
+    PageEngagementTracker: pageEngagement.PageEngagementTracker,
+    PostHogAttributionSync: postHogAttribution.PostHogAttributionSync,
+    PostHogPageView: postHogPageView.PostHogPageView,
+    ScrollDepthTracker: scrollDepth.ScrollDepthTracker,
+  };
+}
+
 /**
  * Gates PostHog behind analytics cookie consent and shows the consent banner.
  */
@@ -46,6 +79,7 @@ export function AnalyticsConsentProvider(props: AnalyticsConsentProviderProps) {
     typeof window === 'undefined' ? 'pending' : readStoredConsent(),
   );
   const [hydrated, setHydrated] = useState(false);
+  const [deferredAnalytics, setDeferredAnalytics] = useState<DeferredAnalyticsModules | null>(null);
 
   useLayoutEffect(() => {
     const stored = readStoredConsent();
@@ -59,17 +93,28 @@ export function AnalyticsConsentProvider(props: AnalyticsConsentProviderProps) {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (status === 'analytics') {
-      initPostHog();
+      void initializePostHog();
+      void loadDeferredAnalytics().then((modules) => {
+        if (!cancelled) {
+          setDeferredAnalytics(modules);
+        }
+      });
       grantGoogleAnalyticsConsent();
       void captureVisitorGeoAfterConsent();
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [status]);
 
   const acceptAnalytics = () => {
     persistConsent('analytics');
     setStatus('analytics');
-    initPostHog();
+    void initializePostHog();
     grantGoogleAnalyticsConsent();
     void recordAnalyticsConsent('accept');
     void captureVisitorGeoAfterConsent();
@@ -79,10 +124,12 @@ export function AnalyticsConsentProvider(props: AnalyticsConsentProviderProps) {
     persistConsent('essential');
     setStatus('essential');
     denyGoogleAnalyticsConsent();
+    revokeMetaPixelConsent();
     void recordAnalyticsConsent('reject');
   };
 
   const reopenBanner = () => {
+    revokeMetaPixelConsent();
     window.localStorage.removeItem(COOKIE_CONSENT_STORAGE_KEY);
     setStatus('pending');
   };
@@ -100,17 +147,18 @@ export function AnalyticsConsentProvider(props: AnalyticsConsentProviderProps) {
       }}
     >
       <GoogleAnalyticsScripts />
+      {hydrated && analyticsOn ? <Suspense fallback={null}><MetaPixel /></Suspense> : null}
       {props.children}
       {showBanner ? <CookieConsentBanner /> : null}
-      {analyticsOn ? (
+      {analyticsOn && deferredAnalytics ? (
         <AnalyticsErrorBoundary>
-          <GoogleOneTapManager />
-          <PostHogAttributionSync />
           <Suspense fallback={null}>
+            <deferredAnalytics.GoogleOneTapManager />
             <GaPageView />
-            <PageEngagementTracker />
-            <ScrollDepthTracker />
-            <PostHogPageView />
+            <deferredAnalytics.PageEngagementTracker />
+            <deferredAnalytics.PostHogAttributionSync />
+            <deferredAnalytics.PostHogPageView />
+            <deferredAnalytics.ScrollDepthTracker />
           </Suspense>
         </AnalyticsErrorBoundary>
       ) : null}

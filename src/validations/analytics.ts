@@ -9,6 +9,11 @@ const AnalyticsEventFieldsSchema = z.object({
   pathname: z.string().max(500).optional(),
   device: z.enum(['mobile', 'desktop']).optional(),
   analyticsConsent: z.boolean().optional(),
+  metaContext: z.object({
+    consent: z.literal(true),
+    fbp: z.string().regex(/^fb\.\d+\.\d+\.[\w.-]+$/).max(255).optional(),
+    fbc: z.string().regex(/^fb\.\d+\.\d+\.[\w.-]+$/).max(500).optional(),
+  }).optional(),
   attribution: AttributionSchema.optional(),
   visitorGeo: VisitorGeoSchema.optional(),
 });

@@ -93,6 +93,12 @@ export default async function LeadsAdminPage(props: LeadsPageProps) {
         hint={t('week_traffic_hint')}
         organic={weekTraffic.organic}
         organicLabel={t('week_traffic_organic')}
+        googleAds={weekTraffic.googleAds}
+        metaAds={weekTraffic.metaAds}
+        otherPaid={weekTraffic.otherPaid}
+        googleAdsLabel={tAnalytics('traffic_google_ads')}
+        metaAdsLabel={tAnalytics('traffic_meta_ads')}
+        otherPaidLabel={tAnalytics('traffic_other_paid')}
         paid={weekTraffic.paid}
         paidLabel={t('week_traffic_paid')}
         title={t('week_traffic_title')}

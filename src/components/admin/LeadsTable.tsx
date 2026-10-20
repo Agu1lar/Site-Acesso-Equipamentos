@@ -13,7 +13,7 @@ import type { LeadStatus } from '@/lib/lead-status';
 import { resolveLeadWhatsAppStatus } from '@/lib/lead-whatsapp-status';
 import type { LeadRecord } from '@/lib/leads-admin';
 import { formatLeadCartItems } from '@/lib/leads-admin';
-import { classifyTrafficChannel, trafficChannelMessageKey } from '@/lib/traffic-channel';
+import { classifyPaidPlatform, classifyTrafficChannel, trafficChannelMessageKey } from '@/lib/traffic-channel';
 import { Link } from '@/libs/I18nNavigation';
 
 type LeadsTableProps = {
@@ -81,7 +81,10 @@ export async function LeadsTable(props: LeadsTableProps) {
                         ? t('whatsapp_status_not_applicable')
                         : t('whatsapp_status_unknown');
               const originChannel = classifyTrafficChannel(lead);
-              const originLabel = t(trafficChannelMessageKey(originChannel));
+              const platform = classifyPaidPlatform(lead);
+              const originLabel = platform === 'googleAds' ? t('origin_google_ads')
+                : platform === 'metaAds' ? t('origin_meta_ads')
+                  : t(trafficChannelMessageKey(originChannel));
               const originClass =
                 originChannel === 'paid'
                   ? 'bg-primary-light text-primary'

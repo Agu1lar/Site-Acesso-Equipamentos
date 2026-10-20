@@ -9,6 +9,7 @@ describe('attributionQualifiesForWhatsAppBridge', () => {
   it('accepts paid click ids and paid medium', () => {
     expect(attributionQualifiesForWhatsAppBridge({ gclid: 'abc' })).toBe(true);
     expect(attributionQualifiesForWhatsAppBridge({ utmMedium: 'cpc' })).toBe(true);
+    expect(attributionQualifiesForWhatsAppBridge({ utmSource: 'meta', utmMedium: 'paid_social' })).toBe(true);
   });
 
   it('rejects utm campaign without paid signal', () => {

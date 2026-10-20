@@ -106,7 +106,20 @@ export function classifyTrafficChannel(input: TrafficChannelInput): TrafficChann
 
 /** Portuguese label for the admin Origem column (Paga / Orgânico / Direto). */
 export function formatTrafficChannelLabel(input: TrafficChannelInput) {
+  const platform = classifyPaidPlatform(input);
+  if (platform === 'googleAds') { return 'Google Ads'; }
+  if (platform === 'metaAds') { return 'Meta Ads'; }
   return TRAFFIC_CHANNEL_LABELS_PT[classifyTrafficChannel(input)];
+}
+
+/** Paid source requires a paid medium; social referrals alone are organic. */
+export function classifyPaidPlatform(input: TrafficChannelInput): 'googleAds' | 'metaAds' | 'otherPaid' | null {
+  if (classifyTrafficChannel(input) !== 'paid') { return null; }
+  if (hasClickId(input)) { return 'googleAds'; }
+  const source = normalize(input.utmSource);
+  if (['google', 'google_ads', 'googleads', 'adwords'].includes(source)) { return 'googleAds'; }
+  if (['meta', 'meta_ads', 'facebook', 'instagram', 'fb', 'ig'].includes(source)) { return 'metaAds'; }
+  return 'otherPaid';
 }
 
 export function trafficChannelMessageKey(channel: TrafficChannel) {
@@ -135,6 +148,9 @@ export function parseTrafficChannelParam(value: string | null | undefined): Traf
 }
 
 export type TrafficChannelCounts = {
+  googleAds: number;
+  metaAds: number;
+  otherPaid: number;
   total: number;
   paid: number;
   organic: number;
@@ -142,6 +158,9 @@ export type TrafficChannelCounts = {
 };
 
 export const EMPTY_TRAFFIC_CHANNEL_COUNTS: TrafficChannelCounts = {
+  googleAds: 0,
+  metaAds: 0,
+  otherPaid: 0,
   total: 0,
   paid: 0,
   organic: 0,
@@ -153,6 +172,9 @@ export const EMPTY_TRAFFIC_CHANNEL_COUNTS: TrafficChannelCounts = {
  */
 export function tallyTrafficChannels(rows: TrafficChannelInput[]): TrafficChannelCounts {
   const counts: TrafficChannelCounts = {
+    googleAds: 0,
+    metaAds: 0,
+    otherPaid: 0,
     total: rows.length,
     paid: 0,
     organic: 0,
@@ -161,6 +183,8 @@ export function tallyTrafficChannels(rows: TrafficChannelInput[]): TrafficChanne
 
   for (const row of rows) {
     counts[classifyTrafficChannel(row)] += 1;
+    const platform = classifyPaidPlatform(row);
+    if (platform) { counts[platform] += 1; }
   }
 
   return counts;

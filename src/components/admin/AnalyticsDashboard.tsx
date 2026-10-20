@@ -48,6 +48,9 @@ export type AnalyticsDashboardLabels = {
   traffic_channel_title: string;
   traffic_channel_hint: string;
   traffic_channel_paid: string;
+  traffic_google_ads: string;
+  traffic_meta_ads: string;
+  traffic_other_paid: string;
   traffic_channel_organic: string;
   traffic_channel_direct: string;
   hint_kpi_whatsapp: string;
@@ -237,6 +240,12 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
             hint={t.traffic_channel_hint}
             organic={d.whatsappTraffic.organic}
             organicLabel={t.traffic_channel_organic}
+            googleAds={d.whatsappTraffic.googleAds}
+            metaAds={d.whatsappTraffic.metaAds}
+            otherPaid={d.whatsappTraffic.otherPaid}
+            googleAdsLabel={t.traffic_google_ads}
+            metaAdsLabel={t.traffic_meta_ads}
+            otherPaidLabel={t.traffic_other_paid}
             paid={d.whatsappTraffic.paid}
             paidLabel={t.traffic_channel_paid}
             title={t.traffic_channel_title}
@@ -458,6 +467,12 @@ export function AnalyticsDashboard(props: AnalyticsDashboardProps) {
             hint={t.traffic_channel_hint}
             organic={d.whatsappTraffic.organic}
             organicLabel={t.traffic_channel_organic}
+            googleAds={d.whatsappTraffic.googleAds}
+            metaAds={d.whatsappTraffic.metaAds}
+            otherPaid={d.whatsappTraffic.otherPaid}
+            googleAdsLabel={t.traffic_google_ads}
+            metaAdsLabel={t.traffic_meta_ads}
+            otherPaidLabel={t.traffic_other_paid}
             paid={d.whatsappTraffic.paid}
             paidLabel={t.traffic_channel_paid}
             title={t.traffic_channel_title}

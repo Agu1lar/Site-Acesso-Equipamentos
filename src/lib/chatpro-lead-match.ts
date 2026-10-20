@@ -9,6 +9,7 @@ import {
 } from '@/lib/chatpro-webhook';
 import { findLeadIdForChatProPhone } from '@/lib/chatpro-lead-find';
 import { uploadGoogleAdsConfirmedContactConversion } from '@/lib/google-ads-offline-conversions';
+import { uploadMetaConfirmedContact } from '@/lib/meta-confirmed-contact';
 import { db } from '@/libs/DB';
 import { logger } from '@/libs/Logger';
 import { leadsSchema } from '@/models/Schema';
@@ -74,6 +75,12 @@ export async function applyChatProReplyToLead(event: ChatProInboundEvent): Promi
     .where(eq(leadsSchema.id, lead.id));
 
   if (clientReply) {
+    try {
+      await uploadMetaConfirmedContact({ leadId: lead.id, phone: event.phoneKey, repliedAt: lead.whatsappRepliedAt ?? now });
+    } catch {
+      // A Meta outage must not block the independent Google Ads delivery.
+      logger.warn('Meta confirmed contact delivery failed', { leadId: lead.id });
+    }
     await uploadGoogleAdsConfirmedContactConversion({
       leadId: lead.id,
       conversionDate: now,

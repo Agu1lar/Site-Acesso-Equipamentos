@@ -171,6 +171,8 @@ export const whatsappAttributionTokensSchema = pgTable(
     phoneKey: varchar('phone_key', { length: 20 }),
     claimedAt: timestamp('claimed_at', { mode: 'date' }),
     expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+    metaContext: jsonb('meta_context').$type<{ consent: true; fbp?: string; fbc?: string }>(),
+    metaContactSentAt: timestamp('meta_contact_sent_at', { mode: 'date' }),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   },
   (table) => [uniqueIndex('whatsapp_attribution_tokens_token_uidx').on(table.token)],

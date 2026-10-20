@@ -16,6 +16,7 @@ import {
   captureGoogleAdsConversion,
   getGoogleAdsContactConversionSendTo,
 } from '@/lib/google-analytics';
+import { captureMetaContact } from '@/lib/meta-pixel';
 
 export const ADS_CONTACT_CONVERSION_SESSION_KEY = 'acesso_ads_contact_conversion';
 
@@ -144,6 +145,7 @@ export function resetAdsContactConversion() {
 export async function fireAdsContactConversion(
   input: AdsContactConversionInput,
 ): Promise<AdsContactConversionResult> {
+  captureMetaContact(input);
   const sendTo = getGoogleAdsContactConversionSendTo();
   if (!sendTo) {
     return { fired: false, transactionId: null, reason: 'not_configured' };

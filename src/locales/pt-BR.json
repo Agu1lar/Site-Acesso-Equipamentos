@@ -306,9 +306,9 @@
   },
   "CookieConsent": {
     "title": "Cookies e privacidade",
-    "description": "Usamos cookies essenciais para o site funcionar (orçamento, sessão e medição de conversão de campanhas pagas, como clique no WhatsApp com origem do anúncio). Com sua autorização, usamos PostHog e Google Analytics para medir visitas, comportamento e localização aproximada. Dados podem ser processados fora do Brasil.",
+    "description": "Usamos cookies essenciais para o site funcionar (orçamento, sessão e medição de conversão de campanhas pagas, como clique no WhatsApp com origem do anúncio). Com sua autorização, usamos PostHog, Google Analytics e o Pixel da Meta para medir visitas, comportamento, conversões de anúncios e localização aproximada. Dados podem ser processados fora do Brasil.",
     "privacy_link": "Política de privacidade",
-    "accept": "Aceitar analytics",
+    "accept": "Aceitar analytics e publicidade",
     "reject": "Somente essenciais",
     "manage_link": "Preferências de cookies"
   },
@@ -339,7 +339,7 @@
       },
       "data": {
         "title": "Quais dados coletamos",
-        "body": "No formulário de orçamento podemos receber nome, e-mail, telefone, empresa (opcional), cidade da obra, equipamento de interesse, período de locação e mensagem. Cookies essenciais guardam preferências de sessão (ex.: carrinho de orçamento) e a medição de conversão de visitas vindas de anúncios (ex.: clique no WhatsApp atribuído à campanha). Analytics opcional (PostHog e Google Analytics) só é ativado se você aceitar no banner; mede páginas vistas, comportamento e, se permitido, localização aproximada (cidade)."
+        "body": "No formulário de orçamento podemos receber nome, e-mail, telefone, empresa (opcional), cidade da obra, equipamento de interesse, período de locação e mensagem. Cookies essenciais guardam preferências de sessão (ex.: carrinho de orçamento) e a medição de conversão de visitas vindas de anúncios (ex.: clique no WhatsApp atribuído à campanha). Analytics e publicidade opcionais (PostHog, Google Analytics e Pixel da Meta) só é ativado se você aceitar no banner; mede páginas vistas, comportamento e, se permitido, localização aproximada (cidade)."
       },
       "purpose": {
         "title": "Para que usamos os dados",
@@ -347,7 +347,7 @@
       },
       "sharing": {
         "title": "Compartilhamento",
-        "body": "Podemos compartilhar dados com provedores de hospedagem (Vercel), banco de dados (Neon), e-mail (Resend) e analytics (PostHog, se aceito) estritamente para operar o site e atender leads. Esses provedores são contratados com obrigações de confidencialidade e segurança."
+        "body": "Podemos compartilhar dados com provedores de hospedagem (Vercel), banco de dados (Neon), e-mail (Resend) e analytics e publicidade (PostHog, Google e Meta, se aceitos) estritamente para operar o site e atender leads. Esses provedores são contratados com obrigações de confidencialidade e segurança."
       },
       "rights": {
         "title": "Seus direitos",
@@ -660,7 +660,7 @@
     "leads_attribution_title": "Campanha e gclid",
     "leads_attribution_body": "Mostra de onde o visitante veio (Google Ads, rede social, etc.). O gclid ajuda a ligar o lead ao clique no anúncio.",
     "leads_traffic_counters_title": "Contadores tráfego, orgânico e direto",
-    "leads_traffic_counters_body": "Tráfego, orgânico e direto contam cliques no WhatsApp. Tráfego é anúncio pago. Orgânico é busca ou rede social. Direto é quem chegou sem campanha. Clique repetido no mesmo botão em poucos segundos conta uma vez.",
+    "leads_traffic_counters_body": "Tráfego, orgânico e direto contam cliques no WhatsApp. Google Ads e Meta Ads são separados pelos identificadores do Google e pelos parâmetros de campanha (UTM). Orgânico é busca ou rede social sem anúncio. Direto é quem chegou sem campanha. Clique repetido no mesmo botão em poucos segundos conta uma vez.",
     "section_clients_title": "Clientes — o que significa",
     "clients_dedup_title": "Um cliente, vários contatos",
     "clients_dedup_body": "O sistema agrupa automaticamente por e-mail, telefone ou conta Google. Se a mesma pessoa enviar outro orçamento ou aceitar cookies, o histórico fica na mesma ficha.",
@@ -721,8 +721,8 @@
     "title": "Leads de orçamento",
     "title_week": "Leads da semana",
     "week_traffic_title": "Cliques por origem",
-    "week_traffic_hint": "Tráfego é anúncio pago. Orgânico é busca ou rede social. Direto é quem chegou sem campanha. Clique repetido no mesmo botão em poucos segundos conta uma vez.",
-    "week_traffic_paid": "Tráfego",
+    "week_traffic_hint": "Google Ads e Meta Ads são separados pelos identificadores do Google e pelos parâmetros de campanha (UTM). Orgânico é busca ou rede social sem anúncio. Direto é quem chegou sem campanha. Clique repetido no mesmo botão em poucos segundos conta uma vez.",
+    "week_traffic_paid": "Total de anúncios",
     "week_traffic_organic": "Orgânico",
     "week_traffic_direct": "Direto",
     "week_whatsapp_detail_link": "Ver métricas completas",
@@ -745,7 +745,9 @@
     "filter_city": "Cidade",
     "filter_city_placeholder": "Ex.: Belo Horizonte",
     "filter_origin": "Origem",
-    "origin_channel_paid": "Paga",
+    "origin_channel_paid": "Outros anúncios",
+    "origin_google_ads": "Google Ads",
+    "origin_meta_ads": "Meta Ads",
     "origin_channel_organic": "Orgânico",
     "origin_channel_direct": "Direto",
     "filter_campaign": "Campanha UTM",
@@ -963,10 +965,13 @@
     "whatsapp_hero_rate": "{rate}% das visualizações de página viraram clique no WhatsApp",
     "whatsapp_hero_previous_period": "{count, plural, =0 {Nenhum clique no período de comparação} one {# clique no período de comparação} other {# cliques no período de comparação}}",
     "whatsapp_hero_consent_label": "{withConsent} de {total} com cookie analytics (GA4/PostHog)",
-    "whatsapp_hero_consent_hint": "Todo clique WhatsApp sobe no painel e dispara a tag do Google Ads. Em visitas de campanha paga, a atribuição (gclid) é essencial e não depende do banner. Cookie analytics só liga GA4/PostHog e geo.",
+    "whatsapp_hero_consent_hint": "Todo clique WhatsApp sobe no painel e dispara a tag do Google Ads. Em visitas de campanha paga, a atribuição (gclid) é essencial e não depende do banner. Cookie analytics libera GA4, PostHog, Pixel da Meta e geo.",
     "traffic_channel_title": "Cliques por origem",
-    "traffic_channel_hint": "Tráfego é anúncio pago. Orgânico é busca ou rede social. Direto é quem chegou sem campanha. Clique repetido no mesmo botão em poucos segundos conta uma vez. Os números seguem o período filtrado acima.",
-    "traffic_channel_paid": "Tráfego",
+    "traffic_channel_hint": "Google Ads e Meta Ads são separados pelos identificadores do Google e pelos parâmetros de campanha (UTM). Orgânico é busca ou rede social sem anúncio. Direto é quem chegou sem campanha. Clique repetido no mesmo botão em poucos segundos conta uma vez. Os números seguem o período filtrado acima.",
+    "traffic_channel_paid": "Total de anúncios",
+    "traffic_google_ads": "Google Ads",
+    "traffic_meta_ads": "Meta Ads",
+    "traffic_other_paid": "Outros anúncios",
     "traffic_channel_organic": "Orgânico",
     "traffic_channel_direct": "Direto",
     "kpi_leads": "Leads (formulário)",
@@ -978,7 +983,7 @@
     "help_button_label": "O que significa esta métrica?",
     "hint_kpi_page_views": "Quantas vezes uma página do site foi aberta no período. Só conta visitantes que aceitaram cookies de analytics.",
     "hint_kpi_active_time": "Soma do tempo com a aba visível e com interação recente (mouse, toque ou teclado). Aba em segundo plano não entra.",
-    "hint_kpi_whatsapp": "Cliques WhatsApp no site: contador operacional + tag de conversão Ads. Em campanha paga, a atribuição ao anúncio é essencial (independe do banner). Cookie analytics libera só GA4/PostHog e geo.",
+    "hint_kpi_whatsapp": "Cliques WhatsApp no site: contador operacional + tag de conversão Ads. Em campanha paga, a atribuição ao anúncio é essencial (independe do banner). Cookie analytics libera GA4, PostHog, Pixel da Meta e geo.",
     "hint_kpi_phone": "Quantas vezes alguém clicou em um link tel: para ligar. Evento separado do WhatsApp.",
     "hint_kpi_leads": "Orçamentos enviados com sucesso pelo formulário do site no período selecionado.",
     "hint_chart_top_pages": "Páginas com mais visualizações e tempo médio ativo. Os nomes são traduzidos do endereço técnico (passe o mouse para ver a URL).",

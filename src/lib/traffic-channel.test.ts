@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   classifyTrafficChannel,
+  classifyPaidPlatform,
   formatTrafficChannelLabel,
   parseTrafficChannelParam,
   tallyTrafficChannels,
@@ -50,7 +51,7 @@ describe('classifyTrafficChannel', () => {
 
 describe('formatTrafficChannelLabel', () => {
   it('returns Portuguese channel names', () => {
-    expect(formatTrafficChannelLabel({ gclid: '1' })).toBe('Paga');
+    expect(formatTrafficChannelLabel({ gclid: '1' })).toBe('Google Ads');
     expect(formatTrafficChannelLabel({ utmSource: 'google' })).toBe('Orgânico');
     expect(formatTrafficChannelLabel({})).toBe('Direto');
   });
@@ -66,6 +67,20 @@ describe('parseTrafficChannelParam', () => {
 });
 
 describe('tallyTrafficChannels', () => {
+  it('separates ad platforms without treating organic social visits as ads', () => {
+    expect(classifyPaidPlatform({ utmSource: 'facebook', utmMedium: 'social' })).toBeNull();
+    expect(classifyPaidPlatform({ utmSource: 'ig', utmMedium: 'paid_social' })).toBe('metaAds');
+    expect(classifyPaidPlatform({ utmSource: 'meta', utmMedium: 'paid_social', gclid: '1' })).toBe('googleAds');
+    const counts = tallyTrafficChannels([
+      { utmSource: 'google', utmMedium: 'cpc' },
+      { utmSource: 'facebook', utmMedium: 'paid_social' },
+      { utmSource: 'instagram', utmMedium: 'paid_social' },
+      { utmSource: 'linkedin', utmMedium: 'cpc' },
+      { utmSource: 'facebook', utmMedium: 'social' },
+    ]);
+    expect(counts).toMatchObject({ paid: 4, googleAds: 1, metaAds: 2, otherPaid: 1, organic: 1 });
+    expect(counts.paid).toBe(counts.googleAds + counts.metaAds + counts.otherPaid);
+  });
   it('splits rows into geral and the three channels', () => {
     expect(
       tallyTrafficChannels([
@@ -75,6 +90,9 @@ describe('tallyTrafficChannels', () => {
         {},
       ]),
     ).toStrictEqual({
+      googleAds: 1,
+      metaAds: 0,
+      otherPaid: 0,
       total: 4,
       paid: 1,
       organic: 1,
