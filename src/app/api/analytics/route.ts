@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import * as z from 'zod';
 import { recordAnalyticsEvent } from '@/lib/analytics-events';
 import { uploadGoogleAdsOfflineClickConversion } from '@/lib/google-ads-offline-conversions';
@@ -33,13 +33,6 @@ export const POST = async (request: Request) => {
 
     let refCode: string | null = null;
     if (data.eventType === 'whatsapp_click') {
-      if (event?.id && !event.reused) {
-        await uploadGoogleAdsOfflineClickConversion({
-          analyticsEventId: event.id,
-          attribution: data.attribution,
-        });
-      }
-
       refCode = await mintWhatsAppAttributionToken({
         metaContext: data.analyticsConsent === true ? data.metaContext : undefined,
         origin: data.origin,
@@ -49,6 +42,23 @@ export const POST = async (request: Request) => {
         device: data.device,
         attribution: data.attribution,
       });
+
+      // Return the WhatsApp reference before a slow Ads request can exhaust the browser's timeout.
+      if (event?.id && !event.reused) {
+        after(async () => {
+          try {
+            await uploadGoogleAdsOfflineClickConversion({
+              analyticsEventId: event.id,
+              attribution: data.attribution,
+            });
+          } catch (error) {
+            logger.warn('Deferred Ads click upload failed', {
+              analyticsEventId: event.id,
+              message: error instanceof Error ? error.message : String(error),
+            });
+          }
+        });
+      }
     }
 
     return NextResponse.json({ ok: true, refCode });
