@@ -44,6 +44,15 @@ describe('parseAcessoChatWebhook', () => {
     expect(event && isChatProClientReply(event)).toBe(true);
     expect(event?.messagePreview).toContain('Cód. ABCD1234');
   });
+  it('accepts native customer messages still waiting for an attendant', () => {
+    const event = parseAcessoChatWebhook({
+      ...message,
+      conversation: { ...conversation, meta: { ...conversation.meta, assignee: null, assignee_type: null } },
+    });
+    expect(event?.event).toBe('received_message');
+    expect(event?.assigneeId).toBeNull();
+    expect(event && isChatProClientReply(event)).toBe(true);
+  });
   it('keeps outgoing messages separate from customer conversions', () => {
     const event = parseAcessoChatWebhook({ ...message, message_type: 'outgoing' });
     expect(event?.fromMe).toBe(true);

@@ -11,7 +11,7 @@ const conversationSchema = z.object({
   meta: z.object({
     sender: contactSchema,
     assignee: z.object({ id: z.number() }).nullable().optional(),
-    assignee_type: z.string().optional(),
+    assignee_type: z.string().nullable().optional(),
     team: z.object({ id: z.number() }).nullable().optional(),
   }),
   messages: z.array(z.object({ id: z.number(), status: z.string().optional() })).optional(),
