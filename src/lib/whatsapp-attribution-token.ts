@@ -14,7 +14,6 @@ import {
 } from '@/lib/chatpro-roi-eligibility';
 import { loadLastRoiEvaluationStage } from '@/lib/chatpro-roi-last-evaluation';
 import {
-  attributionQualifiesForWhatsAppBridge,
   extractWhatsAppAttributionRefCode,
 } from '@/lib/whatsapp-attribution-bridge';
 import { WHATSAPP_CLICK_DEDUP_WINDOW_MS } from '@/lib/whatsapp-click-idempotency';
@@ -104,6 +103,7 @@ async function findRecentUnclaimedWhatsAppAttributionToken(input: MintWhatsAppAt
 
   const since = new Date(Date.now() - WHATSAPP_CLICK_DEDUP_WINDOW_MS);
   const clickId = tokenClickId(attribution);
+  if (!clickId) { return null; }
 
   const [row] = await db
     .select({ token: whatsappAttributionTokensSchema.token })
@@ -131,7 +131,7 @@ async function findRecentUnclaimedWhatsAppAttributionToken(input: MintWhatsAppAt
  */
 export async function mintWhatsAppAttributionToken(input: MintWhatsAppAttributionTokenInput) {
   const attribution = input.attribution;
-  if (!attribution || !attributionQualifiesForWhatsAppBridge(attribution)) {
+  if (!attribution?.landingPage && !attribution?.gclid && !attribution?.gbraid && !attribution?.wbraid && !attribution?.utmSource) {
     return null;
   }
 
