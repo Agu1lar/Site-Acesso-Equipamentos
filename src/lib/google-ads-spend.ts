@@ -192,6 +192,7 @@ type GoogleAdsSearchRow = {
   campaign?: { name?: string };
   metrics?: { costMicros?: string };
   customer?: { currencyCode?: string };
+  segments?: { date?: string };
 };
 
 type GoogleAdsSearchResponse = {
@@ -273,6 +274,76 @@ export async function fetchGoogleAdsCampaignSpend(
     currencyCode,
     campaignsMatched: Object.keys(spendByCampaign).length,
   };
+}
+
+export type GoogleAdsDailySpend = {
+  date: string;
+  spendBrl: number;
+};
+
+/**
+ * Fetches account spend per day for a Brasília date range.
+ * @param options Inclusive YYYY-MM-DD bounds.
+ * @returns One row per day that had spend.
+ */
+export async function fetchGoogleAdsDailySpend(options: {
+  dateFrom: string;
+  dateTo: string;
+}): Promise<GoogleAdsDailySpend[]> {
+  if (!/^\d{4}-\d{2}-\d{2}$/u.test(options.dateFrom) || !/^\d{4}-\d{2}-\d{2}$/u.test(options.dateTo)) {
+    throw new Error('google_ads_date_invalid');
+  }
+
+  const creds = readConfiguredGoogleAdsCredentials();
+  const customerId = normalizeGoogleAdsCustomerId(creds.customerId);
+  const loginCustomerId = creds.loginCustomerId
+    ? normalizeGoogleAdsCustomerId(creds.loginCustomerId)
+    : null;
+  const accessToken = await fetchGoogleAdsAccessToken();
+  const query = [
+    'SELECT segments.date, metrics.cost_micros',
+    'FROM campaign',
+    `WHERE segments.date BETWEEN '${options.dateFrom}' AND '${options.dateTo}'`,
+  ].join(' ');
+
+  const microsByDate = new Map<string, number>();
+  let pageToken: string | undefined;
+
+  do {
+    const url = new URL(
+      `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${customerId}/googleAds:search`,
+    );
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        'content-type': 'application/json',
+        ...(creds.developerToken ? { 'developer-token': creds.developerToken } : {}),
+        ...(loginCustomerId ? { 'login-customer-id': loginCustomerId } : {}),
+      },
+      body: JSON.stringify({ query, pageToken }),
+      signal: AbortSignal.timeout(45_000),
+    });
+    const payload = (await response.json()) as GoogleAdsSearchResponse & {
+      error?: { message?: string };
+    };
+    if (!response.ok) {
+      throw new Error(payload.error?.message || 'google_ads_search_failed');
+    }
+    for (const row of payload.results ?? []) {
+      const day = row.segments?.date;
+      const micros = Number(row.metrics?.costMicros ?? 0);
+      if (!day || !Number.isFinite(micros) || micros <= 0) {
+        continue;
+      }
+      microsByDate.set(day, (microsByDate.get(day) ?? 0) + micros);
+    }
+    pageToken = payload.nextPageToken;
+  } while (pageToken);
+
+  return [...microsByDate.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([date, micros]) => ({ date, spendBrl: microsToCurrency(micros) }));
 }
 
 /** Resets OAuth token cache (tests). */

@@ -337,6 +337,20 @@
       "when": 1791568446320,
       "tag": "0051_meta_confirmed_contacts",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1792697400000,
+      "tag": "0052_closed_proposals",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1792702000000,
+      "tag": "0053_roas_spend_days",
+      "breakpoints": true
     }
   ]
 }

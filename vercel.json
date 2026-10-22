@@ -5,6 +5,10 @@
     {
       "path": "/api/cron/chatpro-retention",
       "schedule": "20 3 * * *"
+    },
+    {
+      "path": "/api/cron/roas-spend",
+      "schedule": "10 6 * * *"
     }
   ],
   "framework": "nextjs",

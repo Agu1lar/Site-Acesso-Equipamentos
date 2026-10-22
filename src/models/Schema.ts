@@ -5,6 +5,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   serial,
   text,
@@ -420,4 +421,29 @@ export const rateLimitBucketsSchema = pgTable('rate_limit_buckets', {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
+});
+
+/** Approved proposals attributed to paid WhatsApp traffic. No phones, names, or click ids. */
+export const closedProposalsSchema = pgTable('closed_proposals', {
+  id: serial('id').primaryKey(),
+  proposalId: varchar('proposal_id', { length: 40 }).notNull().unique(),
+  numero: varchar('numero', { length: 40 }).notNull(),
+  approvedAt: timestamp('approved_at', { mode: 'date' }).notNull(),
+  valorTotal: numeric('valor_total', { precision: 14, scale: 2 }).notNull(),
+  matchKind: varchar('match_kind', { length: 20 }).notNull(),
+  leadId: integer('lead_id'),
+  traffic: boolean('traffic').notNull().default(false),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+/** Daily Google Ads spend used by the ROAS panel. One row per Brasília day. */
+export const roasSpendDaysSchema = pgTable('roas_spend_days', {
+  id: serial('id').primaryKey(),
+  spendDate: date('spend_date', { mode: 'string' }).notNull().unique(),
+  spendBrl: numeric('spend_brl', { precision: 14, scale: 2 }).notNull(),
+  fetchedAt: timestamp('fetched_at', { mode: 'date' }).defaultNow().notNull(),
 });

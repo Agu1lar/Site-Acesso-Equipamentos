@@ -20,7 +20,7 @@ type AdminShellProps = {
     leadsConsultaLink: string;
     clientsLink: string;
     analyticsLink: string;
-    chatproRoiLink: string;
+    roasLink: string;
     blogLink: string;
     blogNewLink: string;
     equipmentLink: string;
@@ -88,9 +88,9 @@ export function AdminShell(props: AdminShellProps) {
             </li>
             <li>
               <AdminNavLink
-                href="/dashboard/chatpro-roi"
-                icon="chatpro"
-                label={props.labels.chatproRoiLink}
+                href="/dashboard/roas"
+                icon="analytics"
+                label={props.labels.roasLink}
               />
             </li>
             <li>
