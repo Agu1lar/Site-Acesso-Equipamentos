@@ -1,6 +1,7 @@
 import { COOKIE_CONSENT_STORAGE_KEY } from '@/lib/cookie-consent';
 import { isInternalAnalyticsPath } from '@/lib/analytics-internal-paths';
 import { Env } from '@/libs/Env';
+import { captureMetaClickContext, clearMetaClickContext } from '@/lib/meta-click-context';
 
 type PixelCommand = [string, ...unknown[]];
 type PixelFunction = ((...args: PixelCommand) => void) & {
@@ -41,6 +42,7 @@ export function canTrackMetaPixel() {
 /** Set up the official Pixel queue; the script component loads the SDK after consent. */
 export function initializeMetaPixel() {
   if (!canTrackMetaPixel()) { return false; }
+  captureMetaClickContext();
   if (!window.fbq) {
     const pixel: PixelFunction = Object.assign((...args: PixelCommand) => {
       if (pixel.callMethod) { pixel.callMethod(...args); }
@@ -61,6 +63,7 @@ export function initializeMetaPixel() {
 
 /** Pause an already loaded Pixel when the visitor withdraws consent. */
 export function revokeMetaPixelConsent() {
+  clearMetaClickContext();
   if (typeof window !== 'undefined') { window.fbq?.('consent', 'revoke'); }
   lastPage = null;
 }

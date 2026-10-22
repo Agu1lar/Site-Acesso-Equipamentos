@@ -39,6 +39,20 @@ paga, como `paid_social`. Uma referencia social sem midia paga continua organica
 Usar nos anuncios `utm_source=facebook&utm_medium=paid_social` (ou `instagram`).
 Os contadores do site nao comprovam atribuicao nem aceite de conversao pela Meta.
 
+## Preservacao do clique Meta
+
+Apos consentimento, o site preserva o `fbclid` real da URL no formato `fbc`, com
+timestamp estavel na sessao. Usa o cookie `_fbc` valido quando disponivel e mantem
+o contexto durante a navegacao para envio com o contato confirmado. Nao inventa
+identificadores quando a visita nao possui clique Meta e nao classifica `fbclid`
+isoladamente como anuncio pago: links organicos tambem podem conter esse parametro.
+Revogar o consentimento apaga a copia de sessao. Nenhuma conversao historica e
+reenviada por essa captura; o `event_id` de contato permanece inalterado.
+
+Em 22/10/2026, a lista de permissao do conjunto de dados foi configurada para
+`acessoequipamentos.com.br` e seus subdominios. Outros dominios, incluindo
+`localhost`, nao devem alimentar as metricas de producao desse conjunto.
+
 ## Validacao
 
 Executar os testes `meta-pixel`, `meta-confirmed-contact`,

@@ -1,4 +1,5 @@
 import { canTrackMetaPixel } from '@/lib/meta-pixel';
+import { captureMetaClickContext } from '@/lib/meta-click-context';
 
 /** Reads matching cookies only after the visitor accepts analytics and advertising. */
 export function readMetaConversionContext() {
@@ -8,5 +9,5 @@ export function readMetaConversionContext() {
     return [name, value.join('=')];
   }));
   const valid = (value: string | undefined) => value && /^fb\.\d+\.\d+\.[\w.-]+$/.test(value) ? value : undefined;
-  return { consent: true as const, fbp: valid(cookies.get('_fbp')), fbc: valid(cookies.get('_fbc')) };
+  return { consent: true as const, fbp: valid(cookies.get('_fbp')), fbc: captureMetaClickContext() };
 }
