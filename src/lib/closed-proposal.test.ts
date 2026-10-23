@@ -13,6 +13,16 @@ function trafficToken(phoneKey: string, leadId: number, extras?: Partial<ClosedP
 }
 
 describe('decideClosedProposalMatch', () => {
+  it('treats the 8 local digits as the same phone', () => {
+    expect(
+      decideClosedProposalMatch({
+        phones: ['88739655'],
+        attendance: [],
+        tokens: [trafficToken('5531988739655', 7)],
+      }),
+    ).toEqual({ kind: 'phone', leadId: 7 });
+  });
+
   it('matches one claimed traffic lead by phone', () => {
     expect(
       decideClosedProposalMatch({

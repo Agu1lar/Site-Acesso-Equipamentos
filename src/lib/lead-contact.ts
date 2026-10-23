@@ -41,6 +41,40 @@ export function phoneMatchKey(phone: string | null | undefined) {
   return local.length >= 10 ? local : null;
 }
 
+/**
+ * Eight digits that stay the same when a phone gains DDD, the mobile 9, or punctuation.
+ * @param phone Raw phone from the proposal or from WhatsApp.
+ * @returns The local 8 digits, or null when the phone is shorter than that.
+ */
+export function subscriberKey(phone: string | null | undefined) {
+  const digits = phone?.replace(/\D/g, '') ?? '';
+  if (digits.length < 8) {
+    return null;
+  }
+
+  let local = digits;
+  if (local.startsWith('55') && local.length >= 12) {
+    local = local.slice(2);
+  }
+  if (local.length > 11) {
+    local = local.slice(-11);
+  }
+  if (local.length === 11 && local[2] === '9') {
+    return local.slice(3);
+  }
+  if (local.length === 10) {
+    return local.slice(2);
+  }
+  if (local.length === 9 && local.startsWith('9')) {
+    return local.slice(1);
+  }
+  if (local.length === 8) {
+    return local;
+  }
+
+  return local.slice(-8);
+}
+
 /** True when two lead rows likely belong to the same person. */
 export function leadsShareContact(a: Pick<LeadRecord, 'email' | 'phone'>, b: Pick<LeadRecord, 'email' | 'phone'>) {
   if (a.email?.trim() && b.email?.trim() && normalizeLeadEmail(a.email) === normalizeLeadEmail(b.email)) {

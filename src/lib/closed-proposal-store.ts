@@ -4,7 +4,7 @@ import { and, count, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import type { ClosedProposalAttendance, ClosedProposalToken } from '@/lib/closed-proposal';
 import { acceptNameJudgements, decideClosedProposalMatch } from '@/lib/closed-proposal';
 import { judgeClosedProposalName } from '@/lib/closed-proposal-name-judge';
-import { phoneMatchKey } from '@/lib/lead-contact';
+import { subscriberKey } from '@/lib/lead-contact';
 import { db } from '@/libs/DB';
 import { closedProposalsSchema, whatsappAttributionTokensSchema } from '@/models/Schema';
 
@@ -43,7 +43,7 @@ function toRecord(row: { matchKind: string; leadId: number | null; traffic: bool
 function collectPhoneKeys(phones: string[], attendance: ClosedProposalAttendance[]) {
   const keys = new Set<string>();
   for (const phone of [...phones, ...attendance.map((entry) => entry.phoneKey)]) {
-    const key = phoneMatchKey(phone);
+    const key = subscriberKey(phone);
     if (key) {
       keys.add(key);
     }
@@ -69,7 +69,7 @@ async function loadClaimedTokens(phoneKeys: string[]): Promise<ClosedProposalTok
     .where(
       and(
         isNotNull(whatsappAttributionTokensSchema.claimedAt),
-        inArray(whatsappAttributionTokensSchema.phoneKey, phoneKeys),
+        inArray(sql`right(${whatsappAttributionTokensSchema.phoneKey}, 8)`, phoneKeys),
       ),
     );
 

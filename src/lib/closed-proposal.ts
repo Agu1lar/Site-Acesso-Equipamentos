@@ -1,4 +1,4 @@
-import { phoneMatchKey } from '@/lib/lead-contact';
+import { subscriberKey } from '@/lib/lead-contact';
 import { attributionQualifiesForWhatsAppBridge } from '@/lib/whatsapp-attribution-bridge';
 
 export type ClosedProposalAttendance = {
@@ -47,7 +47,7 @@ function leadIdsForPhone(phoneKey: string, tokens: ClosedProposalToken[]) {
   const leadIds = new Set<number>();
   for (const token of tokens) {
     const leadId = trafficLeadId(token);
-    const tokenKey = phoneMatchKey(token.phoneKey);
+    const tokenKey = subscriberKey(token.phoneKey);
     if (leadId === null || tokenKey !== phoneKey) {
       continue;
     }
@@ -69,7 +69,7 @@ export function decideClosedProposalMatch(input: {
 }): ClosedProposalMatch {
   const proposalKeys = new Set<string>();
   for (const phone of input.phones) {
-    const key = phoneMatchKey(phone);
+    const key = subscriberKey(phone);
     if (key) {
       proposalKeys.add(key);
     }
@@ -99,11 +99,10 @@ export function decideClosedProposalMatch(input: {
       continue;
     }
     const name = entry.name.trim();
-    const phoneKey = phoneMatchKey(entry.phoneKey);
-    if (!name || !phoneKey) {
+    if (!name || !subscriberKey(entry.phoneKey)) {
       continue;
     }
-    candidates.push({ phoneKey, name, phoneMatched: false });
+    candidates.push({ phoneKey: entry.phoneKey.trim(), name, phoneMatched: false });
     if (candidates.length === NAME_CANDIDATE_CAP) {
       break;
     }
@@ -134,7 +133,7 @@ export function acceptNameJudgements(
     return { kind: 'none' };
   }
 
-  const phoneKey = phoneMatchKey(candidate.phoneKey);
+  const phoneKey = subscriberKey(candidate.phoneKey);
   if (!phoneKey) {
     return { kind: 'none' };
   }
