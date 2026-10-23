@@ -21,7 +21,8 @@ import {
   openBlankTabForWhatsApp,
 } from '@/lib/open-whatsapp-popup';
 import { buildQuoteWhatsAppUrl } from '@/lib/quote-whatsapp';
-import { trackWhatsAppClick } from '@/lib/track-whatsapp-click';
+import { trackWhatsAppClickWithRef } from '@/lib/track-whatsapp-click';
+import { appendWhatsAppAttributionRefToUrl } from '@/lib/whatsapp-attribution-bridge';
 import { TrackedWhatsAppLink } from '@/components/analytics/TrackedWhatsAppLink';
 import { TrackedPhoneLink } from '@/components/TrackedPhoneLink';
 import { QuoteFormSchema, rentalPeriodOptions, summarizeCartEquipment } from '@/validations/quote';
@@ -170,16 +171,20 @@ export function QuoteForm(props: QuoteFormProps) {
         origin,
       });
 
-    const opened = navigateWhatsAppPopup(whatsappPopup, whatsappUrl);
-    setWhatsappOpened(opened);
-
-    if (opened) {
-      trackWhatsAppClick({
+    let opened = false;
+    if (whatsappPopup && !whatsappPopup.closed) {
+      const refCode = await trackWhatsAppClickWithRef({
         origin: 'site-orcamento-envio',
         equipmentSlug: equipmentSummary.equipmentSlug ?? data.equipmentSlug,
         equipmentName: equipmentSummary.equipmentName ?? data.equipmentName,
       });
+      const target = refCode ? appendWhatsAppAttributionRefToUrl(whatsappUrl, refCode) : whatsappUrl;
+      opened = navigateWhatsAppPopup(whatsappPopup, target);
+      if (!opened) {
+        closeWhatsAppPopup(whatsappPopup);
+      }
     }
+    setWhatsappOpened(opened);
 
     if (body.id) {
       void fetch('/api/leads', {

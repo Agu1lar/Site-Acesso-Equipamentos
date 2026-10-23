@@ -13,6 +13,11 @@ import {
 import { fireAdsContactConversion } from '@/lib/ads-contact-conversion';
 import { captureWhatsAppClick, type WhatsAppClickInput } from '@/lib/posthog-events';
 import {
+  closeWhatsAppPopup,
+  navigateWhatsAppPopup,
+  openBlankTabForWhatsApp,
+} from '@/lib/open-whatsapp-popup';
+import {
   appendWhatsAppAttributionRefToUrl,
 } from '@/lib/whatsapp-attribution-bridge';
 import {
@@ -190,22 +195,28 @@ async function sendWhatsAppClickAnalytics(input: WhatsAppClickInput) {
 }
 
 /**
- * Opens WhatsApp in a new tab with optional campaign ref code in the prefill.
+ * Opens a blank tab in the click, then sends WhatsApp there with the campaign ref.
+ * A blocked popup is not counted.
  * @param href Base wa.me URL.
  * @param input Analytics origin context.
  */
 export async function openTrackedWhatsApp(href: string, input: WhatsAppClickInput) {
   const key = trackDedupKey(input);
-  const inflight = inflightOpens.get(key);
-  if (inflight) {
-    await inflight;
+  if (inflightOpens.has(key)) {
+    return;
+  }
+
+  const popup = openBlankTabForWhatsApp();
+  if (!popup) {
     return;
   }
 
   const run = (async () => {
     const refCode = await trackWhatsAppClickWithRef(input);
     const target = refCode ? appendWhatsAppAttributionRefToUrl(href, refCode) : href;
-    window.open(target, '_blank', 'noopener,noreferrer');
+    if (!navigateWhatsAppPopup(popup, target)) {
+      closeWhatsAppPopup(popup);
+    }
   })();
 
   inflightOpens.set(key, run);
