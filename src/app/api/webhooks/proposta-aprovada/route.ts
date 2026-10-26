@@ -13,7 +13,7 @@ const bodySchema = z.object({
   approvedAt: z.iso.datetime({ offset: true }),
   valorTotal: z.number().finite().min(0),
   companyName: z.string().max(200),
-  phones: z.array(z.string()).max(30),
+  phones: z.array(z.string()).max(2000),
   contactNames: z.array(z.string()).max(30),
   attendance: z
     .array(

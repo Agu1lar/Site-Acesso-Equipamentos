@@ -3,7 +3,7 @@ import 'server-only';
 import { randomBytes } from 'node:crypto';
 import { and, desc, eq, gt, isNull, sql } from 'drizzle-orm';
 import type { AttributionInput } from '@/lib/attribution';
-import { findLeadIdForChatProPhone, loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
+import { findLeadMatchForChatProPhone, loadCampaignLeadSnapshot } from '@/lib/chatpro-lead-find';
 import {
   WHATSAPP_CAMPAIGN_PLACEHOLDER_NAME,
 } from '@/lib/chatpro-roi-lead-enrichment';
@@ -246,7 +246,11 @@ export async function claimWhatsAppAttributionToken(refCode: string, phoneKey: s
     return null;
   }
 
-  let leadId = await findLeadIdForChatProPhone(phoneKey);
+  const match = await findLeadMatchForChatProPhone(phoneKey);
+  if (match.ambiguous) {
+    return null;
+  }
+  let leadId = match.leadId;
 
   if (leadId) {
     const snapshot = await loadCampaignLeadSnapshot(leadId);

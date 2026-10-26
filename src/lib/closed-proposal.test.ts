@@ -46,6 +46,16 @@ describe('decideClosedProposalMatch', () => {
     ).toEqual({ kind: 'none' });
   });
 
+  it('counts a matched attendance phone missing from the phone list', () => {
+    expect(
+      decideClosedProposalMatch({
+        phones: ['31900000000'],
+        attendance: [{ phoneKey: '31999998877', name: 'Ana', phoneMatched: true }],
+        tokens: [trafficToken('31999998877', 9)],
+      }),
+    ).toEqual({ kind: 'phone', leadId: 9 });
+  });
+
   it('returns none when no phone hits and names are absent', () => {
     expect(
       decideClosedProposalMatch({
@@ -54,7 +64,7 @@ describe('decideClosedProposalMatch', () => {
           { phoneKey: '31999998877', name: 'Ana', phoneMatched: true },
           { phoneKey: '31988887766', name: '   ', phoneMatched: false },
         ],
-        tokens: [trafficToken('31999998877', 9)],
+        tokens: [],
       }),
     ).toEqual({ kind: 'none' });
   });

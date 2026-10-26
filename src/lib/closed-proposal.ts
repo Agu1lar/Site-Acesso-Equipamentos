@@ -74,6 +74,15 @@ export function decideClosedProposalMatch(input: {
       proposalKeys.add(key);
     }
   }
+  for (const entry of input.attendance) {
+    if (!entry.phoneMatched) {
+      continue;
+    }
+    const key = subscriberKey(entry.phoneKey);
+    if (key) {
+      proposalKeys.add(key);
+    }
+  }
 
   const leadIds = new Set<number>();
   for (const key of proposalKeys) {
