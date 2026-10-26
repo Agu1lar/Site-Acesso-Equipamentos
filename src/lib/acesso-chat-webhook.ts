@@ -27,6 +27,7 @@ const payloadSchema = z.object({
   updated_at: z.number().optional(),
   changed_attributes: z.array(z.record(z.string(), z.unknown())).optional(),
   message_type: z.string().optional(),
+  content_type: z.string().optional(),
   private: z.boolean().optional(),
   content: z.string().nullable().optional(),
   created_at: z.union([z.string(), z.number()]).optional(),
@@ -89,6 +90,9 @@ export function parseAcessoChatWebhook(payload: unknown): ChatProInboundEvent | 
     conversation.meta.assignee_type === 'User' &&
     conversation.meta.assignee;
   if (!isMessage && !assigned) {
+    return null;
+  }
+  if (isMessage && root.content_type === 'voice_call') {
     return null;
   }
   if (

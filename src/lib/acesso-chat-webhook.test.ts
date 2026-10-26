@@ -59,6 +59,10 @@ describe('parseAcessoChatWebhook', () => {
     expect(event && isChatProClientReply(event)).toBe(false);
     expect(event?.deliveryStatus).toBe(1);
   });
+  it('ignores a WhatsApp call so it does not count as a customer reply', () => {
+    const event = parseAcessoChatWebhook({ ...message, content_type: 'voice_call', content: 'Chamada do WhatsApp' });
+    expect(event).toBeNull();
+  });
   it('ignores private notes and system activities', () => {
     expect(parseAcessoChatWebhook({ ...message, private: true })).toBeNull();
     expect(parseAcessoChatWebhook({ ...message, message_type: 'activity' })).toBeNull();
