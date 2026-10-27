@@ -152,7 +152,12 @@ export async function fireAdsContactConversion(
   }
 
   const enhancedUser = resolveEnhancedConversionUser(input.user);
-  const hashedUserData = enhancedUser ? await buildHashedUserData(enhancedUser) : null;
+  let hashedUserData = null;
+  try {
+    hashedUserData = enhancedUser ? await buildHashedUserData(enhancedUser) : null;
+  } catch {
+    hashedUserData = null;
+  }
   const hasUserData = Boolean(hashedUserData);
 
   const existing = readStoredConversion();

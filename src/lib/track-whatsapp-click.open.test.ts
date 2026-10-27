@@ -36,6 +36,7 @@ function stubWindow(open: () => Window | null) {
     open,
     location: { pathname: '/equipamentos' },
     matchMedia: () => ({ matches: true }),
+    setTimeout: globalThis.setTimeout.bind(globalThis),
   });
 }
 
@@ -43,6 +44,7 @@ describe('openTrackedWhatsApp', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it('skips the conversion when the browser blocks the tab', async () => {
@@ -74,5 +76,44 @@ describe('openTrackedWhatsApp', () => {
     expect(fireAdsContactConversion).toHaveBeenCalledOnce();
     expect(popup.location.href).toContain('ABCD1234');
     expect(popup.location.href).toContain('wa.me');
+  });
+
+  it('still opens WhatsApp when Ads conversion throws', async () => {
+    vi.mocked(fireAdsContactConversion).mockRejectedValueOnce(new Error('hash failed'));
+    const popup = {
+      closed: false,
+      opener: {},
+      location: { href: 'about:blank' },
+      close: vi.fn(),
+    };
+    stubWindow(() => popup as unknown as Window);
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ refCode: null }),
+    })));
+
+    await openTrackedWhatsApp('https://wa.me/5531994700201?text=Oi', { origin: 'ads-erro' });
+
+    expect(popup.location.href).toBe('https://wa.me/5531994700201?text=Oi');
+  });
+
+  it('opens WhatsApp without waiting forever when the ref request is slow', async () => {
+    vi.useFakeTimers();
+    const popup = {
+      closed: false,
+      opener: {},
+      location: { href: 'about:blank' },
+      close: vi.fn(),
+    };
+    stubWindow(() => popup as unknown as Window);
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => undefined)));
+
+    const openPromise = openTrackedWhatsApp('https://wa.me/5531994700201?text=Oi', {
+      origin: 'ref-lento',
+    });
+    await vi.advanceTimersByTimeAsync(500);
+    await openPromise;
+
+    expect(popup.location.href).toBe('https://wa.me/5531994700201?text=Oi');
   });
 });

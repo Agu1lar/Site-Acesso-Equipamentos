@@ -144,19 +144,27 @@ export async function trackWhatsAppClickWithRef(input: WhatsAppClickInput) {
   return promise;
 }
 
+/** Max wait for campaign ref before opening wa.me (keeps the blank tab from sticking). */
+const WHATSAPP_REF_WAIT_MS = 500;
+
 /**
  * Sends one WhatsApp click to Ads, analytics, and Neon.
+ * Ads/hash failures never block the WhatsApp open.
  */
 async function sendWhatsAppClickAnalytics(input: WhatsAppClickInput) {
   syncGoogleAnalyticsConsentFromStorage();
   preparePaidSearchAdsConversion();
   const analyticsConsent = isGoogleAnalyticsConsentGranted();
 
-  await fireAdsContactConversion({
-    source: 'whatsapp',
-    origin: input.origin,
-    equipmentSlug: input.equipmentSlug,
-  });
+  try {
+    await fireAdsContactConversion({
+      source: 'whatsapp',
+      origin: input.origin,
+      equipmentSlug: input.equipmentSlug,
+    });
+  } catch {
+    // Conversion hashing/beacon must not leave the user on about:blank.
+  }
 
   if (analyticsConsent) {
     captureWhatsAppClick(input);
@@ -194,9 +202,30 @@ async function sendWhatsAppClickAnalytics(input: WhatsAppClickInput) {
   }
 }
 
+function resolveWhatsAppPopupTarget(href: string, refCode: string | null) {
+  return refCode ? appendWhatsAppAttributionRefToUrl(href, refCode) : href;
+}
+
 /**
- * Opens a blank tab in the click, then sends WhatsApp there with the campaign ref.
- * A blocked popup is not counted.
+ * Navigates the blank tab to WhatsApp, with a same-gesture fallback if the tab detached.
+ */
+function deliverWhatsAppUrl(popup: Window, whatsappUrl: string) {
+  if (navigateWhatsAppPopup(popup, whatsappUrl)) {
+    return true;
+  }
+
+  closeWhatsAppPopup(popup);
+  try {
+    const fallback = window.open(whatsappUrl, '_blank');
+    return Boolean(fallback && !fallback.closed);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Opens a blank tab in the click, waits briefly for a campaign ref, then always loads WhatsApp.
+ * A blocked popup is not counted. Tracking failures never leave the user on about:blank.
  * @param href Base wa.me URL.
  * @param input Analytics origin context.
  */
@@ -212,11 +241,13 @@ export async function openTrackedWhatsApp(href: string, input: WhatsAppClickInpu
   }
 
   const run = (async () => {
-    const refCode = await trackWhatsAppClickWithRef(input);
-    const target = refCode ? appendWhatsAppAttributionRefToUrl(href, refCode) : href;
-    if (!navigateWhatsAppPopup(popup, target)) {
-      closeWhatsAppPopup(popup);
-    }
+    const refPromise = trackWhatsAppClickWithRef(input).catch(() => null);
+    const timedOut = new Promise<null>((resolve) => {
+      window.setTimeout(() => resolve(null), WHATSAPP_REF_WAIT_MS);
+    });
+    const refCode = await Promise.race([refPromise, timedOut]);
+    deliverWhatsAppUrl(popup, resolveWhatsAppPopupTarget(href, refCode));
+    void refPromise;
   })();
 
   inflightOpens.set(key, run);

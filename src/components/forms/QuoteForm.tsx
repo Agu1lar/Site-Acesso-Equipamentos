@@ -173,15 +173,26 @@ export function QuoteForm(props: QuoteFormProps) {
 
     let opened = false;
     if (whatsappPopup && !whatsappPopup.closed) {
-      const refCode = await trackWhatsAppClickWithRef({
-        origin: 'site-orcamento-envio',
-        equipmentSlug: equipmentSummary.equipmentSlug ?? data.equipmentSlug,
-        equipmentName: equipmentSummary.equipmentName ?? data.equipmentName,
-      });
+      let refCode: string | null = null;
+      try {
+        refCode = await trackWhatsAppClickWithRef({
+          origin: 'site-orcamento-envio',
+          equipmentSlug: equipmentSummary.equipmentSlug ?? data.equipmentSlug,
+          equipmentName: equipmentSummary.equipmentName ?? data.equipmentName,
+        });
+      } catch {
+        refCode = null;
+      }
       const target = refCode ? appendWhatsAppAttributionRefToUrl(whatsappUrl, refCode) : whatsappUrl;
       opened = navigateWhatsAppPopup(whatsappPopup, target);
       if (!opened) {
         closeWhatsAppPopup(whatsappPopup);
+        try {
+          const fallback = window.open(target, '_blank');
+          opened = Boolean(fallback && !fallback.closed);
+        } catch {
+          opened = false;
+        }
       }
     }
     setWhatsappOpened(opened);
