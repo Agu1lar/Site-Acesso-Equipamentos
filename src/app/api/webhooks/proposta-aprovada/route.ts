@@ -10,20 +10,34 @@ export const runtime = 'nodejs';
 const bodySchema = z.object({
   proposalId: z.uuid(),
   numero: z.string().trim().min(1).max(40),
-  approvedAt: z.iso.datetime({ offset: true }),
+  approvedAt: z.iso.datetime({ offset: true }).nullable().optional(),
+  createdAt: z.iso.datetime({ offset: true }).nullable().optional(),
+  closed: z.boolean().optional(),
   valorTotal: z.number().finite().min(0),
   companyName: z.string().max(200),
   phones: z.array(z.string()).max(2000),
   contactNames: z.array(z.string()).max(30),
+  channel: z.enum(['paid', 'organic', 'direct', 'referral']).nullable().optional(),
+  segments: z
+    .object({
+      plataformas: z.number().finite().min(0),
+      guindastes: z.number().finite().min(0),
+      andaimes: z.number().finite().min(0),
+      ferramentas: z.number().finite().min(0),
+    })
+    .optional(),
   attendance: z
     .array(
       z.object({
         phoneKey: z.string(),
         name: z.string().max(200),
         phoneMatched: z.boolean(),
+        channel: z.enum(['paid', 'organic', 'direct', 'referral']).optional(),
+        paidAt: z.iso.datetime({ offset: true }).optional(),
       }),
     )
     .max(8),
+  seller: z.string().trim().min(2).max(40).optional(),
 });
 
 /**
@@ -65,12 +79,17 @@ export async function POST(request: Request) {
     const recorded = await recordClosedProposal({
       proposalId: parsed.data.proposalId,
       numero: parsed.data.numero,
-      approvedAt: new Date(parsed.data.approvedAt),
+      createdAt: parsed.data.createdAt ? new Date(parsed.data.createdAt) : null,
+      approvedAt: parsed.data.approvedAt ? new Date(parsed.data.approvedAt) : null,
+      closed: parsed.data.closed ?? Boolean(parsed.data.approvedAt),
       valorTotal: parsed.data.valorTotal,
       companyName: parsed.data.companyName,
       phones: parsed.data.phones,
       contactNames: parsed.data.contactNames,
       attendance: parsed.data.attendance,
+      channel: parsed.data.channel ?? null,
+      segments: parsed.data.segments ?? null,
+      seller: parsed.data.seller ?? null,
     });
     logger.info('Closed proposal recorded', {
       proposalId: parsed.data.proposalId,

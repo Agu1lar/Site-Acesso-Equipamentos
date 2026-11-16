@@ -351,6 +351,41 @@
       "when": 1792702000000,
       "tag": "0053_roas_spend_days",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1792800000000,
+      "tag": "0054_roas_paid_click",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1792900000000,
+      "tag": "0055_roas_origin",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1793000000000,
+      "tag": "0056_roas_contract_ltv",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1793100000000,
+      "tag": "0057_roas_segments",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1793200000000,
+      "tag": "0058_roas_seller",
+      "breakpoints": true
     }
   ]
 }

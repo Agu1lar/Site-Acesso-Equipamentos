@@ -5,6 +5,8 @@ export type ClosedProposalAttendance = {
   phoneKey: string;
   name: string;
   phoneMatched: boolean;
+  channel?: 'paid' | 'organic' | 'direct' | 'referral';
+  paidAt?: string;
 };
 
 export type ClosedProposalToken = {
