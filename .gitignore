@@ -108,3 +108,7 @@ public/equipamentos/uploads/*
 !public/equipamentos/uploads/.gitkeep
 public/blog/uploads/*
 !public/blog/uploads/.gitkeep
+
+tmp/
+output/
+
