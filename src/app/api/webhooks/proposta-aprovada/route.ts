@@ -14,6 +14,7 @@ const bodySchema = z.object({
   createdAt: z.iso.datetime({ offset: true }).nullable().optional(),
   closed: z.boolean().optional(),
   valorTotal: z.number().finite().min(0),
+  valorLocacao: z.number().finite().min(0).optional(),
   companyName: z.string().max(200),
   phones: z.array(z.string()).max(2000),
   contactNames: z.array(z.string()).max(30),

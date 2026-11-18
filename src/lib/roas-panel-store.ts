@@ -47,6 +47,17 @@ function money(value: string | number | null | undefined) {
   return Number.isFinite(amount) ? amount : 0;
 }
 
+/** Platform-only deals credit rental (segment), not outsourced frete in valorTotal. */
+const sellerCreditSql = sql`case
+  when ${closedProposalsSchema.segmentPlataformas} is not null
+    and coalesce(${closedProposalsSchema.segmentPlataformas}, 0) > 0
+    and coalesce(${closedProposalsSchema.segmentGuindastes}, 0) = 0
+    and coalesce(${closedProposalsSchema.segmentAndaimes}, 0) = 0
+    and coalesce(${closedProposalsSchema.segmentFerramentas}, 0) = 0
+  then ${closedProposalsSchema.segmentPlataformas}
+  else ${closedProposalsSchema.valorTotal}
+end`;
+
 /**
  * Stores Google Ads spend for each day in the range.
  * @param dateFrom Inclusive YYYY-MM-DD start.
@@ -213,7 +224,7 @@ export async function loadRoasPanel(
       .select({
         seller: closedProposalsSchema.seller,
         proposals: count(),
-        valor: sql<string>`coalesce(sum(${closedProposalsSchema.valorTotal}), 0)`,
+        valor: sql<string>`coalesce(sum(${sellerCreditSql}), 0)`,
       })
       .from(closedProposalsSchema)
       .where(and(
