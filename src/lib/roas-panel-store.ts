@@ -143,8 +143,8 @@ export async function loadRoasPanel(
       .select({
         day: dayExpr,
         proposals: sql<number>`count(*) filter (where ${closedProposalsSchema.closed})`,
-        proposalValor: sql<string>`coalesce(sum(${closedProposalsSchema.valorTotal}), 0)`,
-        valor: sql<string>`coalesce(sum(${closedProposalsSchema.valorTotal}) filter (where ${closedProposalsSchema.closed}), 0)`,
+        proposalValor: sql<string>`coalesce(sum(${sellerCreditSql}), 0)`,
+        valor: sql<string>`coalesce(sum(${sellerCreditSql}) filter (where ${closedProposalsSchema.closed}), 0)`,
       })
       .from(closedProposalsSchema)
       .where(
@@ -161,7 +161,7 @@ export async function loadRoasPanel(
       .select({
         day: dayExpr,
         numero: closedProposalsSchema.numero,
-        valor: closedProposalsSchema.valorTotal,
+        valor: sql<string>`${sellerCreditSql}`,
         closed: closedProposalsSchema.closed,
       })
       .from(closedProposalsSchema)
@@ -180,9 +180,9 @@ export async function loadRoasPanel(
         channel: closedProposalsSchema.channel,
         dealKind: closedProposalsSchema.dealKind,
         proposals: count(),
-        proposalValor: sql<string>`coalesce(sum(${closedProposalsSchema.valorTotal}), 0)`,
+        proposalValor: sql<string>`coalesce(sum(${sellerCreditSql}), 0)`,
         closed: sql<number>`count(*) filter (where ${closedProposalsSchema.closed})`,
-        valor: sql<string>`coalesce(sum(${closedProposalsSchema.valorTotal}) filter (where ${closedProposalsSchema.closed}), 0)`,
+        valor: sql<string>`coalesce(sum(${sellerCreditSql}) filter (where ${closedProposalsSchema.closed}), 0)`,
       })
       .from(closedProposalsSchema)
       .where(and(
@@ -214,7 +214,7 @@ export async function loadRoasPanel(
       .select({
         day: approvedDay,
         proposals: count(),
-        valor: sql<string>`coalesce(sum(${closedProposalsSchema.valorTotal}), 0)`,
+        valor: sql<string>`coalesce(sum(${sellerCreditSql}), 0)`,
       })
       .from(closedProposalsSchema)
       .where(and(
@@ -231,7 +231,11 @@ export async function loadRoasPanel(
         guindastes: sql<string>`coalesce(sum(${closedProposalsSchema.segmentGuindastes}), 0)`,
         andaimes: sql<string>`coalesce(sum(${closedProposalsSchema.segmentAndaimes}), 0)`,
         ferramentas: sql<string>`coalesce(sum(${closedProposalsSchema.segmentFerramentas}), 0)`,
-        pending: sql<string>`coalesce(sum(case when ${closedProposalsSchema.segmentPlataformas} is null then ${closedProposalsSchema.valorTotal} else greatest(${closedProposalsSchema.valorTotal} - coalesce(${closedProposalsSchema.segmentPlataformas}, 0) - coalesce(${closedProposalsSchema.segmentGuindastes}, 0) - coalesce(${closedProposalsSchema.segmentAndaimes}, 0) - coalesce(${closedProposalsSchema.segmentFerramentas}, 0), 0) end), 0)`,
+        pending: sql<string>`coalesce(sum(case
+          when ${platformOnlySql} then 0
+          when ${closedProposalsSchema.segmentPlataformas} is null then ${closedProposalsSchema.valorTotal}
+          else greatest(${closedProposalsSchema.valorTotal} - coalesce(${closedProposalsSchema.segmentPlataformas}, 0) - coalesce(${closedProposalsSchema.segmentGuindastes}, 0) - coalesce(${closedProposalsSchema.segmentAndaimes}, 0) - coalesce(${closedProposalsSchema.segmentFerramentas}, 0), 0)
+        end), 0)`,
       })
       .from(closedProposalsSchema)
       .where(and(
@@ -279,7 +283,7 @@ export async function loadRoasPanel(
     if (channel !== 'paid') {
       const [paidClosed] = await db
         .select({
-          valor: sql<string>`coalesce(sum(${closedProposalsSchema.valorTotal}) filter (where ${closedProposalsSchema.closed}), 0)`,
+          valor: sql<string>`coalesce(sum(${sellerCreditSql}) filter (where ${closedProposalsSchema.closed}), 0)`,
         })
         .from(closedProposalsSchema)
         .where(and(
