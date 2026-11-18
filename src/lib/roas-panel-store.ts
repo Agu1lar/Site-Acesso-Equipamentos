@@ -165,7 +165,8 @@ export async function loadRoasPanel(
       .select({
         day: dayExpr,
         proposals: sql<number>`count(*) filter (where ${closedProposalsSchema.closed})`,
-        proposalValor: sql<string>`coalesce(sum(${sellerCreditSql}), 0)`,
+        // Generated deals keep the full Sisloc total; only closed credit drops platform frete.
+        proposalValor: sql<string>`coalesce(sum(${closedProposalsSchema.valorTotal}), 0)`,
         valor: sql<string>`coalesce(sum(${sellerCreditSql}) filter (where ${closedProposalsSchema.closed}), 0)`,
       })
       .from(closedProposalsSchema)
@@ -183,7 +184,10 @@ export async function loadRoasPanel(
       .select({
         day: dayExpr,
         numero: closedProposalsSchema.numero,
-        valor: sql<string>`${sellerCreditSql}`,
+        valor: sql<string>`case
+          when ${closedProposalsSchema.closed} then ${sellerCreditSql}
+          else ${closedProposalsSchema.valorTotal}
+        end`,
         closed: closedProposalsSchema.closed,
       })
       .from(closedProposalsSchema)
@@ -202,7 +206,7 @@ export async function loadRoasPanel(
         channel: closedProposalsSchema.channel,
         dealKind: closedProposalsSchema.dealKind,
         proposals: count(),
-        proposalValor: sql<string>`coalesce(sum(${sellerCreditSql}), 0)`,
+        proposalValor: sql<string>`coalesce(sum(${closedProposalsSchema.valorTotal}), 0)`,
         closed: sql<number>`count(*) filter (where ${closedProposalsSchema.closed})`,
         valor: sql<string>`coalesce(sum(${sellerCreditSql}) filter (where ${closedProposalsSchema.closed}), 0)`,
         frete: sql<string>`coalesce(sum(${sellerFreightSql}) filter (where ${closedProposalsSchema.closed}), 0)`,
