@@ -35,6 +35,9 @@ export type RoasPanel = {
     freightBrl: number;
     proposalBrl: number;
   }[];
+  contractFreightBrl: number;
+  laterFreightBrl: number;
+  ltvFreightBrl: number;
   unassignedProposals: number;
   unassignedBrl: number;
   updatedAt: string | null;
@@ -55,23 +58,31 @@ function money(value: string | number | null | undefined) {
 }
 
 /** Platform-only deals credit rental (segment), not outsourced frete in valorTotal. */
-const platformOnlySql = sql`${closedProposalsSchema.segmentPlataformas} is not null
-  and coalesce(${closedProposalsSchema.segmentPlataformas}, 0) > 0
-  and coalesce(${closedProposalsSchema.segmentGuindastes}, 0) = 0
-  and coalesce(${closedProposalsSchema.segmentAndaimes}, 0) = 0
-  and coalesce(${closedProposalsSchema.segmentFerramentas}, 0) = 0`;
-
 const sellerCreditSql = sql`case
-  when ${platformOnlySql}
+  when ${closedProposalsSchema.segmentPlataformas} is not null
+    and coalesce(${closedProposalsSchema.segmentPlataformas}, 0) > 0
+    and coalesce(${closedProposalsSchema.segmentGuindastes}, 0) = 0
+    and coalesce(${closedProposalsSchema.segmentAndaimes}, 0) = 0
+    and coalesce(${closedProposalsSchema.segmentFerramentas}, 0) = 0
   then ${closedProposalsSchema.segmentPlataformas}
   else ${closedProposalsSchema.valorTotal}
 end`;
 
 const sellerFreightSql = sql`case
-  when ${platformOnlySql}
+  when ${closedProposalsSchema.segmentPlataformas} is not null
+    and coalesce(${closedProposalsSchema.segmentPlataformas}, 0) > 0
+    and coalesce(${closedProposalsSchema.segmentGuindastes}, 0) = 0
+    and coalesce(${closedProposalsSchema.segmentAndaimes}, 0) = 0
+    and coalesce(${closedProposalsSchema.segmentFerramentas}, 0) = 0
   then greatest(${closedProposalsSchema.valorTotal} - ${closedProposalsSchema.segmentPlataformas}, 0)
   else 0
 end`;
+
+const platformOnlySql = sql`${closedProposalsSchema.segmentPlataformas} is not null
+  and coalesce(${closedProposalsSchema.segmentPlataformas}, 0) > 0
+  and coalesce(${closedProposalsSchema.segmentGuindastes}, 0) = 0
+  and coalesce(${closedProposalsSchema.segmentAndaimes}, 0) = 0
+  and coalesce(${closedProposalsSchema.segmentFerramentas}, 0) = 0`;
 
 /**
  * Stores Google Ads spend for each day in the range.
@@ -119,7 +130,15 @@ export async function loadRoasPanel(
 
   let closedRows: { day: string; proposals: number; proposalValor: string; valor: string }[] = [];
   let proposalNumberRows: { day: string; numero: string; valor: string; closed: boolean }[] = [];
-  let originRows: { channel: string | null; dealKind: string | null; proposals: number; proposalValor: string; closed: number; valor: string }[] = [];
+  let originRows: {
+    channel: string | null;
+    dealKind: string | null;
+    proposals: number;
+    proposalValor: string;
+    closed: number;
+    valor: string;
+    frete: string;
+  }[] = [];
   let spendRows: { spendDate: string; spendBrl: string; fetchedAt: Date }[] = [];
   let ltvRows: { day: string; proposals: number; valor: string }[] = [];
   let segmentRow: {
@@ -137,6 +156,9 @@ export async function loadRoasPanel(
     closedBrl: string;
     freightBrl: string;
   }[] = [];
+  let contractFreightBrl = 0;
+  let laterFreightBrl = 0;
+  let ltvFreightBrl = 0;
   let paidContractClosed = '0';
   try {
     closedRows = await db
@@ -183,6 +205,7 @@ export async function loadRoasPanel(
         proposalValor: sql<string>`coalesce(sum(${sellerCreditSql}), 0)`,
         closed: sql<number>`count(*) filter (where ${closedProposalsSchema.closed})`,
         valor: sql<string>`coalesce(sum(${sellerCreditSql}) filter (where ${closedProposalsSchema.closed}), 0)`,
+        frete: sql<string>`coalesce(sum(${sellerFreightSql}) filter (where ${closedProposalsSchema.closed}), 0)`,
       })
       .from(closedProposalsSchema)
       .where(and(
@@ -313,12 +336,28 @@ export async function loadRoasPanel(
       segments: emptySegments,
       sellers: [],
       freightProposals: [],
+      contractFreightBrl: 0,
+      laterFreightBrl: 0,
+      ltvFreightBrl: 0,
       unassignedProposals: 0,
       unassignedBrl: 0,
       updatedAt: null,
       schemaReady: false,
     };
   }
+
+  for (const row of originRows) {
+    if (row.channel !== channel) {
+      continue;
+    }
+    if (row.dealKind === 'contract') {
+      contractFreightBrl = money(row.frete);
+    }
+    if (row.dealKind === 'ltv') {
+      laterFreightBrl = money(row.frete);
+    }
+  }
+  ltvFreightBrl = Number((contractFreightBrl + laterFreightBrl).toFixed(2));
 
   const dates = listBrasiliaDates(range.dateFrom, range.dateTo);
   const missingSpend = dates.some((date) => !spendRows.some((row) => row.spendDate === date));
@@ -458,6 +497,9 @@ export async function loadRoasPanel(
       freightBrl: money(row.freightBrl),
       proposalBrl: money(row.proposalBrl),
     })),
+    contractFreightBrl,
+    laterFreightBrl,
+    ltvFreightBrl,
     unassignedProposals: sellerRows.filter((row) => !row.seller).reduce((sum, row) => sum + Number(row.proposals ?? 0), 0),
     unassignedBrl: sellerRows.filter((row) => !row.seller).reduce((sum, row) => sum + money(row.valor), 0),
     updatedAt: latest ? formatDateTimeBrasilia(latest) : null,

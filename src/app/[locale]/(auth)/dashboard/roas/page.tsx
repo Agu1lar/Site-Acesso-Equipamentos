@@ -73,13 +73,15 @@ export default async function RoasPage(props: RoasPageProps) {
     referral: t('origin_referral'),
   };
   const selectedOrigin = panel.origins.find((origin) => origin.channel === channel);
+  const contractClosedBrl = Number((selectedOrigin?.contractClosedBrl ?? 0).toFixed(2));
   const laterBrl = Number((selectedOrigin?.ltvClosedBrl ?? 0).toFixed(2));
+  const ltvSumBrl = Number((contractClosedBrl + laterBrl).toFixed(2));
   const laterCount = selectedOrigin?.ltvClosed ?? 0;
   const contractClosedCount = selectedOrigin?.contractClosed ?? 0;
   const contractGeneratedCount = selectedOrigin?.contracts ?? 0;
   const contractGeneratedBrl = selectedOrigin?.contractBrl ?? 0;
-  const showSum = Math.abs(panel.closedBrl + laterBrl - panel.ltvClosedBrl) < 0.05;
-  const contractShare = showSum && panel.ltvClosedBrl > 0 ? (panel.closedBrl / panel.ltvClosedBrl) * 100 : 0;
+  const showSum = Math.abs(contractClosedBrl + laterBrl - ltvSumBrl) < 0.05;
+  const contractShare = showSum && ltvSumBrl > 0 ? (contractClosedBrl / ltvSumBrl) * 100 : 0;
   const ltvByDay = new Map(panel.ltvDays.map((day) => [day.date, day]));
   const activeDays = visibleRoasDays(panel.days, ltvByDay, range.dateTo);
 
@@ -145,7 +147,7 @@ export default async function RoasPage(props: RoasPageProps) {
             </p>
           </div>
         </div>
-        {showSum && panel.ltvClosedBrl > 0 ? (
+        {showSum && ltvSumBrl > 0 ? (
           <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-neutral-100" aria-hidden="true">
             <div className="bg-primary" style={{ width: `${contractShare}%` }} />
             <div className="bg-neutral-800" style={{ width: `${100 - contractShare}%` }} />
@@ -154,29 +156,44 @@ export default async function RoasPage(props: RoasPageProps) {
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           <ReadingFigure
             count={t('reading_closed', { count: contractClosedCount })}
-            detail={t('reading_generated', { count: contractGeneratedCount, value: money.format(contractGeneratedBrl) })}
+            detail={[
+              t('reading_generated', { count: contractGeneratedCount, value: money.format(contractGeneratedBrl) }),
+              panel.contractFreightBrl > 0
+                ? t('reading_freight_discount', { value: money.format(panel.contractFreightBrl) })
+                : null,
+            ].filter(Boolean).join(' · ')}
             hint={t('reading_contract_hint')}
             label={t('reading_contract')}
             tone="primary"
-            value={money.format(panel.closedBrl)}
+            value={money.format(contractClosedBrl)}
           />
           <ReadingFigure
             count={t('reading_closed', { count: laterCount })}
+            detail={
+              panel.laterFreightBrl > 0
+                ? t('reading_freight_discount', { value: money.format(panel.laterFreightBrl) })
+                : undefined
+            }
             hint={t('reading_later_hint')}
             label={t('reading_later')}
             tone="neutral"
             value={money.format(laterBrl)}
           />
           <ReadingFigure
-            count={t('reading_closed', { count: panel.ltvProposals })}
+            count={t('reading_closed', { count: contractClosedCount + laterCount })}
+            detail={
+              panel.ltvFreightBrl > 0
+                ? t('reading_freight_discount', { value: money.format(panel.ltvFreightBrl) })
+                : undefined
+            }
             hint={t('reading_ltv_hint')}
             label={t('kpi_ltv')}
             tone="sum"
-            value={money.format(panel.ltvClosedBrl)}
+            value={money.format(ltvSumBrl)}
           />
         </div>
         <p className="mt-3 text-xs text-neutral-500">
-          {t('reading_pipeline', { count: contractClosedCount, value: money.format(panel.closedBrl) })}
+          {t('reading_pipeline', { count: contractClosedCount, value: money.format(contractClosedBrl) })}
           {' '}
           {panel.updatedAt ? t('updated_at', { time: panel.updatedAt }) : t('updated_daily')}
         </p>
