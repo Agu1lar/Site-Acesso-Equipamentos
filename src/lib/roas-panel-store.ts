@@ -27,7 +27,14 @@ export type RoasPanel = {
     ferramentas: number;
     pendingBrl: number;
   };
-  sellers: { name: string; proposals: number; closedBrl: number }[];
+  sellers: { name: string; proposals: number; closedBrl: number; freightBrl: number }[];
+  freightProposals: {
+    numero: string;
+    seller: string | null;
+    closedBrl: number;
+    freightBrl: number;
+    proposalBrl: number;
+  }[];
   unassignedProposals: number;
   unassignedBrl: number;
   updatedAt: string | null;
@@ -48,14 +55,22 @@ function money(value: string | number | null | undefined) {
 }
 
 /** Platform-only deals credit rental (segment), not outsourced frete in valorTotal. */
+const platformOnlySql = sql`${closedProposalsSchema.segmentPlataformas} is not null
+  and coalesce(${closedProposalsSchema.segmentPlataformas}, 0) > 0
+  and coalesce(${closedProposalsSchema.segmentGuindastes}, 0) = 0
+  and coalesce(${closedProposalsSchema.segmentAndaimes}, 0) = 0
+  and coalesce(${closedProposalsSchema.segmentFerramentas}, 0) = 0`;
+
 const sellerCreditSql = sql`case
-  when ${closedProposalsSchema.segmentPlataformas} is not null
-    and coalesce(${closedProposalsSchema.segmentPlataformas}, 0) > 0
-    and coalesce(${closedProposalsSchema.segmentGuindastes}, 0) = 0
-    and coalesce(${closedProposalsSchema.segmentAndaimes}, 0) = 0
-    and coalesce(${closedProposalsSchema.segmentFerramentas}, 0) = 0
+  when ${platformOnlySql}
   then ${closedProposalsSchema.segmentPlataformas}
   else ${closedProposalsSchema.valorTotal}
+end`;
+
+const sellerFreightSql = sql`case
+  when ${platformOnlySql}
+  then greatest(${closedProposalsSchema.valorTotal} - ${closedProposalsSchema.segmentPlataformas}, 0)
+  else 0
 end`;
 
 /**
@@ -114,7 +129,14 @@ export async function loadRoasPanel(
     ferramentas: string;
     pending: string;
   } | undefined;
-  let sellerRows: { seller: string | null; proposals: number; valor: string }[] = [];
+  let sellerRows: { seller: string | null; proposals: number; valor: string; frete: string }[] = [];
+  let freightProposalRows: {
+    numero: string;
+    seller: string | null;
+    proposalBrl: string;
+    closedBrl: string;
+    freightBrl: string;
+  }[] = [];
   let paidContractClosed = '0';
   try {
     closedRows = await db
@@ -225,6 +247,7 @@ export async function loadRoasPanel(
         seller: closedProposalsSchema.seller,
         proposals: count(),
         valor: sql<string>`coalesce(sum(${sellerCreditSql}), 0)`,
+        frete: sql<string>`coalesce(sum(${sellerFreightSql}), 0)`,
       })
       .from(closedProposalsSchema)
       .where(and(
@@ -235,6 +258,24 @@ export async function loadRoasPanel(
         lte(closedProposalsSchema.approvedAt, toUtc),
       ))
       .groupBy(closedProposalsSchema.seller);
+    freightProposalRows = await db
+      .select({
+        numero: closedProposalsSchema.numero,
+        seller: closedProposalsSchema.seller,
+        proposalBrl: sql<string>`${closedProposalsSchema.valorTotal}`,
+        closedBrl: sql<string>`${sellerCreditSql}`,
+        freightBrl: sql<string>`${sellerFreightSql}`,
+      })
+      .from(closedProposalsSchema)
+      .where(and(
+        eq(closedProposalsSchema.traffic, true),
+        eq(closedProposalsSchema.closed, true),
+        eq(closedProposalsSchema.channel, channel),
+        gte(closedProposalsSchema.approvedAt, fromUtc),
+        lte(closedProposalsSchema.approvedAt, toUtc),
+        sql`${sellerFreightSql} > 0`,
+      ))
+      .orderBy(sql`${sellerFreightSql} desc`, closedProposalsSchema.numero);
     if (channel !== 'paid') {
       const [paidClosed] = await db
         .select({
@@ -267,6 +308,7 @@ export async function loadRoasPanel(
       ltvDays: [],
       segments: emptySegments,
       sellers: [],
+      freightProposals: [],
       unassignedProposals: 0,
       unassignedBrl: 0,
       updatedAt: null,
@@ -402,8 +444,16 @@ export async function loadRoasPanel(
         name: row.seller,
         proposals: Number(row.proposals ?? 0),
         closedBrl: money(row.valor),
+        freightBrl: money(row.frete),
       }];
     }),
+    freightProposals: freightProposalRows.map((row) => ({
+      numero: row.numero,
+      seller: row.seller,
+      closedBrl: money(row.closedBrl),
+      freightBrl: money(row.freightBrl),
+      proposalBrl: money(row.proposalBrl),
+    })),
     unassignedProposals: sellerRows.filter((row) => !row.seller).reduce((sum, row) => sum + Number(row.proposals ?? 0), 0),
     unassignedBrl: sellerRows.filter((row) => !row.seller).reduce((sum, row) => sum + money(row.valor), 0),
     updatedAt: latest ? formatDateTimeBrasilia(latest) : null,

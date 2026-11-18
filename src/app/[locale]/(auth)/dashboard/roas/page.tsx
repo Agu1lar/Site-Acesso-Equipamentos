@@ -230,19 +230,48 @@ export default async function RoasPage(props: RoasPageProps) {
                   {money.format(row?.closedBrl ?? 0)}
                 </p>
                 <p className="text-xs text-neutral-500">{t('reading_closed', { count: row?.proposals ?? 0 })}</p>
+                {(row?.freightBrl ?? 0) > 0 ? (
+                  <p className="text-xs text-neutral-500">
+                    {t('seller_freight', { value: money.format(row?.freightBrl ?? 0) })}
+                  </p>
+                ) : null}
               </div>
             );
           })}
         </div>
         {panel.sellers.filter((seller) => !(PRIMARY_SELLERS as readonly string[]).includes(seller.name)).map((seller) => (
           <p className="text-xs text-neutral-600" key={seller.name}>
-            {t('seller_other', { name: seller.name, value: money.format(seller.closedBrl), count: seller.proposals })}
+            {t('seller_other', {
+              name: seller.name,
+              value: money.format(seller.closedBrl),
+              count: seller.proposals,
+            })}
+            {seller.freightBrl > 0 ? ` · ${t('seller_freight', { value: money.format(seller.freightBrl) })}` : ''}
           </p>
         ))}
         {panel.unassignedBrl > 0 ? (
           <p className="text-xs text-neutral-500">
             {t('seller_pending', { value: money.format(panel.unassignedBrl), count: panel.unassignedProposals })}
           </p>
+        ) : null}
+        {panel.freightProposals.length > 0 ? (
+          <div className="space-y-1 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2">
+            <p className="text-xs font-medium text-neutral-700">{t('freight_title')}</p>
+            <p className="text-xs text-neutral-500">{t('freight_hint')}</p>
+            <ul className="space-y-1">
+              {panel.freightProposals.map((row) => (
+                <li className="text-xs tabular-nums text-neutral-700" key={`${row.numero}-${row.seller ?? 'none'}`}>
+                  {t('freight_row', {
+                    numero: row.numero,
+                    seller: row.seller ?? t('freight_no_seller'),
+                    credit: money.format(row.closedBrl),
+                    freight: money.format(row.freightBrl),
+                    total: money.format(row.proposalBrl),
+                  })}
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : null}
       </section>
 
